@@ -1,0 +1,139 @@
+<div class="p-6 space-y-6">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Cotisations</h1>
+      <p class="text-sm text-gray-500 mt-1">Règles et suivi des paiements membres</p>
+    </div>
+    <button (click)="showRuleForm = !showRuleForm"
+      class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nouvelle règle
+    </button>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="showRuleForm" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">Créer une règle de cotisation</h3>
+    <form [formGroup]="form" (ngSubmit)="createRule()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Nom *</label>
+        <input formControlName="name" type="text" placeholder="Cotisation annuelle 2025/2026"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Montant (TND) *</label>
+        <input formControlName="amount" type="number" step="0.001" placeholder="0.000"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Fréquence *</label>
+        <select formControlName="frequency"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option *ngFor="let f of frequencies" [value]="f.value">{{ f.label }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Date de début *</label>
+        <input formControlName="startDate" type="date"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex items-center gap-6">
+        <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 cursor-pointer">
+          <input type="checkbox" formControlName="allowExemption" class="rounded"> Exemptions autorisées
+        </label>
+        <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 cursor-pointer">
+          <input type="checkbox" formControlName="allowInstallments" class="rounded"> Paiement fractionné
+        </label>
+      </div>
+      <div *ngIf="form.get('allowInstallments')?.value">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Nombre d'échéances</label>
+        <input formControlName="maxInstallments" type="number" min="2" max="12"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="md:col-span-2 flex gap-3">
+        <button type="submit" [disabled]="form.invalid"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition">
+          Créer la règle
+        </button>
+        <button type="button" (click)="showRuleForm = false"
+          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 bg-gray-100 dark:bg-gray-700 rounded-xl p-1 w-fit">
+    <button (click)="activeTab = 'rules'"
+      class="px-4 py-2 rounded-lg text-sm font-medium transition"
+      [class]="activeTab === 'rules' ? 'bg-white dark:bg-gray-800 shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'">
+      Règles ({{ rules.length }})
+    </button>
+    <button (click)="activeTab = 'payments'"
+      class="px-4 py-2 rounded-lg text-sm font-medium transition"
+      [class]="activeTab === 'payments' ? 'bg-white dark:bg-gray-800 shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'">
+      Paiements ({{ payments.length }})
+    </button>
+  </div>
+
+  <!-- Rules tab -->
+  <div *ngIf="activeTab === 'rules'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div *ngFor="let rule of rules"
+      class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-start justify-between mb-3">
+        <h3 class="font-semibold text-gray-800 dark:text-white text-sm">{{ rule.name }}</h3>
+        <span class="text-xs px-2 py-1 rounded-full font-medium"
+          [class]="rule.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'">
+          {{ rule.active ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+      <p class="text-2xl font-bold text-blue-600">{{ rule.amount | number:'1.3-3' }} <span class="text-sm font-normal text-gray-400">TND</span></p>
+      <div class="mt-3 flex items-center gap-3 text-xs text-gray-500">
+        <span class="flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          {{ freqLabel(rule.frequency) }}
+        </span>
+        <span *ngIf="rule.allowInstallments" class="text-purple-600">● {{ rule.maxInstallments }}x</span>
+        <span *ngIf="rule.allowExemption" class="text-orange-500">● Exemptions</span>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Début : {{ rule.startDate }}</p>
+    </div>
+    <div *ngIf="rules.length === 0" class="md:col-span-2 text-center py-12 text-gray-400">
+      Aucune règle de cotisation définie
+    </div>
+  </div>
+
+  <!-- Payments tab -->
+  <div *ngIf="activeTab === 'payments'" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Membre</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Échéance</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payé le</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+        <tr *ngFor="let p of payments" class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+          <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">{{ p.memberName || 'Membre #' + p.memberId }}</td>
+          <td class="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{{ p.amount | number:'1.3-3' }} TND</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="statusClass(p.status)">{{ p.status }}</span>
+          </td>
+          <td class="px-4 py-3 text-gray-500 text-xs">{{ p.dueDate }}</td>
+          <td class="px-4 py-3 text-gray-400 text-xs">{{ p.paidAt ? (p.paidAt | date:'dd/MM/yyyy') : '—' }}</td>
+        </tr>
+        <tr *ngIf="payments.length === 0">
+          <td colspan="5" class="px-4 py-8 text-center text-gray-400">Aucun paiement</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

@@ -1,0 +1,119 @@
+<div class="p-6 space-y-6">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Budget</h1>
+      <p class="text-sm text-gray-500 mt-1">Suivi budgétaire avec alertes automatiques (50 / 75 / 90 / 100%)</p>
+    </div>
+    <button (click)="showForm = !showForm"
+      class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nouveau budget
+    </button>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="showForm" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">Créer un budget</h3>
+    <form [formGroup]="form" (ngSubmit)="create()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Label *</label>
+        <input formControlName="label" type="text" placeholder="Ex: Budget annuel 2025/2026"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Montant total (TND) *</label>
+        <input formControlName="totalAmount" type="number" step="0.001" placeholder="0.000"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div></div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Début de période *</label>
+        <input formControlName="periodStart" type="date"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Fin de période *</label>
+        <input formControlName="periodEnd" type="date"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="md:col-span-2 flex gap-3">
+        <button type="submit" [disabled]="form.invalid"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition">
+          Créer
+        </button>
+        <button type="button" (click)="showForm = false"
+          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="flex justify-center py-12">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+
+  <!-- Budget cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" *ngIf="!loading">
+    <div *ngFor="let b of budgets"
+      class="rounded-2xl p-5 shadow-sm border transition"
+      [ngClass]="alertClass(b.consumptionPercentage)">
+
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 class="font-semibold text-gray-800 dark:text-white text-sm">{{ b.label }}</h3>
+          <p class="text-xs text-gray-400 mt-0.5">{{ b.periodStart }} → {{ b.periodEnd }}</p>
+        </div>
+        <span *ngIf="alertBadge(b.consumptionPercentage) as badge"
+          class="text-xs px-2 py-1 rounded-full font-medium" [ngClass]="badge.cls">
+          {{ badge.text }}
+        </span>
+      </div>
+
+      <!-- Bar -->
+      <div class="mb-4">
+        <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <span>Consommé</span>
+          <span class="font-semibold">{{ b.consumptionPercentage }}%</span>
+        </div>
+        <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-700"
+            [style.width.%]="b.consumptionPercentage"
+            [ngClass]="barClass(b.consumptionPercentage)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Amounts -->
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div>
+          <p class="text-xs text-gray-400">Total</p>
+          <p class="text-sm font-bold text-gray-800 dark:text-white">{{ b.totalAmount | number:'1.0-0' }}</p>
+          <p class="text-xs text-gray-400">TND</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Consommé</p>
+          <p class="text-sm font-bold text-gray-800 dark:text-white">{{ b.consumedAmount | number:'1.0-0' }}</p>
+          <p class="text-xs text-gray-400">TND</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Restant</p>
+          <p class="text-sm font-bold" [class]="b.remainingAmount < 0 ? 'text-red-600' : 'text-green-600'">
+            {{ b.remainingAmount | number:'1.0-0' }}
+          </p>
+          <p class="text-xs text-gray-400">TND</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div *ngIf="budgets.length === 0" class="md:col-span-2 xl:col-span-3 text-center py-12 text-gray-400">
+      Aucun budget défini
+    </div>
+  </div>
+
+</div>

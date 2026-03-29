@@ -1,0 +1,76 @@
+<div class="p-6 h-full flex flex-col" style="height: calc(100vh - 120px)">
+
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Assistant IA Trésorerie</h1>
+    <p class="text-sm text-gray-500 mt-1">Posez des questions en langage naturel — Propulsé par Gemini AI</p>
+  </div>
+
+  <!-- Suggestions rapides -->
+  <div class="flex flex-wrap gap-2 mb-4">
+    <button *ngFor="let q of ['Taux de recouvrement ?', 'Membres en retard ?', 'Budget restant ?', 'Dépenses ce mois ?']"
+      (click)="input = q; send()"
+      class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-xs font-medium hover:bg-blue-100 transition border border-blue-100">
+      {{ q }}
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 space-y-4 mb-4 border border-gray-100 dark:border-gray-700">
+
+    <div *ngFor="let msg of messages" class="flex gap-3" [class]="msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'">
+
+      <!-- Avatar -->
+      <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+        [class]="msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-purple-100 text-purple-700'">
+        {{ msg.role === 'user' ? 'Moi' : 'IA' }}
+      </div>
+
+      <!-- Bubble -->
+      <div class="max-w-xs lg:max-w-lg xl:max-w-2xl">
+        <div class="rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap"
+          [class]="msg.role === 'user'
+            ? 'bg-blue-600 text-white rounded-tr-none'
+            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none shadow-sm'">
+          {{ msg.content }}
+        </div>
+        <p class="text-xs text-gray-300 mt-1" [class]="msg.role === 'user' ? 'text-right' : 'text-left'">
+          {{ msg.timestamp | date:'HH:mm' }}
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="loading" class="flex gap-3">
+      <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold flex-shrink-0">IA</div>
+      <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+        <div class="flex gap-1">
+          <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+          <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+          <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Input -->
+  <div class="flex gap-3 items-end">
+    <textarea [(ngModel)]="input" (keydown)="onEnter($event)"
+      rows="1" placeholder="Posez votre question... (Entrée pour envoyer)"
+      class="flex-1 resize-none px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl text-sm dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+    </textarea>
+    <button (click)="send()" [disabled]="!input.trim() || loading"
+      class="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 transition flex-shrink-0">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Disclaimer -->
+  <p class="text-xs text-center text-gray-300 mt-2">
+    Mode démo — Gemini API activé après configuration de la clé
+  </p>
+
+</div>

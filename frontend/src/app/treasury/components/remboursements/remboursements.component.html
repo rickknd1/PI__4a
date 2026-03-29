@@ -1,0 +1,70 @@
+<div class="p-6 space-y-6">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Remboursements</h1>
+      <p class="text-sm text-gray-500 mt-1">Initier des remboursements via Stripe — traitement 3-5 jours ouvrés</p>
+    </div>
+    <button (click)="initiateRefunds()" [disabled]="!selectedPayments.length"
+      class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 transition">
+      Rembourser ({{ selectedPayments.length }})
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center py-10">
+    <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-blue-600"></div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Paid payments (can be refunded) -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-50 dark:border-gray-700 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Paiements remboursables</h3>
+        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ paid.length }}</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-700/50">
+          <tr>
+            <th class="px-4 py-3 w-10"></th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Membre</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payé le</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+          <tr *ngFor="let p of paid"
+            class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition cursor-pointer"
+            (click)="toggle(p.id)">
+            <td class="px-4 py-3 text-center">
+              <input type="checkbox" [checked]="isSelected(p.id)" (click)="$event.stopPropagation()" (change)="toggle(p.id)"
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            </td>
+            <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">{{ p.memberName || 'Membre #' + p.memberId }}</td>
+            <td class="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{{ p.amount | number:'1.3-3' }} TND</td>
+            <td class="px-4 py-3 text-gray-400 text-xs">{{ p.paidAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+          <tr *ngIf="paid.length === 0">
+            <td colspan="4" class="px-4 py-8 text-center text-gray-400">Aucun paiement remboursable</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Already refunded -->
+    <div *ngIf="refunded.length > 0" class="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-5 border border-blue-100 dark:border-blue-800">
+      <h3 class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3">Remboursements effectués</h3>
+      <div class="space-y-2">
+        <div *ngFor="let p of refunded" class="flex items-center justify-between text-sm">
+          <span class="text-gray-700 dark:text-gray-300">{{ p.memberName }}</span>
+          <div class="flex items-center gap-3">
+            <span class="font-semibold text-gray-800 dark:text-white">{{ p.amount | number:'1.3-3' }} TND</span>
+            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{{ p.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

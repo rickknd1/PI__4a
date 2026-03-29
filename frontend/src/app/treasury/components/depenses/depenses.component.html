@@ -1,0 +1,130 @@
+<div class="p-6 space-y-6">
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dépenses</h1>
+      <p class="text-sm text-gray-500 mt-1">Workflow : Soumission → Validation (trésorier) → Approbation (président)</p>
+    </div>
+    <button (click)="showForm = !showForm"
+      class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nouvelle dépense
+    </button>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="showForm" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-blue-100 dark:border-gray-700">
+    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">Soumettre une dépense</h3>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Titre *</label>
+        <input formControlName="title" type="text" placeholder="Ex: Matériel événement"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Montant (TND) *</label>
+        <input formControlName="amount" type="number" step="0.001" placeholder="0.000"
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Description</label>
+        <textarea formControlName="description" rows="2" placeholder="Détails de la dépense..."
+          class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+      </div>
+      <div class="md:col-span-2 flex gap-3">
+        <button type="submit" [disabled]="form.invalid"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition">
+          Soumettre
+        </button>
+        <button type="button" (click)="showForm = false"
+          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Workflow steps indicator -->
+  <div class="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
+    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">SUBMITTED</span>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">VALIDATED</span>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+    <span class="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">APPROVED</span>
+    <span class="ml-2 text-gray-300">|</span>
+    <span class="px-2 py-1 bg-red-100 text-red-700 rounded font-medium">REJECTED</span>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="flex gap-2 flex-wrap">
+    <button *ngFor="let s of statusFilters" (click)="selectedStatus = s; load()"
+      class="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+      [class]="selectedStatus === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'">
+      {{ filterLabel(s) }}
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div *ngIf="loading" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>
+    <table *ngIf="!loading" class="w-full text-sm">
+      <thead class="bg-gray-50 dark:bg-gray-700/50">
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Titre</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Demandeur</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Catégorie IA</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
+          <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+        <tr *ngFor="let e of expenses" class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+          <td class="px-4 py-3">
+            <p class="font-medium text-gray-800 dark:text-gray-200">{{ e.title }}</p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ e.description }}</p>
+          </td>
+          <td class="px-4 py-3 text-gray-500">{{ e.submittedByMemberName || 'Membre #' + e.submittedByMemberId }}</td>
+          <td class="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{{ e.amount | number:'1.3-3' }} TND</td>
+          <td class="px-4 py-3">
+            <div *ngIf="e.category" class="flex items-center gap-1">
+              <span class="text-xs text-gray-600 dark:text-gray-300">{{ e.category }}</span>
+              <span class="text-xs text-purple-500 font-medium">({{ e.categoryConfidenceScore }}%)</span>
+            </div>
+            <span *ngIf="!e.category" class="text-xs text-gray-300">—</span>
+          </td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="statusClass(e.status)">
+              {{ e.status }}
+            </span>
+            <p *ngIf="e.rejectionReason" class="text-xs text-red-400 mt-1">{{ e.rejectionReason }}</p>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <div class="flex justify-end gap-1">
+              <button *ngIf="e.status === 'SUBMITTED'" (click)="validate(e)"
+                class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition font-medium">
+                Valider
+              </button>
+              <button *ngIf="e.status === 'VALIDATED'" (click)="approve(e)"
+                class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 transition font-medium">
+                Approuver
+              </button>
+              <button *ngIf="e.status === 'SUBMITTED' || e.status === 'VALIDATED'" (click)="reject(e)"
+                class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition font-medium">
+                Rejeter
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="expenses.length === 0">
+          <td colspan="6" class="px-4 py-10 text-center text-gray-400">Aucune dépense</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
