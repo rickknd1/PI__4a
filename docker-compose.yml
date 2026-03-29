@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: treasury-postgres
+    environment:
+      POSTGRES_DB: treasury_db
+      POSTGRES_USER: treasury_user
+      POSTGRES_PASSWORD: treasury_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U treasury_user -d treasury_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: treasury-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@clubhub.tn
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  treasury-service:
+    build: ./treasury-service
+    container_name: treasury-service
+    ports:
+      - "8082:8082"
+    environment:
+      DB_USERNAME: treasury_user
+      DB_PASSWORD: treasury_pass
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/treasury_db
+      JWT_SECRET: ${JWT_SECRET:-clubhub-dev-secret-change-in-prod}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  postgres_data:

@@ -1,0 +1,70 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: treasury-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/treasury_db
+    username: ${DB_USERNAME:treasury_user}
+    password: ${DB_PASSWORD:treasury_pass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+# JWT (shared secret with auth-service)
+jwt:
+  secret: ${JWT_SECRET:clubhub-treasury-secret-key-change-in-prod}
+  expiration: 1800000  # 30 min
+
+# Stripe
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+  currency: tnd
+
+# Gemini AI
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: gemini-1.5-flash
+  max-tokens: 2048
+  quota:
+    monthly-per-club: 1000
+
+# Budget alerts thresholds (%)
+budget:
+  alert-thresholds: 50,75,90,100
+
+# OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.clubhub.treasury: INFO
+    org.springframework.security: WARN
