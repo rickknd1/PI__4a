@@ -102,6 +102,12 @@ export const routes: Routes = [
         component:VideosComponent,
         title:'Angular Videos Dashboard | TailAdmin - Angular Admin Dashboard Template'
       },
+      // ── ClubHub Treasury Module ──────────────────────────────────
+      {
+        path: 'treasury',
+        loadChildren: () => import('./treasury/treasury.routes').then(m => m.TREASURY_ROUTES),
+        title: 'ClubHub - Trésorerie'
+      },
     ]
   },
   // auth pages

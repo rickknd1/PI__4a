@@ -12,6 +12,11 @@ export const TREASURY_ROUTES: Routes = [
       import('./components/cotisations/cotisations.component').then(m => m.CotisationsComponent),
   },
   {
+    path: 'payments',
+    loadComponent: () =>
+      import('./components/cotisations/cotisations.component').then(m => m.CotisationsComponent),
+  },
+  {
     path: 'depenses',
     loadComponent: () =>
       import('./components/depenses/depenses.component').then(m => m.DepensesComponent),
