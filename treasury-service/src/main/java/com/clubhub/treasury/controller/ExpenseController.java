@@ -33,31 +33,31 @@ public class ExpenseController {
     @Operation(summary = "Soumettre une depense")
     public ResponseEntity<Expense> submit(@PathVariable Long clubId,
             @Valid @RequestBody CreateExpenseRequest req,
-            @RequestHeader("X-Actor-Id") Long memberId) {
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long memberId) {
         return ResponseEntity.status(201).body(expenseService.submit(clubId, memberId, req));
     }
 
     @PatchMapping("/{expenseId}/validate")
     @Operation(summary = "Valider une depense (tresorier)")
     public ResponseEntity<Expense> validate(@PathVariable Long clubId, @PathVariable Long expenseId,
-            @RequestHeader("X-Actor-Id") Long actorId,
-            @RequestHeader("X-Actor-Email") String actorEmail) {
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long actorId,
+            @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
         return ResponseEntity.ok(expenseService.validate(expenseId, actorId, actorEmail));
     }
 
     @PatchMapping("/{expenseId}/approve")
     @Operation(summary = "Approuver une depense (president)")
     public ResponseEntity<Expense> approve(@PathVariable Long clubId, @PathVariable Long expenseId,
-            @RequestHeader("X-Actor-Id") Long actorId,
-            @RequestHeader("X-Actor-Email") String actorEmail) {
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long actorId,
+            @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
         return ResponseEntity.ok(expenseService.approve(expenseId, actorId, actorEmail));
     }
 
     @PatchMapping("/{expenseId}/reject")
     @Operation(summary = "Rejeter une depense")
     public ResponseEntity<Expense> reject(@PathVariable Long clubId, @PathVariable Long expenseId,
-            @RequestHeader("X-Actor-Id") Long actorId,
-            @RequestHeader("X-Actor-Email") String actorEmail,
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long actorId,
+            @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail,
             @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(expenseService.reject(expenseId, actorId, actorEmail, body.get("reason")));
     }

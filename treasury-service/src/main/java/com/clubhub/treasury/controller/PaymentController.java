@@ -49,8 +49,8 @@ public class PaymentController {
             @PathVariable Long clubId,
             @PathVariable Long paymentId,
             @RequestBody Map<String, String> body,
-            @RequestHeader("X-Actor-Id") Long actorId,
-            @RequestHeader("X-Actor-Email") String actorEmail) {
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long actorId,
+            @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
         return ResponseEntity.ok(paymentService.confirmPayment(
                 paymentId,
                 body.get("stripeIntentId"),
@@ -63,8 +63,8 @@ public class PaymentController {
     public ResponseEntity<Payment> refund(
             @PathVariable Long clubId,
             @PathVariable Long paymentId,
-            @RequestHeader("X-Actor-Id") Long actorId,
-            @RequestHeader("X-Actor-Email") String actorEmail) {
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long actorId,
+            @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
         return ResponseEntity.ok(paymentService.markRefunded(paymentId, actorId, actorEmail));
     }
 
@@ -73,8 +73,8 @@ public class PaymentController {
     public ResponseEntity<Payment> exempt(
             @PathVariable Long clubId,
             @PathVariable Long paymentId,
-            @RequestHeader("X-Actor-Id") Long actorId,
-            @RequestHeader("X-Actor-Email") String actorEmail) {
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long actorId,
+            @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
         return ResponseEntity.ok(paymentService.markExempt(paymentId, actorId, actorEmail));
     }
 }

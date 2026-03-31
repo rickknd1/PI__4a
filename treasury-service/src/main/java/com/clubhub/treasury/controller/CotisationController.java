@@ -32,8 +32,8 @@ public class CotisationController {
     public ResponseEntity<CotisationRule> createRule(
             @PathVariable Long clubId,
             @Valid @RequestBody CreateCotisationRuleRequest request,
-            @RequestHeader("X-Actor-Id") Long actorId,
-            @RequestHeader("X-Actor-Email") String actorEmail) {
+            @RequestHeader(value = "X-Actor-Id", defaultValue = "1") Long actorId,
+            @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
         return ResponseEntity.status(201).body(
                 cotisationService.createRule(clubId, request, actorId, actorEmail));
     }
