@@ -1,0 +1,281 @@
+<div class="p-6 max-w-screen-2xl mx-auto">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Events & Training</h1>
+      <p class="text-gray-500 dark:text-gray-400 mt-1">Discover and join Club Hub events</p>
+    </div>
+
+    @if (canCreateEvents()) {
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="openAiAssistant()"
+          class="flex items-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white px-5 py-3.5 rounded-2xl font-medium transition-all shadow-md"
+          title="Décris l'événement en langage naturel — l'IA s'occupe du reste."
+        >
+          ✨ Assistant IA
+        </button>
+        <a
+          routerLink="/calendar"
+          class="flex items-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3.5 rounded-2xl font-medium transition-all"
+        >
+          ➕ Create New Event
+        </a>
+      </div>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (event of events; track event.id) {
+      <div
+        (click)="openEventDetails(event)"
+        (mouseenter)="loadRatingFor(event.id!)"
+        class="group bg-white dark:bg-gray-900 rounded-3xl overflow-hidden border hover:shadow-2xl cursor-pointer"
+      >
+        <div class="h-52 bg-gradient-to-br from-indigo-500 via-purple-600 to-violet-600 relative">
+          @if (event.imageUrl) {
+            <img
+              [src]="event.imageUrl"
+              alt="{{ event.title || 'Event image' }}"
+              title="{{ event.title || 'Event image' }}"
+              loading="lazy"
+              class="w-full h-full object-cover"
+            />
+          }
+
+          @if (event.price && event.price > 0) {
+            <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-xl text-sm font-bold">
+              {{ event.price }} TND
+            </div>
+          } @else {
+            <div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-xl text-sm">
+              Free
+            </div>
+          }
+
+          @if (isLive(event)) {
+            <div class="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-xl text-xs">
+              🔴 LIVE
+            </div>
+          }
+
+          <div class="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-xl text-xs">
+            ⏱ {{ countdowns[event.id!] }}
+          </div>
+        </div>
+
+        <div class="p-6">
+          <h3 class="font-semibold text-xl mb-3">
+            {{ event.title }}
+          </h3>
+
+          <p class="text-sm text-gray-500 mb-2">
+            {{ formatDate(event.scheduledAt) }}
+          </p>
+
+          <p class="text-gray-600 text-sm line-clamp-3">
+            {{ event.description }}
+          </p>
+
+          @if (ratingsByEvent[event.id!]?.count) {
+            <div class="mt-3 flex items-center gap-1.5 text-sm">
+              <span class="text-amber-500">{{ starsFor(event.id) }}</span>
+              <span class="text-gray-500 text-xs">
+                {{ ratingsByEvent[event.id!]?.avg }}/5
+                · {{ ratingsByEvent[event.id!]?.count }} avis
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!--   ASSISTANT IA — modale de création par langage naturel (Gemini)    -->
+<!-- ================================================================== -->
+@if (showAiModal) {
+  <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000] p-4"
+       (click)="closeAiAssistant()">
+    <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col"
+         (click)="$event.stopPropagation()">
+
+      <div class="px-8 py-6 border-b flex justify-between items-center bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-violet-950/30 dark:to-fuchsia-950/30">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+            ✨ Assistant IA — Calendrier
+          </h2>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            Décris ton événement en français, l'IA pré-remplit le formulaire.
+          </p>
+        </div>
+        <button type="button" (click)="closeAiAssistant()"
+                class="text-lg hover:text-red-500">✖</button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto">
+        <textarea
+          [(ngModel)]="aiPrompt"
+          rows="4"
+          placeholder="Ex: 'Conférence cybersécurité jeudi 12 juin 14h salle Jitsi capacité 80 places gratuite' — l'IA extraira titre, date, durée, capacité, prix…"
+          class="w-full rounded-2xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white px-4 py-3 text-sm focus:border-violet-500 focus:outline-none resize-none">
+        </textarea>
+
+        <div class="flex justify-end">
+          <button type="button" (click)="askAi()"
+                  [disabled]="aiBusy || !aiPrompt.trim()"
+                  class="px-5 py-2.5 rounded-2xl bg-violet-600 hover:bg-violet-700 disabled:bg-gray-300 text-white text-sm font-medium transition">
+            {{ aiBusy ? 'Analyse…' : 'Demander à l\'IA' }}
+          </button>
+        </div>
+
+        @if (aiDraft) {
+          <div class="rounded-2xl border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-5 space-y-2 text-sm">
+            <p class="font-semibold text-violet-700 dark:text-violet-200">Brouillon proposé :</p>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1.5">
+              <span class="text-gray-500">Titre :</span>
+              <span class="font-medium">{{ aiDraft.title || '—' }}</span>
+              <span class="text-gray-500">Catégorie :</span>
+              <span>{{ aiDraft.category || '—' }}</span>
+              <span class="text-gray-500">Date :</span>
+              <span>{{ aiDraft.scheduledAt || '—' }}</span>
+              <span class="text-gray-500">Fin :</span>
+              <span>{{ aiDraft.endAt || '—' }}</span>
+              <span class="text-gray-500">Capacité :</span>
+              <span>{{ aiDraft.maxParticipants ?? '—' }}</span>
+              <span class="text-gray-500">Prix :</span>
+              <span>{{ aiDraft.price ?? 0 }} TND ({{ aiDraft.isPaid ? 'payant' : 'gratuit' }})</span>
+              <span class="text-gray-500">Type :</span>
+              <span>{{ aiDraft.type || '—' }}</span>
+            </div>
+            @if (aiDraft.description) {
+              <p class="pt-2 border-t border-violet-200 dark:border-violet-800 text-gray-600 dark:text-gray-300 text-xs leading-relaxed">
+                {{ aiDraft.description }}
+              </p>
+            }
+
+            <div class="flex justify-end pt-3 gap-2">
+              <button type="button" (click)="aiDraft = null"
+                      class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 rounded-xl">
+                Reformuler
+              </button>
+              <button type="button" (click)="createFromAiDraft()"
+                      class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium">
+                Créer l'événement
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (aiRawText && !aiDraft) {
+          <div class="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 p-3 text-xs text-amber-700 dark:text-amber-200">
+            <p class="font-semibold mb-1">Réponse brute (l'IA n'a pas renvoyé un JSON valide) :</p>
+            <pre class="whitespace-pre-wrap break-words">{{ aiRawText }}</pre>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (isModalOpen && selectedEvent) {
+  <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-[999] p-4">
+    <div class="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
+
+      <div class="px-8 py-6 border-b flex justify-between items-center">
+        <h2 class="text-xl font-bold">
+          {{ selectedEvent.title }}
+        </h2>
+
+        <button
+          type="button"
+          (click)="closeModal()"
+          class="text-lg hover:text-red-500"
+        >
+          ✖
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto">
+        <p>{{ selectedEvent.description }}</p>
+
+        <p>📅 {{ formatDate(selectedEvent.scheduledAt) }}</p>
+
+        <p>
+          👥 {{ selectedEvent.currentParticipants || 0 }} /
+          {{ selectedEvent.maxParticipants || '∞' }}
+        </p>
+
+        <p class="text-indigo-600 font-semibold text-center">
+          ⏱ {{ countdowns[selectedEvent.id!] }}
+        </p>
+
+        <p class="text-sm text-center text-gray-500">
+          {{ getJoinMessage(selectedEvent) }}
+        </p>
+
+        <select [(ngModel)]="selectedColor" class="w-full border p-2 rounded-lg">
+          <option value="blue">Blue</option>
+          <option value="red">Red</option>
+        </select>
+
+        <select [(ngModel)]="selectedType" class="w-full border p-2 rounded-lg">
+          <option value="cube">Cube</option>
+          <option value="sphere">Sphere</option>
+        </select>
+
+        @if (loading) {
+          <div class="text-center text-blue-600 font-medium">
+            Loading...
+          </div>
+        }
+
+        @if (successMsg) {
+          <div class="text-center text-green-600 font-medium">
+            {{ successMsg }}
+          </div>
+        }
+
+        @if (errorMsg) {
+          <div class="text-center text-red-600 font-medium">
+            {{ errorMsg }}
+          </div>
+        }
+
+        <div class="flex gap-2 pt-2">
+          <button
+            type="button"
+            (click)="registerToEvent(selectedEvent)"
+            [disabled]="loading"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 rounded-xl"
+          >
+            {{ loading ? 'Registering...' : 'Register' }}
+          </button>
+
+          <button
+            type="button"
+            (click)="payForEvent(selectedEvent)"
+            [disabled]="loading"
+            class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 rounded-xl"
+          >
+            💰 Pay
+          </button>
+
+          <button
+            type="button"
+            (click)="joinMeeting(selectedEvent)"
+            [disabled]="!canUserJoin(selectedEvent)"
+            [ngClass]="{
+              'bg-gray-400 cursor-not-allowed': !canUserJoin(selectedEvent),
+              'bg-indigo-600 hover:bg-indigo-700': canUserJoin(selectedEvent)
+            }"
+            class="flex-1 text-white py-2 rounded-xl"
+          >
+            🎥 Join
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

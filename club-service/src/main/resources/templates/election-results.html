@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .winner-box { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; margin: 20px 0; border: 3px solid #f59e0b; border-radius: 10px; text-align: center; }
+        .button { display: inline-block; background: #8b5cf6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 Résultats de l'Élection</h1>
+            <p th:text="${clubName}"></p>
+        </div>
+        <div class="content">
+            <h2 th:text="${electionTitle}"></h2>
+            <p><strong>Total des votes:</strong> <span th:text="${totalVotes}"></span></p>
+            <div th:each="entry : ${winners}" class="winner-box">
+                <h3 style="margin-top: 0; color: #d97706;">🏆 Gagnant</h3>
+                <h2 style="margin: 10px 0; color: #92400e;" th:text="${entry.value}"></h2>
+                <p style="margin-bottom: 0; font-size: 16px; color: #78350f;">
+                    <span th:if="${electionType == 'PRESIDENT'}">Nouveau Président</span>
+                    <span th:unless="${electionType == 'PRESIDENT'}" th:text="'Responsable du comité ' + ${entry.key}"></span>
+                </p>
+            </div>
+            <p style="font-size: 14px; color: #666;">Les rôles ont été automatiquement mis à jour dans le système.</p>
+            <center>
+                <a th:href="${electionLink}" class="button">Voir les détails complets</a>
+            </center>
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">Félicitations aux gagnants et merci à tous les participants ! 🎉</p>
+        </div>
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement par ClubHub</p>
+        </div>
+    </div>
+</body>
+</html>

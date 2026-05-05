@@ -1,0 +1,135 @@
+================================================================
+MODULE TRESORERIE - ClubHub
+================================================================
+
+C'EST QUOI
+----------
+Microservice qui gere toute la finance d'un club : cotisations des
+membres, paiements Stripe/especes, gestion des depenses avec workflow
+de validation, budget, reporting PDF et IA d'aide a la decision.
+
+
+STACK TECHNIQUE
+---------------
+- Spring Boot 3.3.4 / Java 21
+- MongoDB 8.2.6
+- Stripe API (paiement carte)
+- iText 8 (generation PDF)
+- Gemini 2.0-flash (chatbot RAG)
+- Smile ML 4.3 (modeles ML entraines localement, pas de Python)
+- Frontend : Angular 21 + Tailwind CSS 4
+
+
+FONCTIONNALITES
+---------------
+
+[1] COTISATIONS
+- Regles configurables : annuelle (120 TND) / mensuelle (15 TND)
+- Exemptions, paiements echelonnes
+- Statuts : PENDING / PAID / LATE / REFUNDED / EXEMPT / FAILED
+
+[2] PAIEMENTS
+- Stripe Checkout Session : redirection portail Stripe, retour
+  automatique avec confirmation
+- Especes : membre demande -> tresorier valide manuellement
+- Generation automatique du recu PDF + envoi email
+
+[3] DEPENSES (workflow reglementaire)
+- 3 devis obligatoires par depense (validation @Size(min=3, max=3))
+- Tresorier valide en selectionnant 1 devis (montant mis a jour)
+- President approuve final
+- Auto-categorisation IA en 8 categories
+  (Transport, Restauration, Materiel, Hebergement, Communication,
+  Fournitures, Evenement, Autre)
+
+[4] BUDGET
+- Plusieurs budgets paralleles (annuel, evenements, communication)
+- Alertes automatiques : 50% / 75% / 90% / 100% de consommation
+
+[5] REPORTING PDF (devise TND)
+- Bilan financier : 5 sections
+  (Recettes, Depenses, Resultat, Budget, Recapitulatif)
+- Recu de paiement avec signature
+- Facture de depense avec TVA 20%
+
+[6] AUDIT
+- Journal horodate de toutes les actions
+  (PAYMENT_CREATED, EXPENSE_VALIDATED, BUDGET_CREATED...)
+- Tracabilite : actor / club / values_before / values_after
+
+
+INTELLIGENCE ARTIFICIELLE - 5 FONCTIONNALITES
+----------------------------------------------
+
+(1) Chatbot tresorerie
+    => Gemini 2.0-flash + RAG (extrait donnees BDD)
+
+(2) Prediction budget 3 mois
+    => Gemini + regression lineaire en fallback
+
+(3) Detection anomalies depenses
+    => Isolation Forest entraine LOCALEMENT
+    => 200 arbres, 7 features
+    => 7/7 anomalies test detectees sur 150 echantillons
+    => Re-entrainement automatique hebdomadaire
+
+(4) Prediction retard de paiement par membre
+    => Random Forest entraine LOCALEMENT
+    => 100 arbres, accuracy 90.5%
+    => Predit la probabilite qu'un membre paie en retard
+    => Features anti-leakage (utilise uniquement historique
+       anterieur a la date d'echeance)
+
+(5) Auto-categorisation des depenses
+    => Gemini analyse titre + description -> categorie + score
+
+Les 2 modeles ML tournent dans le JVM (Smile ML 4.3.0).
+Aucune dependance Python, aucun appel API externe pour la detection
+d'anomalies et la prediction de retards.
+
+
+FRONTEND ANGULAR
+----------------
+- Dashboard : graphique SVG anime (Recettes/Depenses 6 derniers mois)
+  + 5 metriques + solde net + barre de recouvrement
+- 2 bandeaux IA :
+    * Anomalies detectees (violet) avec lien vers la page details
+    * Membres a risque de retard top-3 (orange) avec %  prediction
+- Sidebar dynamique selon le role
+  (TRESORIER / MEMBRE_SIMPLE / non connecte)
+- Pages : Cotisations, Depenses, Budget, Audit, Anomalies,
+  Predictions, Chatbot, Espace membre
+
+
+ROLES SUPPORTES
+---------------
+PRESIDENT, VICE_PRESIDENT, SECRETAIRE_GENERALE, TRESORIER, RH,
+MEMBRE_SIMPLE, MEMBRE_BUREAU
+
+
+SECURITE
+--------
+- JWT cookie httpOnly partage avec le user-service
+- @PreAuthorize par role
+- userId/email/role lus uniquement depuis le JWT (jamais du body)
+- CORS gere au niveau du gateway uniquement
+
+
+PORT & INTEGRATION
+------------------
+- Service tresorerie : port 8085
+- Acces via gateway : port 8084
+- BDD MongoDB : treasury_db
+- Documentation OpenAPI : http://localhost:8085/swagger-ui.html
+
+
+COMPTES TEST (apres seed)
+--------------------------
+TRESORIER     : rick.tresorier@clubhub.tn  / Test1234!
+MEMBRE_SIMPLE : kayzeurdylan2@gmail.com    / Test1234!
+
+
+REPO GIT
+--------
+Branche : tresory
+URL     : https://github.com/hedyene5/Club-Hub

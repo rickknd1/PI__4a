@@ -1,0 +1,68 @@
+<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold text-gray-800">Gestion des Élections</h2>
+      <a routerLink="/elections/create" 
+         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        + Nouvelle Élection
+      </a>
+    </div>
+  
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-10">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="mt-2 text-gray-500">Chargement...</p>
+    </div>
+  
+    <!-- Liste des élections -->
+    <div *ngIf="!loading" class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="text-left py-3 px-4">Titre</th>
+            <th class="text-left py-3 px-4">Statut</th>
+            <th class="text-left py-3 px-4">Type</th>
+            <th class="text-left py-3 px-4">Date début</th>
+            <th class="text-left py-3 px-4">Date fin</th>
+            <th class="text-left py-3 px-4">Candidats</th>
+            <th class="text-left py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let election of elections" class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50">
+            <td class="py-3 px-4">
+              <a [routerLink]="['/elections', election.id]" class="text-blue-600 hover:underline">
+                {{ election.title }}
+              </a>
+            </td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full"
+                    [ngClass]="election.status | electionStatusColor">
+                {{ election.status | electionStatus }}
+              </span>
+            </td>
+            <td class="py-3 px-4">{{ election.type === 'VIRTUAL' ? 'Virtuelle' : 'Présentiel' }}</td>
+            <td class="py-3 px-4">{{ election.startDate | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="py-3 px-4">{{ election.endDate | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="py-3 px-4">{{ election.candidates.length || 0 }}</td>
+            <td class="py-3 px-4">
+              <div class="flex space-x-2">
+                <a [routerLink]="['/elections', election.id, 'edit']" 
+                   class="text-blue-600 hover:text-blue-800">✏️</a>
+                <button (click)="deleteElection(election.id!)" 
+                        class="text-red-600 hover:text-red-800">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- Aucune élection -->
+    <div *ngIf="!loading && elections.length === 0" class="text-center py-10">
+      <p class="text-gray-500">Aucune élection trouvée</p>
+      <a routerLink="/elections/create" 
+         class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+        Créer votre première élection
+      </a>
+    </div>
+  </div>

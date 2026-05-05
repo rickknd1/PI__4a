@@ -1,0 +1,68 @@
+server:
+  error:
+    include-message: always
+    include-stacktrace: always
+    include-exception: true
+
+spring:
+  data:
+    mongodb:
+      # MongoDB local installe (port 27017)
+      uri: mongodb://localhost:27017/clubhub_treasury
+
+  autoconfigure:
+    exclude:
+      - de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
+
+  quartz:
+    job-store-type: memory
+    overwrite-existing-jobs: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: kayzeurdylan@gmail.com
+    password: ycaoctdpvjjlalqu
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+# Flapdoodle desactive — on utilise MongoDB local
+# de:
+#   flapdoodle:
+#     mongodb:
+#       embedded:
+#         version: 7.0.9
+
+stripe:
+  # Cles Stripe en variables d'environnement uniquement (jamais en clair sur Git).
+  # Pour le dev local, definir dans un fichier .env (non versionne) ou dans IntelliJ Run Config.
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
+  # Compte Stripe FR : ne supporte pas TND. On utilise EUR pour le checkout uniquement.
+  # L'UI et les PDF affichent toujours TND. Conversion TND->EUR au taux fixe ci-dessous.
+  currency: eur
+  # 1 EUR ~= 3.3 TND (taux Banque Centrale Tunisie 2026), donc 1 TND ~= 0.303 EUR.
+  # Exemple : 15 TND -> 4.55 EUR sur Stripe / 120 TND -> 36.36 EUR sur Stripe.
+  tnd-to-eur-rate: 0.303
+
+gemini:
+  # Cle vide = smart fallback local (reponses generees a partir des donnees BDD, sans quota)
+  # Mettre une cle valide ici pour basculer sur Gemini (https://aistudio.google.com/apikey)
+  api-key: ""
+  model: gemini-2.0-flash
+  max-tokens: 2048
+
+notification:
+  # DESACTIVE en dev — les mails du seed (@esprit.tn) n'existent pas
+  # et provoquent des bounces qui floodent la boite Gmail
+  # Remettre a true uniquement pour tester avec de vrais emails (kayzeurdylan2@gmail.com)
+  email-enabled: false
+
+logging:
+  level:
+    com.clubhub.treasury: DEBUG
+    org.springframework.security: WARN
+    org.springframework.web: INFO
+    # de.flapdoodle: WARN

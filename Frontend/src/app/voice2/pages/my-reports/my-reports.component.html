@@ -1,0 +1,129 @@
+<div class="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+
+  <div class="mb-6">
+    <h2 class="text-title-md2 font-semibold text-black dark:text-white">My Reports</h2>
+    <p class="text-sm text-body dark:text-bodydark">Reports you have filed and their decisions</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="flex justify-center py-20">
+    <svg class="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+    </svg>
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!loading && reports.length === 0"
+    class="flex flex-col items-center justify-center rounded-sm border border-stroke bg-white py-20 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <svg class="mb-4 h-12 w-12 text-bodydark2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6H9.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+    </svg>
+    <p class="text-base font-medium text-black dark:text-white">No reports filed yet</p>
+    <p class="mt-1 text-sm text-body dark:text-bodydark">You haven't reported any audio messages.</p>
+  </div>
+
+  <!-- Reports list -->
+  <div *ngIf="!loading && reports.length > 0" class="flex flex-col gap-4">
+    <div
+      *ngFor="let report of reports"
+      class="rounded-sm border bg-white shadow-default dark:bg-boxdark transition"
+      [class.border-danger]="report.status === 'PENDING'"
+      [class.border-meta-3]="report.status === 'REVIEWED'"
+      [class.border-stroke]="report.status === 'DISMISSED'"
+      [class.dark:border-strokedark]="report.status !== 'PENDING' && report.status !== 'REVIEWED'"
+    >
+      <div class="p-5">
+
+        <!-- Top: status + date -->
+        <div class="mb-3 flex items-center justify-between">
+          <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+            [class.bg-danger]="report.status === 'PENDING'"
+            [class.text-white]="report.status === 'PENDING' || report.status === 'REVIEWED'"
+            [class.bg-meta-3]="report.status === 'REVIEWED'"
+            [class.bg-stroke]="report.status === 'DISMISSED'"
+            [class.text-bodydark2]="report.status === 'DISMISSED'"
+          >
+            {{ report.status }}
+          </span>
+          <span class="text-xs text-bodydark2">{{ formatDate(report.createdAt) }}</span>
+        </div>
+
+        <!-- Info -->
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <p class="text-xs text-bodydark2 uppercase tracking-wide">Channel</p>
+            <p class="mt-0.5 text-sm font-medium text-black dark:text-white">{{ report.channelName }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-bodydark2 uppercase tracking-wide">Reported user</p>
+            <p class="mt-0.5 text-sm font-medium text-black dark:text-white">{{ report.reportedUserName }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-bodydark2 uppercase tracking-wide">Reason</p>
+            <p class="mt-0.5 text-sm font-medium text-black dark:text-white">{{ reasonLabel(report.reason) }}</p>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div *ngIf="report.details" class="mt-3 rounded border border-stroke bg-gray-2 px-4 py-2.5 dark:border-strokedark dark:bg-meta-4">
+          <p class="text-xs text-bodydark2 uppercase tracking-wide mb-1">Your details</p>
+          <p class="text-sm text-black dark:text-white">{{ report.details }}</p>
+        </div>
+
+        <!-- Audio player -->
+        <div *ngIf="report.audioData" class="mt-3 flex items-center gap-4 rounded border border-stroke bg-gray-2 px-4 py-3 dark:border-strokedark dark:bg-meta-4">
+          <button
+            (click)="playAudio(report)"
+            class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition"
+            [class.bg-primary]="isPlaying(report.id)"
+            [class.text-white]="isPlaying(report.id)"
+            [class.border]="!isPlaying(report.id)"
+            [class.border-stroke]="!isPlaying(report.id)"
+            [class.text-bodydark2]="!isPlaying(report.id)"
+          >
+            <svg *ngIf="!isPlaying(report.id)" class="h-4 w-4 fill-current" viewBox="0 0 20 20">
+              <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+            </svg>
+            <svg *ngIf="isPlaying(report.id)" class="h-4 w-4 fill-current" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          <div class="flex flex-1 items-center gap-0.5">
+            <ng-container *ngFor="let bar of [3,5,7,4,6,8,5,3,6,4,7,5,3,6,4,8,6,4,5,7,3,5,6]">
+              <div class="w-1 rounded-full"
+                [class.bg-primary]="isPlaying(report.id)"
+                [class.bg-stroke]="!isPlaying(report.id)"
+                [style.height.px]="bar * 3">
+              </div>
+            </ng-container>
+          </div>
+          <span class="flex-shrink-0 text-xs text-bodydark2">
+            {{ isPlaying(report.id) ? 'Playing...' : 'Reported audio' }}
+          </span>
+        </div>
+
+        <!-- Decision block (shown when reviewed with decision) -->
+        <div *ngIf="report.decisionType" class="mt-3 flex flex-col gap-1.5">
+          <div *ngIf="report.decisionType.includes('WARNING')" class="flex items-center gap-2 rounded border border-warning bg-warning/5 px-3 py-2">
+            <svg class="h-4 w-4 flex-shrink-0 fill-current text-warning" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-xs font-medium text-warning">Warning issued</span>
+          </div>
+          <div *ngIf="report.decisionType.includes('DELETE_AUDIO')" class="flex items-center gap-2 rounded border border-danger bg-danger/5 px-3 py-2">
+            <svg class="h-4 w-4 flex-shrink-0 fill-current text-danger" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-xs font-medium text-danger">Audio deleted</span>
+          </div>
+          <p *ngIf="report.decisionText" class="text-xs text-bodydark2 px-1">{{ report.decisionText }}</p>
+          <p *ngIf="report.treatedAt" class="text-xs text-bodydark2 px-1">Treated on {{ formatDate(report.treatedAt) }}</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

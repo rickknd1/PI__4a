@@ -1,0 +1,59 @@
+server:
+  port: 8085
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  application:
+    name: treasury-service
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/treasury_db}
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+# JWT — secret PARTAGE avec le module User (esprit.com.clubhub)
+# Doit etre IDENTIQUE a celui de User/ClubHub/src/main/resources/application.properties
+jwt:
+  secret: ${JWT_SECRET:clubhub_super_secret_key_must_be_at_least_32_chars!}
+  expiration: 86400000  # 24h (aligne avec le module User)
+  cookie-name: jwt
+
+# Stripe
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+  currency: tnd
+
+# Gemini AI
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: gemini-1.5-flash
+  max-tokens: 2048
+  quota:
+    monthly-per-club: 1000
+
+# Budget alerts thresholds (%)
+budget:
+  alert-thresholds: 50,75,90,100
+
+# OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.clubhub.treasury: INFO
+    org.springframework.security: WARN

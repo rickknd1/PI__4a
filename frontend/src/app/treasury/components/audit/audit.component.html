@@ -1,0 +1,241 @@
+<div class="p-6 space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Journal d'Audit</h2>
+      <p class="text-sm text-gray-500 mt-1">Historique immuable de toutes les actions sensibles</p>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium self-center">
+        {{ allLogs.length }} entrees totales
+      </span>
+      <button (click)="exportCsv()"
+              class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+        Export CSV
+      </button>
+      <button (click)="exportJson()"
+              class="flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition">
+        Export JSON
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats par type -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+      <p class="text-sm text-gray-500">Paiements</p>
+      <p class="text-2xl font-bold text-blue-600">{{ countByType('Payment') }}</p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+      <p class="text-sm text-gray-500">Depenses</p>
+      <p class="text-2xl font-bold text-orange-600">{{ countByType('Expense') }}</p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+      <p class="text-sm text-gray-500">Budgets</p>
+      <p class="text-2xl font-bold text-green-600">{{ countByType('Budget') }}</p>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4">
+      <p class="text-sm text-gray-500">Recus</p>
+      <p class="text-2xl font-bold text-purple-600">{{ countByType('Receipt') }}</p>
+    </div>
+  </div>
+
+  <!-- Filtres + recherche -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5 space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="font-semibold text-gray-700 dark:text-gray-200 text-sm">Filtres</h3>
+      <button (click)="resetFilters()" class="text-xs text-gray-500 hover:text-gray-700 underline">Reinitialiser</button>
+    </div>
+
+    <!-- Recherche globale -->
+    <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()"
+           placeholder="Rechercher par email, ID, statut..."
+           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white dark:border-gray-600">
+
+    <!-- Selecteurs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+      <select [(ngModel)]="filterAction" (ngModelChange)="applyFilters()"
+              class="px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600">
+        <option value="">Toutes les actions</option>
+        <option *ngFor="let a of actionTypes" [value]="a">{{ formatAction(a) }}</option>
+      </select>
+
+      <select [(ngModel)]="filterActor" (ngModelChange)="applyFilters()"
+              class="px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600">
+        <option value="">Tous les acteurs</option>
+        <option *ngFor="let a of actorList" [value]="a.id">{{ a.name }}</option>
+      </select>
+
+      <select [(ngModel)]="filterEntityType" (ngModelChange)="applyFilters()"
+              class="px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600">
+        <option value="">Tous les types</option>
+        <option *ngFor="let t of entityTypes" [value]="t">{{ t }}</option>
+      </select>
+
+      <input type="date" [(ngModel)]="filterDateFrom" (ngModelChange)="applyFilters()"
+             placeholder="Du"
+             class="px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600">
+
+      <input type="date" [(ngModel)]="filterDateTo" (ngModelChange)="applyFilters()"
+             placeholder="Au"
+             class="px-3 py-2 border border-gray-200 rounded-lg text-sm dark:bg-gray-700 dark:text-white dark:border-gray-600">
+    </div>
+
+    <p class="text-xs text-gray-400">
+      <strong>{{ filtered.length }}</strong> entree{{ filtered.length > 1 ? 's' : '' }} apres filtres
+    </p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+    <p class="mt-3 text-gray-500">Chargement du journal...</p>
+  </div>
+
+  <!-- Logs table -->
+  <div *ngIf="!loading" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-700">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acteur</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entite</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Transition</th>
+            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Detail</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+          <tr *ngFor="let log of logs" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+              (click)="openDetail(log)">
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">{{ log.timestamp | date:'dd/MM/yy HH:mm:ss' }}</td>
+            <td class="px-4 py-3">
+              <div class="text-gray-800 dark:text-white font-medium">{{ resolveMember(log.actorId) }}</div>
+              <div class="text-gray-400 text-xs">{{ log.actorEmail }}</div>
+            </td>
+            <td class="px-4 py-3">
+              <span [class]="actionClass(log.action)" class="px-2 py-1 rounded-full text-xs font-medium">
+                {{ formatAction(log.action) }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-gray-600 dark:text-gray-300 text-xs">
+              {{ log.entityType }}
+              <span class="text-gray-400">#{{ log.entityId?.slice(-8) }}</span>
+            </td>
+            <td class="px-4 py-3 text-xs text-gray-500">
+              <span *ngIf="log.valuesBefore" class="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">{{ log.valuesBefore }}</span>
+              <span *ngIf="log.valuesBefore && log.valuesAfter" class="mx-1 text-gray-400">→</span>
+              <span *ngIf="log.valuesAfter" class="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded">{{ log.valuesAfter }}</span>
+              <span *ngIf="!log.valuesBefore && !log.valuesAfter" class="text-gray-300">-</span>
+            </td>
+            <td class="px-4 py-3 text-right font-medium text-gray-700 dark:text-gray-200">
+              {{ log.amount ? (log.amount | number:'1.2-2') + ' TND' : '-' }}
+            </td>
+            <td class="px-4 py-3 text-center">
+              <button (click)="$event.stopPropagation(); openDetail(log)"
+                      class="text-blue-600 hover:text-blue-800 text-xs underline">Voir</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="filtered.length === 0" class="text-center py-12 text-gray-400">
+      Aucune entree ne correspond aux filtres.
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="filtered.length > 0" class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-3 text-sm text-gray-500">
+        <span>{{ pageStart }}-{{ pageEnd }} sur {{ total }}</span>
+        <select [(ngModel)]="pageSize" (ngModelChange)="changePageSize()"
+                class="px-2 py-1 border border-gray-200 rounded text-xs dark:bg-gray-700 dark:text-white dark:border-gray-600">
+          <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }} / page</option>
+        </select>
+      </div>
+      <div class="flex gap-1">
+        <button (click)="goToPage(0)" [disabled]="page === 0"
+                class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">«</button>
+        <button (click)="goToPage(page - 1)" [disabled]="page === 0"
+                class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Precedent</button>
+        <span class="px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-lg dark:bg-blue-900/20">{{ page + 1 }} / {{ totalPages }}</span>
+        <button (click)="goToPage(page + 1)" [disabled]="page >= totalPages - 1"
+                class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Suivant</button>
+        <button (click)="goToPage(totalPages - 1)" [disabled]="page >= totalPages - 1"
+                class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">»</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal detail -->
+  <div *ngIf="selectedLog"
+       class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+       (click)="closeDetail()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto"
+         (click)="$event.stopPropagation()">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Detail de l'entree audit</h3>
+        <button (click)="closeDetail()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Action</p>
+            <span [class]="actionClass(selectedLog.action)" class="px-3 py-1 rounded-full text-xs font-medium">
+              {{ formatAction(selectedLog.action) }}
+            </span>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Date complete</p>
+            <p class="font-medium text-gray-800 dark:text-gray-200">{{ selectedLog.timestamp | date:'dd/MM/yyyy HH:mm:ss.SSS' }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Acteur</p>
+            <p class="font-medium text-gray-800 dark:text-gray-200">{{ resolveMember(selectedLog.actorId) }}</p>
+            <p class="text-xs text-gray-500">{{ selectedLog.actorEmail }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Acteur ID</p>
+            <p class="text-xs font-mono text-gray-600 break-all">{{ selectedLog.actorId }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Type entite</p>
+            <p class="font-medium text-gray-800 dark:text-gray-200">{{ selectedLog.entityType }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Entite ID</p>
+            <p class="text-xs font-mono text-gray-600 break-all">{{ selectedLog.entityId }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Avant</p>
+            <pre class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-xs text-gray-700 dark:text-gray-300 overflow-x-auto">{{ selectedLog.valuesBefore || '-' }}</pre>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">Apres</p>
+            <pre class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-xs text-blue-700 dark:text-blue-300 overflow-x-auto">{{ selectedLog.valuesAfter || '-' }}</pre>
+          </div>
+          <div *ngIf="selectedLog.amount" class="col-span-2">
+            <p class="text-xs text-gray-500 mb-1">Montant</p>
+            <p class="font-bold text-lg text-green-600">{{ selectedLog.amount | number:'1.2-2' }} TND</p>
+          </div>
+          <div *ngIf="selectedLog.id" class="col-span-2">
+            <p class="text-xs text-gray-500 mb-1">Audit ID</p>
+            <p class="text-xs font-mono text-gray-600 break-all">{{ selectedLog.id }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+        <button (click)="closeDetail()"
+                class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

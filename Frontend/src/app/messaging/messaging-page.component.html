@@ -1,0 +1,347 @@
+<!--
+  Messaging Page — full chat UI : conversations + thread + composer + reactions
+                                 + image upload + group/private + trivia game.
+  Visible à TOUS les utilisateurs authentifiés (sidebar front-office).
+-->
+<div class="flex h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+
+  <!-- ========================================================== -->
+  <!--  LEFT COLUMN : conversations list                          -->
+  <!-- ========================================================== -->
+  <aside class="flex w-80 flex-shrink-0 flex-col border-r border-gray-200 dark:border-gray-800">
+    <header class="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+      <div>
+        <h2 class="text-base font-semibold text-gray-800 dark:text-white">Messages</h2>
+        <p class="text-xs text-gray-500" *ngIf="msg.connected()">● en ligne</p>
+        <p class="text-xs text-amber-500" *ngIf="!msg.connected()">○ connexion…</p>
+      </div>
+      <button (click)="openNewConv()" type="button" title="Nouvelle conversation"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="px-3 pt-3 pb-2">
+      <input [(ngModel)]="searchTerm" placeholder="Rechercher…"
+        class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+    </div>
+
+    <div class="scrollbar-thin flex-1 overflow-y-auto pb-2">
+      <ng-container *ngIf="!loading() && filteredConversations().length === 0">
+        <p class="px-4 py-8 text-center text-sm text-gray-400">Aucune conversation.<br/>Clique sur ⊕ pour démarrer.</p>
+      </ng-container>
+
+      <button *ngFor="let c of filteredConversations()"
+        type="button"
+        (click)="selectConversation(c.conversation.id!)"
+        [class.bg-blue-50]="selectedId() === c.conversation.id"
+        [class.dark:bg-blue-950]="selectedId() === c.conversation.id"
+        class="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-gray-50 dark:hover:bg-gray-800">
+
+        <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-semibold text-white">
+          <ng-container *ngIf="c.conversation.photoUrl; else letters">
+            <img [src]="c.conversation.photoUrl" alt="" class="h-11 w-11 rounded-full object-cover" />
+          </ng-container>
+          <ng-template #letters>{{ conversationInitials(c) }}</ng-template>
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between">
+            <span class="truncate text-sm font-medium text-gray-800 dark:text-white">{{ conversationLabel(c) }}</span>
+            <span class="ml-2 flex-shrink-0 text-[10px] text-gray-400" *ngIf="c.lastMessageAt">{{ c.lastMessageAt | date:'shortTime' }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="truncate text-xs text-gray-500 dark:text-gray-400">{{ c.lastMessageContent || (c.conversation.type === 'PRIVATE' ? 'Discussion privée' : 'Discussion de groupe') }}</span>
+            <span *ngIf="c.unreadCount && c.unreadCount > 0"
+              class="ml-2 flex-shrink-0 rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">{{ c.unreadCount }}</span>
+          </div>
+        </div>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================== -->
+  <!--  RIGHT COLUMN : thread                                      -->
+  <!-- ========================================================== -->
+  <section class="flex flex-1 flex-col">
+
+    <!-- ====== Empty state ====== -->
+    <div *ngIf="!selected()" class="flex flex-1 flex-col items-center justify-center text-center">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+        class="mb-4 text-gray-300">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+      </svg>
+      <p class="text-gray-500">Sélectionne une conversation ou démarre-en une nouvelle.</p>
+    </div>
+
+    <!-- ====== Header ====== -->
+    <ng-container *ngIf="selected() as conv">
+      <header class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-sm font-semibold text-white">
+            {{ conversationInitials(conv) }}
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-800 dark:text-white">{{ conversationLabel(conv) }}</h3>
+            <p class="text-xs text-gray-500">
+              {{ conv.conversation.type === 'PRIVATE' ? 'Discussion privée' : 'Groupe' }}
+              <span *ngIf="conv.conversation.description"> • {{ conv.conversation.description }}</span>
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button (click)="openGame()" type="button" title="Jeu trivia (IA)"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-200">
+            🎮 Jeu IA
+          </button>
+        </div>
+      </header>
+
+      <!-- ====== Active game banner ====== -->
+      <div *ngIf="activeGame() as g" class="border-b border-violet-200 bg-violet-50 px-5 py-3 dark:border-violet-900 dark:bg-violet-950/40">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1">
+            <p class="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+              🎯 Trivia · {{ g.category }} · {{ g.difficulty }} · question {{ g.currentQuestionIndex + 1 }}/{{ g.totalQuestions }}
+            </p>
+            <ng-container *ngIf="currentQuestion() as q; else gameOver">
+              <p class="mt-1 text-sm font-medium text-gray-800 dark:text-white">{{ q.questionText }}</p>
+              <div class="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                <button *ngFor="let opt of q.options" type="button" (click)="answer(opt)" [disabled]="gameAnswered()"
+                  class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-left text-sm hover:bg-violet-100 disabled:opacity-50 dark:border-violet-800 dark:bg-gray-900">
+                  {{ opt }}
+                </button>
+              </div>
+              <p *ngIf="gameAnswered()" class="mt-2 text-xs text-violet-600">✓ Réponse envoyée — chargement de la suivante…</p>
+            </ng-container>
+            <ng-template #gameOver>
+              <p class="mt-1 text-sm text-gray-600">Partie terminée.</p>
+              <button (click)="closeGame()" class="mt-2 text-xs text-violet-700 underline">Fermer</button>
+            </ng-template>
+          </div>
+          <button *ngIf="!g.players.includes(meId())" (click)="joinExistingGame()" type="button"
+            class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700">
+            Rejoindre
+          </button>
+        </div>
+      </div>
+
+      <!-- ====== Thread ====== -->
+      <div class="scrollbar-thin flex-1 space-y-3 overflow-y-auto px-5 py-4">
+        <ng-container *ngFor="let m of messages(); let i = index">
+          <div class="flex"
+            [class.justify-end]="isMine(m)"
+            [class.justify-start]="!isMine(m)">
+
+            <div class="group relative max-w-[70%]">
+              <p class="mb-0.5 text-[11px] text-gray-400" *ngIf="!isMine(m)">{{ senderLabel(m) }}</p>
+
+              <!-- BUBBLE -->
+              <div class="relative rounded-2xl px-3.5 py-2 text-sm shadow-sm"
+                [ngClass]="isMine(m) ? 'bubble-mine' : 'bubble-other'"
+                [class.opacity-50]="m.deleted">
+
+                <ng-container *ngIf="m.deleted; else liveContent">
+                  <em class="text-xs">message supprimé</em>
+                </ng-container>
+
+                <ng-template #liveContent>
+                  <ng-container *ngIf="isImageContent(m); else textOnly">
+                    <img [src]="imageSrc(m)" alt="image"
+                      class="max-h-72 max-w-full rounded-lg" />
+                  </ng-container>
+                  <ng-template #textOnly>
+                    <span class="whitespace-pre-wrap break-words">{{ m.content }}</span>
+                  </ng-template>
+                </ng-template>
+
+                <!-- HOVER ACTIONS -->
+                <div *ngIf="!m.deleted"
+                  class="absolute -top-3 right-2 flex items-center gap-1 opacity-0 transition group-hover:opacity-100"
+                  [class.left-2]="!isMine(m)"
+                  [class.right-2]="isMine(m)">
+                  <button (click)="reactionPickerFor.set(reactionPickerFor() === m.id ? null : (m.id || null))"
+                    class="rounded-full bg-white px-2 py-0.5 text-xs shadow ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:ring-gray-700">😀</button>
+                  <button *ngIf="isMine(m)" (click)="deleteMessage(m)"
+                    class="rounded-full bg-white px-2 py-0.5 text-xs text-red-600 shadow ring-1 ring-gray-200 hover:bg-red-50 dark:bg-gray-800 dark:ring-gray-700">🗑</button>
+                </div>
+
+                <!-- EMOJI PICKER -->
+                <div *ngIf="reactionPickerFor() === m.id"
+                  class="absolute -top-12 left-0 z-10 flex gap-1 rounded-full bg-white px-2 py-1 shadow-lg ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700">
+                  <button *ngFor="let e of emojiKeys()" type="button"
+                    (click)="toggleReaction(m, e)"
+                    class="text-lg transition hover:scale-125">{{ emojiOf(e) }}</button>
+                </div>
+              </div>
+
+              <!-- REACTION PILLS -->
+              <div *ngIf="groupedReactions(m.id).length" class="mt-1 flex flex-wrap gap-1"
+                [class.justify-end]="isMine(m)">
+                <button *ngFor="let r of groupedReactions(m.id)" (click)="toggleReaction(m, r.emoji)"
+                  class="reaction-pill flex items-center gap-0.5 rounded-full bg-white px-2 py-0.5 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:ring-gray-700"
+                  [class.ring-blue-400]="r.mine">
+                  <span>{{ emojiOf(r.emoji) }}</span>
+                  <span class="text-[10px] text-gray-500 dark:text-gray-400">{{ r.count }}</span>
+                </button>
+              </div>
+
+              <p class="mt-0.5 text-[10px] text-gray-400"
+                [class.text-right]="isMine(m)">{{ m.createdAt | date:'shortTime' }}</p>
+            </div>
+          </div>
+        </ng-container>
+        <div #threadEnd></div>
+      </div>
+
+      <!-- ====== Composer ====== -->
+      <footer class="border-t border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex items-end gap-2">
+          <label class="cursor-pointer rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <input type="file" hidden accept="image/*" (change)="onPickFile($event)" />
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </label>
+
+          <textarea [(ngModel)]="composerText" (keydown)="onComposerKey($event)"
+            rows="1" placeholder="Écris un message…"
+            class="max-h-32 flex-1 resize-none rounded-2xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"></textarea>
+
+          <button (click)="send()" type="button"
+            [disabled]="!composerText.trim()"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 disabled:opacity-40">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </footer>
+    </ng-container>
+  </section>
+</div>
+
+<!-- =============================================================== -->
+<!--  ERROR TOAST                                                     -->
+<!-- =============================================================== -->
+<div *ngIf="errorMsg()"
+  class="fixed bottom-6 right-6 z-50 flex items-start gap-2 rounded-lg bg-red-600 px-4 py-3 text-sm text-white shadow-lg">
+  <span class="flex-1">{{ errorMsg() }}</span>
+  <button (click)="dismissError()" class="font-bold">×</button>
+</div>
+
+<!-- =============================================================== -->
+<!--  NEW CONVERSATION MODAL                                          -->
+<!-- =============================================================== -->
+<div *ngIf="showNewConv()"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+  (click)="showNewConv.set(false)">
+  <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl dark:bg-gray-900"
+    (click)="$event.stopPropagation()">
+
+    <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-white">Nouvelle conversation</h3>
+
+    <!-- Type selector -->
+    <div class="mb-4 grid grid-cols-2 gap-2">
+      <button type="button" (click)="newConvType = 'PRIVATE'"
+        [class.bg-blue-600]="newConvType === 'PRIVATE'"
+        [class.text-white]="newConvType === 'PRIVATE'"
+        [class.bg-gray-100]="newConvType !== 'PRIVATE'"
+        class="rounded-lg px-3 py-2 text-sm font-medium dark:bg-gray-800">Privée 1:1</button>
+      <button type="button" (click)="newConvType = 'GROUP'"
+        [class.bg-blue-600]="newConvType === 'GROUP'"
+        [class.text-white]="newConvType === 'GROUP'"
+        [class.bg-gray-100]="newConvType !== 'GROUP'"
+        class="rounded-lg px-3 py-2 text-sm font-medium dark:bg-gray-800">Groupe</button>
+    </div>
+
+    <ng-container *ngIf="newConvType === 'GROUP'">
+      <input [(ngModel)]="newGroupName" placeholder="Nom du groupe"
+        class="mb-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+      <input [(ngModel)]="newGroupDescription" placeholder="Description (facultatif)"
+        class="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+    </ng-container>
+
+    <p class="mb-1.5 text-xs font-medium text-gray-600 dark:text-gray-400">
+      {{ newConvType === 'PRIVATE' ? 'Choisis un membre' : 'Ajoute des membres' }}
+    </p>
+    <input [(ngModel)]="directorySearch" placeholder="Rechercher un membre…"
+      class="mb-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+
+    <div class="scrollbar-thin mb-4 max-h-60 overflow-y-auto rounded-lg border border-gray-100 dark:border-gray-800">
+      <ng-container *ngIf="filteredDirectory().length === 0">
+        <p class="px-3 py-4 text-center text-xs text-gray-400">Aucun membre trouvé</p>
+      </ng-container>
+      <button *ngFor="let u of filteredDirectory()" type="button"
+        (click)="newConvType === 'PRIVATE' ? newConvSelectedUsers.set([u.id || u.userId || '']) : toggleSelectUser(u.id || u.userId || '')"
+        [class.bg-blue-50]="isUserSelected(u.id || u.userId || '')"
+        [class.dark:bg-blue-950]="isUserSelected(u.id || u.userId || '')"
+        class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
+        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-violet-500 text-xs font-semibold text-white">
+          {{ ((u.firstName || '?') + (u.lastName || '')).substring(0,2).toUpperCase() }}
+        </span>
+        <span class="flex-1 truncate">{{ u.firstName }} {{ u.lastName }}<br/><span class="text-xs text-gray-400">{{ u.role || '' }} · {{ u.email }}</span></span>
+        <span *ngIf="isUserSelected(u.id || u.userId || '')" class="text-blue-600">✓</span>
+      </button>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button type="button" (click)="showNewConv.set(false)"
+        class="rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Annuler</button>
+      <button type="button" (click)="createConv()"
+        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================================== -->
+<!--  GAME MODAL                                                      -->
+<!-- =============================================================== -->
+<div *ngIf="showGameModal()"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+  (click)="showGameModal.set(false)">
+  <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl dark:bg-gray-900"
+    (click)="$event.stopPropagation()">
+
+    <h3 class="mb-3 text-lg font-semibold text-gray-800 dark:text-white">🎮 Lancer un jeu trivia (IA)</h3>
+
+    <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">Catégorie</label>
+    <input [(ngModel)]="gameCategory"
+      class="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+
+    <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">Difficulté</label>
+    <select [(ngModel)]="gameDifficulty"
+      class="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+      <option value="EASY">Facile</option>
+      <option value="MEDIUM">Moyenne</option>
+      <option value="HARD">Difficile</option>
+    </select>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">Questions</label>
+        <input type="number" min="3" max="20" [(ngModel)]="gameQuestions"
+          class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+      </div>
+      <div>
+        <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">Sec / question</label>
+        <input type="number" min="10" max="120" [(ngModel)]="gameTimeLimit"
+          class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white" />
+      </div>
+    </div>
+
+    <div class="mt-4 flex justify-end gap-2">
+      <button type="button" (click)="showGameModal.set(false)"
+        class="rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">Annuler</button>
+      <button type="button" (click)="startGameFlow()"
+        class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700">Lancer</button>
+    </div>
+  </div>
+</div>

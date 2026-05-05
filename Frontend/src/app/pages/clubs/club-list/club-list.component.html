@@ -1,0 +1,50 @@
+<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-semibold text-gray-800">Gestion des Clubs</h2>
+      <a routerLink="/clubs/create" 
+         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        + Nouveau Club
+      </a>
+    </div>
+  
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-10">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="mt-2 text-gray-500">Chargement...</p>
+    </div>
+  
+    <!-- Liste des clubs -->
+    <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let club of clubs" 
+           class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+        <div class="flex justify-between items-start">
+          <a [routerLink]="['/clubs', club.id]" 
+          class="text-lg font-semibold text-blue-600 hover:underline">
+         {{ club.name }}
+       </a>          <div class="flex space-x-2">
+            <a [routerLink]="['/clubs', club.id, 'edit']" 
+               class="text-blue-600 hover:text-blue-800">✏️</a>
+            <button (click)="deleteClub(club.id!)" 
+                    class="text-red-600 hover:text-red-800">🗑️</button>
+          </div>
+        </div>
+        <p class="text-sm text-gray-500 mt-1">{{ club.category }}</p>
+        <p class="text-gray-600 mt-3 text-sm">{{ club.description | slice:0:100 }}...</p>
+        <div class="mt-4">
+          <span class="px-2 py-1 text-xs rounded-full" 
+                [ngClass]="club.visibility === 'PUBLIC' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'">
+            {{ club.visibility }}
+          </span>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Aucun club -->
+    <div *ngIf="!loading && clubs.length === 0" class="text-center py-10">
+      <p class="text-gray-500">Aucun club trouvé</p>
+      <a routerLink="/clubs/create" 
+         class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+        Créer votre premier club
+      </a>
+    </div>
+  </div>

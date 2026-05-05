@@ -1,0 +1,195 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 font-light">
+  <div class="max-w-7xl mx-auto p-8 lg:p-12">
+
+    <!-- Header -->
+    <div class="mb-10 flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-4xl lg:text-5xl font-extralight text-gray-900 dark:text-white mb-2 tracking-tight">Tresorerie</h1>
+        <p class="text-lg text-gray-500 font-light">Vue d'ensemble financiere du club</p>
+      </div>
+      <button (click)="resetDemo()" [disabled]="resetting"
+              class="shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+              [class.bg-purple-600]="!resetting" [class.hover:bg-purple-700]="!resetting" [class.text-white]="!resetting"
+              [class.bg-gray-300]="resetting" [class.text-gray-600]="resetting"
+              [class.cursor-not-allowed]="resetting"
+              title="Re-seed la base + re-entraine les modeles IA">
+        <span *ngIf="!resetting">Reset demo</span>
+        <span *ngIf="resetting" class="flex items-center gap-2">
+          <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+          {{ resetMessage }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Anomaly Alert (ML Isolation Forest) -->
+    <a *ngIf="anomalyCount > 0" routerLink="/treasury/anomalies"
+       class="mb-6 flex items-center gap-4 bg-gradient-to-r from-red-50 to-purple-50 dark:from-red-900/20 dark:to-purple-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 hover:from-red-100 hover:to-purple-100 transition">
+      <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shrink-0">
+        <span class="text-purple-600 text-lg font-bold">IA</span>
+      </div>
+      <div>
+        <p class="font-medium text-red-800 dark:text-red-300">{{ anomalyCount }} anomalie(s) detectee(s) par le modele IA</p>
+        <p class="text-sm text-red-600 dark:text-red-400">Isolation Forest (entraine localement) - Cliquez pour voir les details</p>
+      </div>
+      <span class="ml-auto bg-purple-600 text-white text-sm font-bold px-3 py-1 rounded-full">{{ anomalyCount }}</span>
+    </a>
+
+    <!-- Late Payment Risk Alert (ML Random Forest) -->
+    <div *ngIf="highRiskCount > 0" class="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 border border-orange-200 rounded-xl p-4">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
+          <span class="text-orange-600 text-lg font-bold">RF</span>
+        </div>
+        <div>
+          <p class="font-medium text-orange-800">{{ highRiskCount }} membre(s) a risque eleve de retard</p>
+          <p class="text-sm text-orange-600">Prediction Random Forest (100 arbres, entraine sur historique)</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div *ngFor="let m of riskMembers.slice(0, 3)"
+             class="flex items-center justify-between bg-white rounded-lg p-3"
+             [class.border-red-300]="m.riskLevel === 'HIGH'"
+             [class.border-yellow-300]="m.riskLevel === 'MEDIUM'"
+             [class.border-green-300]="m.riskLevel === 'LOW'"
+             style="border: 1px solid">
+          <div>
+            <p class="font-medium text-gray-800 text-sm">{{ m.memberName }}</p>
+            <p class="text-xs text-gray-500">{{ m.previousLate }}/{{ m.previousPayments }} retards</p>
+          </div>
+          <div class="text-right">
+            <p class="text-lg font-bold"
+               [class.text-red-600]="m.riskLevel === 'HIGH'"
+               [class.text-yellow-600]="m.riskLevel === 'MEDIUM'"
+               [class.text-green-600]="m.riskLevel === 'LOW'">
+              {{ (m.lateProbability * 100).toFixed(0) }}%
+            </p>
+            <p class="text-xs text-gray-400">{{ m.riskLevel }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-center py-20">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+    </div>
+    <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700">{{ error }}</div>
+
+    <!-- Main Chart Card -->
+    <div *ngIf="dashboard && !loading" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+
+      <!-- Legend + Period -->
+      <div class="flex items-start justify-between p-6 pb-0">
+        <div class="flex gap-6">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full border-2 border-blue-500 bg-blue-50"></div>
+            <span class="text-gray-700 dark:text-gray-300 text-sm font-medium">Recettes</span>
+            <span class="text-gray-900 dark:text-white font-semibold">{{ dashboard.totalCollected | number:'1.0-0' }} TND</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full border-2 border-gray-600 bg-gray-50"></div>
+            <span class="text-gray-700 dark:text-gray-300 text-sm font-medium">Depenses</span>
+            <span class="text-gray-900 dark:text-white font-semibold">{{ dashboard.totalExpensesApproved || 0 | number:'1.0-0' }} TND</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button *ngFor="let p of periods" (click)="selectPeriod(p.label)"
+                  class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300"
+                  [class.bg-gray-900]="selectedPeriod === p.label" [class.text-white]="selectedPeriod === p.label"
+                  [class.bg-gray-100]="selectedPeriod !== p.label" [class.text-gray-600]="selectedPeriod !== p.label"
+                  [class.hover:bg-gray-200]="selectedPeriod !== p.label">
+            {{ p.months }}m
+          </button>
+        </div>
+      </div>
+
+      <!-- SVG Chart -->
+      <div class="p-6 pt-4 pb-2">
+        <div class="h-72 relative" [style.opacity]="chartVisible ? 1 : 0" style="transition: opacity 1s ease">
+          <svg class="w-full h-full" viewBox="0 0 800 340" *ngIf="chartPoints.length > 0">
+            <defs>
+              <pattern id="dashgrid" width="40" height="28" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 28" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="800" height="340" fill="url(#dashgrid)"/>
+
+            <text *ngFor="let label of yLabels; let i = index"
+                  [attr.x]="45" [attr.y]="50 + i * 55" text-anchor="end" fill="#9ca3af" font-size="11">{{ label }}</text>
+
+            <path [attr.d]="expenseArea" fill="rgba(107,114,128,0.06)"/>
+            <path [attr.d]="revenueArea" fill="rgba(59,130,246,0.08)"/>
+            <path [attr.d]="expenseLine" fill="none" stroke="#374151" stroke-width="2.5" stroke-linecap="round"/>
+            <path [attr.d]="revenueLine" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+
+            <g *ngFor="let point of chartPoints; let i = index">
+              <circle [attr.cx]="point.x" [attr.cy]="point.ry" [attr.r]="hoveredIdx === i ? 5 : 3"
+                      fill="#3b82f6" class="cursor-pointer" style="transition: r 0.2s"
+                      (mouseenter)="hoveredIdx = i" (mouseleave)="hoveredIdx = -1"/>
+              <circle [attr.cx]="point.x" [attr.cy]="point.ey" [attr.r]="hoveredIdx === i ? 5 : 3"
+                      fill="#374151" class="cursor-pointer" style="transition: r 0.2s"
+                      (mouseenter)="hoveredIdx = i" (mouseleave)="hoveredIdx = -1"/>
+            </g>
+
+            <text *ngFor="let point of chartPoints" [attr.x]="point.x" y="330" text-anchor="middle" fill="#9ca3af" font-size="11">{{ point.label }}</text>
+
+            <g *ngIf="hoveredIdx >= 0 && hoveredIdx < chartPoints.length">
+              <rect [attr.x]="chartPoints[hoveredIdx].x - 55" y="15" width="110" height="60"
+                    fill="white" stroke="#e5e7eb" stroke-width="1" rx="6"/>
+              <text [attr.x]="chartPoints[hoveredIdx].x" y="32" text-anchor="middle" fill="#1f2937" font-size="11" font-weight="600">{{ chartPoints[hoveredIdx].label }}</text>
+              <text [attr.x]="chartPoints[hoveredIdx].x" y="48" text-anchor="middle" fill="#3b82f6" font-size="10">Recettes: {{ chartPoints[hoveredIdx].rv }}</text>
+              <text [attr.x]="chartPoints[hoveredIdx].x" y="64" text-anchor="middle" fill="#374151" font-size="10">Depenses: {{ chartPoints[hoveredIdx].ev }}</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Bottom Metrics -->
+      <div class="px-6 pb-6 flex flex-wrap justify-between items-end gap-4">
+        <div class="flex gap-3 flex-wrap">
+          <div *ngFor="let m of metrics"
+               class="bg-white dark:bg-gray-700 rounded-xl shadow-sm border-l-4 p-3 min-w-[120px] hover:shadow-md transition"
+               [class.border-blue-500]="m.color === 'blue'" [class.border-green-500]="m.color === 'green'"
+               [class.border-orange-500]="m.color === 'orange'" [class.border-red-500]="m.color === 'red'"
+               [class.border-purple-500]="m.color === 'purple'">
+            <div class="text-xl font-bold text-gray-900 dark:text-white">{{ m.value }}</div>
+            <div class="text-xs text-gray-500">{{ m.label }}</div>
+          </div>
+        </div>
+
+        <div class="px-5 py-3 rounded-xl" [class.bg-green-600]="solde >= 0" [class.bg-red-600]="solde < 0">
+          <div class="flex items-center gap-3 text-white">
+            <span class="font-medium opacity-80 text-sm">Solde net</span>
+            <span class="font-bold text-lg">{{ solde | number:'1.0-0' }} TND</span>
+          </div>
+          <div class="w-40 h-1.5 bg-white/20 rounded-full mt-2 overflow-hidden">
+            <div class="h-full bg-white/60 rounded-full" [style.width]="recoveryPct + '%'"></div>
+          </div>
+          <div class="text-xs text-white/70 mt-1">Recouvrement: {{ recoveryPct | number:'1.1-1' }}%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div *ngIf="dashboard" class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+      <a routerLink="/treasury/cotisations" class="bg-white dark:bg-gray-800 rounded-xl border p-5 hover:shadow-md hover:border-blue-300 transition text-center group">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">💰</div>
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Cotisations</p>
+      </a>
+      <a routerLink="/treasury/depenses" class="bg-white dark:bg-gray-800 rounded-xl border p-5 hover:shadow-md hover:border-orange-300 transition text-center group">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📋</div>
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Depenses</p>
+      </a>
+      <a routerLink="/treasury/rapports" class="bg-white dark:bg-gray-800 rounded-xl border p-5 hover:shadow-md hover:border-green-300 transition text-center group">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📊</div>
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Rapports</p>
+      </a>
+      <a routerLink="/treasury/chatbot" class="bg-white dark:bg-gray-800 rounded-xl border p-5 hover:shadow-md hover:border-purple-300 transition text-center group">
+        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🤖</div>
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Assistant IA</p>
+      </a>
+    </div>
+
+  </div>
+</div>

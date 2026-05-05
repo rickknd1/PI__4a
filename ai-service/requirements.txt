@@ -1,0 +1,20 @@
+# ── Web framework ───────────────────────────────────────────────────────
+# Loose lower bounds so pip picks wheels compatible with the Python version
+# actually installed (we've seen 3.10, 3.12, 3.13, 3.14 in the wild).
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+httpx>=0.27,<1
+pydantic>=2.9,<3
+python-dotenv>=1.0,<2
+
+# ── Custom ML models (your own, trained on club data) ───────────────────
+# RandomForest for event recommendations, rule-based NLP for PV generation.
+# These replace the LLM for the two core AI features. They are small
+# (~30 MB installed), run on CPU, and train in < 1 s on hundreds of events.
+#
+# NOTE: we don't pin exact versions because scikit-learn/numpy publish new
+# Python-version wheels asynchronously. Pinning a minor-version floor is
+# enough for our feature set (RandomForestRegressor is 10+ years stable).
+scikit-learn>=1.5
+numpy>=1.26
+joblib>=1.3

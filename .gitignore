@@ -1,0 +1,90 @@
+# ─────────────────────────────────────────────────────────────────────
+# ClubHub — top-level .gitignore
+# ─────────────────────────────────────────────────────────────────────
+
+# ── Java / Maven / Gradle ───────────────────────────────────────────
+**/target/
+**/build/
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+.mvn/
+mvnw
+mvnw.cmd
+gradle/
+gradlew
+gradlew.bat
+.gradle/
+
+# ── Node / Angular ──────────────────────────────────────────────────
+**/node_modules/
+**/dist/
+**/.angular/
+**/.cache/
+**/coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.bak
+
+# ── Python (ai-service) ─────────────────────────────────────────────
+**/.venv/
+**/venv/
+**/env/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ── IDE / editor ────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Claude Code session state ───────────────────────────────────────
+.claude/
+.aider*
+
+# ── Local env / secrets ─────────────────────────────────────────────
+# Keep .env.example committed so newcomers know what to fill in.
+*.env.local
+.env.local
+.env.*.local
+
+# ── Generated / temporary ────────────────────────────────────────────
+out/
+generated-pdfs/
+*.pdf
+!docs/**/*.pdf
+*.log
+logs/
+tmp/
+.tmp/
+
+# ── Recovery / scratch dirs from past migrations ────────────────────
+_recovery/
+_virtual_eventFront_src/
+test-devis/
+
+# ── Big binary artefacts that should live in the repo via Git LFS ───
+*.zip
+*.7z
+*.tar.gz
+
+# Local secrets — never commit
+.env
+
+# Google OAuth credentials
+credentials.json
+client_secret*.json
+**/tokens/StoredCredential
+**/tokens/

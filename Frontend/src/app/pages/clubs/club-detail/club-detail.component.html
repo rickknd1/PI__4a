@@ -1,0 +1,520 @@
+<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800">
+  <div *ngIf="loading" class="text-center py-10">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <p class="mt-2 text-gray-500">Chargement...</p>
+  </div>
+
+  <div *ngIf="!loading && club">
+    <!-- En-tête avec logo et couleurs -->
+    <div class="flex justify-between items-start mb-6">
+      <div class="flex items-center gap-4">
+        <div *ngIf="club.logoUrl" class="w-16 h-16 rounded-full overflow-hidden bg-gray-100">
+          <img [src]="club.logoUrl" [alt]="club.name" class="w-full h-full object-cover">
+        </div>
+        <div>
+          <h2 class="text-2xl font-semibold" [style.color]="club.colorPalette">
+            {{ club.name }}
+          </h2>
+          <p class="text-gray-500 mt-1">{{ club.description }}</p>
+        </div>
+      </div>
+      <div class="flex space-x-2" *ngIf="isAdmin">
+        <a [routerLink]="['/clubs', club.id, 'edit']"
+           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Modifier
+        </a>
+        <button (click)="deleteClub()"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+          Supprimer
+        </button>
+      </div>
+    </div>
+
+    <!-- Recommandation IA -->
+    <div *ngIf="recommendation" class="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <div class="text-2xl">🤖</div>
+        <div>
+          <h4 class="font-semibold text-purple-800">Recommandation pour vous</h4>
+          <p class="text-sm text-purple-600 mt-1">
+            Comité suggéré : <strong>{{ recommendation.subGroupName }}</strong>
+          </p>
+          <p class="text-sm text-purple-600">
+            Rôle suggéré : <strong>{{ recommendation.suggestedRole }}</strong>
+          </p>
+          <p class="text-sm text-purple-600">
+            Raison : {{ recommendation.reason }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Informations du club -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+      <div>
+        <p class="text-sm text-gray-500">Catégorie</p>
+        <p class="font-medium">{{ club.category }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Visibilité</p>
+        <span class="px-2 py-1 text-xs rounded-full"
+              [ngClass]="club.visibility === 'PUBLIC' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'">
+          {{ club.visibility === 'PUBLIC' ? 'Public' : 'Privé' }}
+        </span>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Date de création</p>
+        <p class="font-medium">{{ club.creationDate | date:'dd/MM/yyyy' }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Membres</p>
+        <p class="font-medium">{{ club.members.length || 0 }}</p>
+      </div>
+    </div>
+
+    <!-- Règle d'appartenance aux comités -->
+    <div class="mb-6 p-4 border-2 rounded-lg"
+         [ngClass]="club.rules?.committeeMembershipMode === 'SINGLE_ONLY' ? 'border-orange-300 bg-orange-50' : 'border-green-300 bg-green-50'">
+      <div class="flex items-start justify-between">
+        <div class="flex items-start gap-3">
+          <div class="text-2xl">
+            {{ club.rules?.committeeMembershipMode === 'SINGLE_ONLY' ? '🔒' : '✅' }}
+          </div>
+          <div>
+            <h4 class="font-semibold text-gray-800">Règle d'appartenance aux comités</h4>
+            <p class="text-sm mt-1"
+               [ngClass]="club.rules?.committeeMembershipMode === 'SINGLE_ONLY' ? 'text-orange-700' : 'text-green-700'">
+              <strong *ngIf="club.rules?.committeeMembershipMode === 'SINGLE_ONLY'">
+                Un seul comité par membre
+              </strong>
+              <strong *ngIf="!club.rules?.committeeMembershipMode || club.rules?.committeeMembershipMode === 'MULTIPLE_ALLOWED'">
+                Plusieurs comités autorisés
+              </strong>
+            </p>
+            <p class="text-xs mt-1 text-gray-600">
+              <span *ngIf="club.rules?.committeeMembershipMode === 'SINGLE_ONLY'">
+                Un membre ne peut appartenir qu'à un seul comité à la fois, peu importe son rôle. Pour changer de comité, il doit d'abord être retiré de son comité actuel.
+              </span>
+              <span *ngIf="!club.rules?.committeeMembershipMode || club.rules?.committeeMembershipMode === 'MULTIPLE_ALLOWED'">
+                • Un membre peut appartenir à plusieurs comités<br>
+                • Un membre ne peut être RESPONSABLE que d'UN SEUL comité<br>
+                • Un RESPONSABLE ne peut appartenir qu'à son propre comité
+              </span>
+            </p>
+          </div>
+        </div>
+        <a *ngIf="isAdmin"
+           [routerLink]="['/clubs', club.id, 'edit']"
+           class="px-3 py-1 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          Modifier
+        </a>
+      </div>
+    </div>
+
+  <!-- SECTION MEMBRES -->
+<div class="mb-6">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-lg font-semibold text-gray-800">Membres du club</h3>
+    <div class="flex gap-2">
+      <button
+        *ngIf="isAdmin || permissionService.hasPermission('ADD_MEMBERS')"
+        (click)="openInviteModal()"
+        class="px-4 py-2 text-white text-sm rounded-lg hover:shadow-lg transition-all"
+        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        📧 Inviter un membre
+      </button>
+    </div>
+  </div>
+
+<!-- Invitations en attente -->
+<app-pending-invitations
+  *ngIf="club && club.id && (isAdmin || permissionService.hasPermission('ADD_MEMBERS'))"
+  [clubId]="club.id"
+  class="mb-4">
+</app-pending-invitations>
+
+
+  <!-- Liste des membres avec actions -->
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead class="bg-gray-50">
+        <tr class="border-b border-gray-200">
+          <th class="text-left py-3 px-4">Nom</th>
+          <th class="text-left py-3 px-4">Email</th>
+          <th class="text-left py-3 px-4">Rôle</th>
+          <th class="text-left py-3 px-4">Statut</th>
+          <th class="text-left py-3 px-4">Actions</th>
+         </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let member of club.members" class="border-b border-gray-100 hover:bg-gray-50">
+          <!-- Mode édition vs mode affichage -->
+          <ng-container *ngIf="editingMemberId !== member.userId; else memberEditMode">
+            <td class="py-3 px-4 font-medium">{{ member.name }}</td>
+            <td class="py-3 px-4">{{ member.email }}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-1 text-xs rounded-full" [ngClass]="getRoleColor(getDisplayRole(member))">
+                {{ getDisplayRole(member) }}
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-1 text-xs rounded-full" [ngClass]="getStatusColor(member.status)">
+                {{ member.status }}
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex space-x-2" *ngIf="isAdmin || permissionService.hasPermission('EDIT_MEMBERS') || permissionService.hasPermission('DELETE_MEMBERS')">
+                <button *ngIf="isAdmin || permissionService.hasPermission('EDIT_MEMBERS')" (click)="startEditMember(member)"
+                        class="text-blue-600 hover:text-blue-800">✏️</button>
+                <button *ngIf="canDeleteMember(member.userId)" (click)="deleteMember(member.userId)"
+                        class="text-red-600 hover:text-red-800">🗑️</button>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Template pour le mode édition -->
+          <ng-template #memberEditMode>
+            <td class="py-3 px-4">
+              <input type="text" [(ngModel)]="editMemberData.name"
+                     class="w-full rounded-lg border px-2 py-1 text-sm">
+            </td>
+            <td class="py-3 px-4">
+              <input type="email" [(ngModel)]="editMemberData.email"
+                     class="w-full rounded-lg border px-2 py-1 text-sm">
+            </td>
+            <td class="py-3 px-4">
+              <select [(ngModel)]="editMemberData.role"
+                      class="text-sm border rounded px-2 py-1 bg-white">
+                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+              </select>
+            </td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-1 text-xs rounded-full" [ngClass]="getStatusColor(member.status)">
+                {{ member.status }}
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex space-x-2">
+                <button (click)="saveEditMember(member.userId)"
+                        class="text-green-600 hover:text-green-800">💾</button>
+                <button (click)="cancelEditMember()"
+                        class="text-gray-600 hover:text-gray-800">✖️</button>
+              </div>
+            </td>
+          </ng-template>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION COMITÉS -->
+<div class="mb-6">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-lg font-semibold text-gray-800">Comités</h3>
+    <button *ngIf="isAdmin || permissionService.hasPermission('CREATE_SUBGROUPS')" (click)="showSubGroupForm = !showSubGroupForm"
+            class="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">
+      + Créer un comité
+    </button>
+  </div>
+
+  <!-- Formulaire création comité -->
+  <div *ngIf="showSubGroupForm" class="mb-4 p-4 border rounded-lg bg-gray-50">
+    <h4 class="font-medium mb-3">Créer un nouveau comité</h4>
+    <form [formGroup]="subGroupForm" (ngSubmit)="addSubGroup()" class="space-y-3">
+      <input type="text" formControlName="name" placeholder="Nom du comité"
+             class="w-full rounded-lg border px-3 py-2">
+      <textarea formControlName="description" placeholder="Description" rows="2"
+                class="w-full rounded-lg border px-3 py-2"></textarea>
+      <div class="flex space-x-2">
+        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg">Créer</button>
+        <button type="button" (click)="showSubGroupForm = false" class="px-4 py-2 border rounded-lg">Annuler</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Liste des comités -->
+  <div class="space-y-4">
+    <div *ngFor="let sg of club.subGroups" class="border rounded-lg overflow-hidden">
+
+      <!-- En-tête du comité -->
+      <div class="flex justify-between items-center p-4 bg-gray-50">
+
+        <!-- Mode édition -->
+        <div *ngIf="editingSubGroupId === sg.id" class="flex-1 flex gap-2 items-center">
+          <input type="text" [(ngModel)]="editSubGroupData.name"
+                 class="rounded-lg border px-2 py-1 text-sm w-40" placeholder="Nom">
+          <input type="text" [(ngModel)]="editSubGroupData.description"
+                 class="rounded-lg border px-2 py-1 text-sm flex-1" placeholder="Description">
+          <button (click)="saveEditSubGroup(sg.id!)"
+                  class="text-sm px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">💾</button>
+          <button (click)="cancelEditSubGroup()"
+                  class="text-sm px-3 py-1 border rounded hover:bg-gray-100">✖</button>
+        </div>
+
+        <!-- Mode affichage -->
+        <div *ngIf="editingSubGroupId !== sg.id" class="flex-1">
+          <div class="flex items-center gap-2">
+            <h4 class="font-semibold text-blue-700">{{ sg.name }}</h4>
+            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+              {{ sg.memberIds.length }} membre(s)
+            </span>
+          </div>
+          <p class="text-sm text-gray-500 mt-0.5">{{ sg.description }}</p>
+        </div>
+
+        <!-- Actions admin -->
+        <div class="flex items-center gap-2 ml-4" *ngIf="(isAdmin || permissionService.hasPermission('EDIT_SUBGROUPS') || permissionService.hasPermission('DELETE_SUBGROUPS')) && editingSubGroupId !== sg.id">
+          <button *ngIf="isAdmin || permissionService.hasPermission('EDIT_SUBGROUPS')" (click)="startEditSubGroup(sg)"
+                  class="text-sm px-2 py-1 text-blue-600 hover:bg-blue-50 rounded" title="Modifier">✏️</button>
+          <button *ngIf="isAdmin || permissionService.hasPermission('DELETE_SUBGROUPS')" (click)="removeSubGroup(sg.id!)"
+                  class="text-sm px-2 py-1 text-red-600 hover:bg-red-50 rounded" title="Supprimer">🗑️</button>
+        </div>
+      </div>
+
+      <!-- Tableau des membres du comité -->
+      <div class="p-4">
+        <div *ngIf="sg.memberIds.length === 0" class="text-sm text-gray-400 italic text-center py-2">
+          Aucun membre dans ce comité
+        </div>
+
+        <table *ngIf="sg.memberIds.length > 0" class="w-full text-sm">
+          <thead>
+            <tr class="border-b text-gray-500 text-xs">
+              <th class="text-left py-2 px-2">Nom</th>
+              <th class="text-left py-2 px-2">Rôle dans le club</th>
+              <th class="text-left py-2 px-2">Rôle dans le comité</th>
+              <th class="text-left py-2 px-2">Statut</th>
+              <th class="text-left py-2 px-2" *ngIf="canRemoveFromSubGroup(sg.id!)">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let memberId of sg.memberIds"
+                class="border-b border-gray-50 hover:bg-gray-50">
+              <ng-container *ngIf="getMemberById(memberId) as m">
+                <td class="py-2 px-2 font-medium">{{ m.name }}</td>
+                <td class="py-2 px-2">
+                  <span class="px-2 py-0.5 text-xs rounded-full" [ngClass]="getRoleColor(m.role)">
+                    {{ m.role }}
+                  </span>
+                </td>
+                <!-- Rôle dans le comité - Modifiable par le responsable -->
+                <td class="py-2 px-2">
+                  <ng-container *ngIf="canManageSubGroupMembers(sg.id!) && memberId !== authService.getCurrentUser()?.userId; else displayRole">
+                    <select
+                      [value]="m.subGroupRole || 'MEMBRE_COMITE'"
+                      (change)="changeSubGroupRole(sg.id!, memberId, $event)"
+                      class="text-xs border rounded px-2 py-1 bg-white">
+                      <option value="MEMBRE_COMITE">📋 Membre du comité</option>
+                      <option value="RESPONSABLE">👑 Responsable</option>
+                    </select>
+                  </ng-container>
+                  <ng-template #displayRole>
+                    <span class="px-2 py-0.5 text-xs rounded-full"
+                          [ngClass]="m.subGroupRole === 'RESPONSABLE' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'">
+                      {{ m.subGroupRole === 'RESPONSABLE' ? '👑 Responsable' : '📋 Membre du comité' }}
+                    </span>
+                  </ng-template>
+                </td>
+                <td class="py-2 px-2">
+                  <span class="px-2 py-0.5 text-xs rounded-full" [ngClass]="getStatusColor(m.status)">
+                    {{ m.status }}
+                  </span>
+                </td>
+                <td class="py-2 px-2" *ngIf="canRemoveFromSubGroup(sg.id!)">
+                  <button (click)="removeMemberFromSubGroup(sg.id!, memberId)"
+                          class="text-xs text-red-500 hover:text-red-700 hover:underline">
+                    Retirer
+                  </button>
+                </td>
+              </ng-container>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Message si aucun comité -->
+  <div *ngIf="club.subGroups.length === 0" class="text-center py-6 text-gray-500">
+    <p>Aucun comité pour le moment</p>
+    <p class="text-sm">Créez votre premier comité pour organiser vos membres</p>
+  </div>
+</div>
+
+    <!-- SECTION ASSIGNATION -->
+    <div class="mb-6" *ngIf="isAdmin || permissionService.hasPermission('ASSIGN_TO_SUBGROUPS') || getMyResponsibleSubGroupId()">
+      <button (click)="showAssignForm = !showAssignForm"
+              class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+        📌 Assigner un membre à un comité
+      </button>
+
+      <div *ngIf="showAssignForm" class="mt-4 p-4 border rounded-lg bg-gray-50">
+        <h4 class="font-medium mb-3">Assigner un membre</h4>
+        <form [formGroup]="assignForm" (ngSubmit)="assignToSubGroup()" class="space-y-3">
+          <select formControlName="userId" class="w-full rounded-lg border px-3 py-2">
+            <option value="">Sélectionner un membre</option>
+            <option *ngFor="let member of club.members" [value]="member.userId">
+              {{ member.name }} ({{ member.role }})
+            </option>
+          </select>
+
+          <select formControlName="subGroupId" class="w-full rounded-lg border px-3 py-2">
+            <option value="">Sélectionner un comité</option>
+            <ng-container *ngIf="isAdmin || permissionService.hasPermission('ASSIGN_TO_SUBGROUPS')">
+              <option *ngFor="let sg of club.subGroups" [value]="sg.id">
+                {{ sg.name }}
+              </option>
+            </ng-container>
+            <ng-container *ngIf="!isAdmin && !permissionService.hasPermission('ASSIGN_TO_SUBGROUPS') && getMyResponsibleSubGroupId()">
+              <ng-container *ngFor="let sg of club.subGroups">
+                <option [value]="sg.id" *ngIf="sg.id === getMyResponsibleSubGroupId()">
+                  {{ sg.name }} (Mon comité)
+                </option>
+              </ng-container>
+            </ng-container>
+          </select>
+
+          <div>
+            <label class="block text-sm font-medium mb-2 text-gray-700">Rôle dans le comité</label>
+            <select formControlName="subGroupRole" class="w-full rounded-lg border px-3 py-2">
+              <option value="MEMBRE_COMITE">Membre du comité</option>
+              <option value="RESPONSABLE" *ngIf="isAdmin">Responsable du comité</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              <span *ngIf="isAdmin">Le responsable pourra gérer les membres de ce comité</span>
+              <span *ngIf="!isAdmin">Vous pouvez ajouter des membres à votre comité</span>
+            </p>
+          </div>
+
+          <div class="flex space-x-2">
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg">Assigner</button>
+            <button type="button" (click)="showAssignForm = false" class="px-4 py-2 border rounded-lg">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !club" class="text-center py-10">
+    <p class="text-gray-500">Club non trouvé</p>
+    <a routerLink="/clubs" class="inline-block mt-4 text-blue-600">Retour à la liste</a>
+  </div>
+</div>
+<!-- SECTION ÉLECTIONS DU CLUB -->
+<div class="mt-6">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="text-lg font-semibold text-gray-800">Élections du club</h3>
+    <a *ngIf="isAdmin || permissionService.hasPermission('CREATE_ELECTIONS')" [routerLink]="['/elections', 'create']" [queryParams]="{ clubId: club?.id }"
+       class="px-3 py-1 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700">
+      + Nouvelle élection
+    </a>
+  </div>
+
+  <div *ngIf="clubElections.length === 0" class="text-center py-6 text-gray-500">
+    <p>Aucune élection pour ce club</p>
+    <p class="text-sm">Créez votre première élection</p>
+  </div>
+
+  <div class="space-y-3">
+    <div *ngFor="let election of clubElections"
+         class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div class="flex justify-between items-start">
+        <div>
+          <a [routerLink]="['/elections', election.id]"
+             class="font-semibold text-blue-600 hover:underline">
+            {{ election.title }}
+          </a>
+          <p class="text-sm text-gray-500 mt-1">{{ election.description }}</p>
+        </div>
+        <span class="px-2 py-1 text-xs rounded-full"
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-800': election.status === 'PLANNED',
+                'bg-green-100 text-green-800': election.status === 'OPEN',
+                'bg-gray-100 text-gray-800': election.status === 'CLOSED'
+              }">
+          {{ election.status }}
+        </span>
+      </div>
+      <div class="mt-2 text-xs text-gray-400">
+        Du {{ election.startDate | date:'dd/MM/yyyy' }} au {{ election.endDate | date:'dd/MM/yyyy' }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'invitation -->
+<app-invite-member-modal
+  [clubId]="club?.id || ''"
+  [show]="showInviteModal"
+  (close)="closeInviteModal()"
+  (invitationSent)="onInvitationSent()">
+</app-invite-member-modal>
+
+<!-- Modal "Compte créé" : message neutre par défaut, reveal optionnel + auto-hide 30s -->
+<div *ngIf="pwdReveal.open"
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="pwdRevealTitle">
+  <div class="w-full max-w-md rounded-xl bg-white shadow-xl">
+    <div class="flex items-start justify-between border-b border-gray-100 px-5 py-4">
+      <div>
+        <h3 id="pwdRevealTitle" class="text-base font-semibold text-gray-900">Compte créé</h3>
+        <p class="mt-1 text-sm text-gray-500">Le membre a bien été ajouté au club.</p>
+      </div>
+      <button type="button"
+              class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Fermer"
+              (click)="closePwdReveal()">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+
+    <div class="px-5 py-4 space-y-4">
+      <div class="rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
+        Le mot de passe a été envoyé par email à
+        <strong class="break-all">{{ pwdReveal.email || '—' }}</strong>.
+      </div>
+
+      <div *ngIf="pwdReveal.password">
+        <label class="block text-xs font-medium uppercase tracking-wide text-gray-500">
+          Mot de passe temporaire
+        </label>
+        <div class="mt-1 flex items-stretch gap-2">
+          <div class="flex-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 font-mono text-sm text-gray-800"
+               aria-live="polite">
+            {{ pwdReveal.visible ? pwdReveal.password : '••••••••••••' }}
+          </div>
+          <button type="button"
+                  class="rounded-md border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50"
+                  [attr.aria-pressed]="pwdReveal.visible"
+                  (click)="togglePwdReveal()">
+            {{ pwdReveal.visible ? 'Masquer' : 'Afficher' }}
+          </button>
+          <button type="button"
+                  class="rounded-md border border-gray-300 px-3 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  [disabled]="!pwdReveal.visible"
+                  (click)="copyPwdToClipboard()">
+            {{ pwdReveal.copied ? 'Copié ✓' : 'Copier' }}
+          </button>
+        </div>
+        <p *ngIf="pwdReveal.visible" class="mt-2 text-xs text-amber-700">
+          Affichage temporaire — masquage automatique dans 30s. Ne partagez pas cet écran.
+        </p>
+        <p *ngIf="!pwdReveal.visible" class="mt-2 text-xs text-gray-500">
+          Pour la démo uniquement. En production, ce panneau ne s'ouvre pas.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 border-t border-gray-100 px-5 py-3">
+      <button type="button"
+              class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              (click)="closePwdReveal()">
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>

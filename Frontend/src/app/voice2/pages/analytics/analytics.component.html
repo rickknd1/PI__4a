@@ -1,0 +1,30 @@
+<div class="dashboard">
+  <h1>Analytics Overview</h1>
+
+  <div class="cards">
+    <div class="card">
+      <span>Events</span>
+      <h2>{{ totalEvents }}</h2>
+    </div>
+
+    <div class="card">
+      <span>Participants</span>
+      <h2>{{ totalParticipants }}</h2>
+    </div>
+
+    <div class="card">
+      <span>Revenue</span>
+      <h2>{{ totalRevenue }} DT</h2>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-box">
+      <canvas baseChart [data]="pieChartData" [type]="'pie'"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <canvas baseChart [data]="lineChartData" [type]="'line'"></canvas>
+    </div>
+  </div>
+</div>

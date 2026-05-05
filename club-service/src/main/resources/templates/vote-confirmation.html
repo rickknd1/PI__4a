@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .success-box { background: #d1fae5; padding: 20px; margin: 20px 0; border-left: 4px solid #10b981; border-radius: 5px; text-align: center; }
+        .button { display: inline-block; background: #10b981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h1>✅ Vote Enregistré</h1></div>
+        <div class="content">
+            <p>Bonjour <strong th:text="${voterName}"></strong>,</p>
+            <div class="success-box">
+                <h2 style="color: #10b981; margin: 0;">🗳️ Merci d'avoir voté !</h2>
+                <p style="margin: 10px 0 0 0;">Votre vote a été enregistré avec succès</p>
+            </div>
+            <p><strong>Élection:</strong> <span th:text="${electionTitle}"></span></p>
+            <p>Votre vote est confidentiel et a été enregistré de manière sécurisée.</p>
+            <ul>
+                <li>Les résultats seront calculés automatiquement à la fin de l'élection</li>
+                <li>Vous recevrez un email avec les résultats finaux</li>
+            </ul>
+            <center><a th:href="${electionLink}" class="button">Voir l'élection</a></center>
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">Merci pour votre participation ! 🙏</p>
+        </div>
+        <div class="footer"><p>Cet email a été envoyé automatiquement par ClubHub</p></div>
+    </div>
+</body>
+</html>

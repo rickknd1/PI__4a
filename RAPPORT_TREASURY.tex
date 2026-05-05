@@ -1,0 +1,674 @@
+\documentclass[11pt,a4paper]{article}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.4cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{titling}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{caption}
+
+% ============================================================
+% COULEURS & STYLE
+% ============================================================
+\definecolor{primary}{RGB}{28,35,64}      % #1C2340
+\definecolor{accent}{RGB}{232,64,104}     % #E84068
+\definecolor{success}{RGB}{21,128,61}
+\definecolor{warning}{RGB}{217,119,6}
+\definecolor{danger}{RGB}{220,38,38}
+\definecolor{codebg}{RGB}{246,247,251}
+\definecolor{codecomment}{RGB}{106,153,85}
+\definecolor{codestring}{RGB}{206,145,120}
+\definecolor{codekw}{RGB}{86,156,214}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primary,
+  urlcolor=accent,
+  citecolor=primary,
+  pdftitle={ClubHub - Module Trésorerie - Rapport technique},
+  pdfauthor={Rick Kendem Mba Dylan},
+}
+
+% Section styling
+\titleformat{\section}{\Large\bfseries\color{primary}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{primary}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{accent}}{\thesubsubsection}{1em}{}
+
+% Header / footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{primary}{\textbf{ClubHub}} -- Module Trésorerie}
+\fancyhead[R]{\textcolor{primary}{Rapport technique}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Listings (code)
+\lstdefinestyle{codestyle}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  commentstyle=\color{codecomment}\itshape,
+  keywordstyle=\color{codekw}\bfseries,
+  stringstyle=\color{codestring},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{gray!30},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=2,
+  captionpos=b,
+  xleftmargin=12pt,
+}
+\lstset{style=codestyle}
+
+% tcolorbox
+\tcbuselibrary{skins,breakable}
+\newtcolorbox{infobox}[1][]{
+  colback=primary!5,
+  colframe=primary,
+  boxrule=0.4pt,
+  arc=2pt,
+  fonttitle=\bfseries,
+  title=#1
+}
+\newtcolorbox{warnbox}[1][]{
+  colback=warning!10,
+  colframe=warning,
+  boxrule=0.4pt,
+  arc=2pt,
+  fonttitle=\bfseries,
+  title=#1
+}
+\newtcolorbox{successbox}[1][]{
+  colback=success!10,
+  colframe=success,
+  boxrule=0.4pt,
+  arc=2pt,
+  fonttitle=\bfseries,
+  title=#1
+}
+
+% ============================================================
+% TITRE
+% ============================================================
+\title{
+  \vspace{-1.5cm}
+  \begin{center}
+    \rule{\linewidth}{0.4pt}\\[0.4cm]
+    {\Huge \textbf{\textcolor{primary}{ClubHub}}}\\[0.4cm]
+    {\LARGE \textcolor{accent}{Module Trésorerie}}\\[0.3cm]
+    {\large Rapport technique de validation}\\[0.2cm]
+    \rule{\linewidth}{0.4pt}
+  \end{center}
+}
+\author{
+  \large Rick Kendem Mba Dylan\\[0.2em]
+  \normalsize ESPRIT -- Projet PI 2025/2026\\
+  \normalsize 4ARCTIC
+}
+\date{\today}
+
+% ============================================================
+% DOCUMENT
+% ============================================================
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\vfill
+\begin{center}
+  \begin{minipage}{0.85\textwidth}
+    \begin{infobox}[Synthèse exécutive]
+      Le module \textbf{Trésorerie} de la plateforme ClubHub est une solution complète de gestion financière pour clubs universitaires, intégrée dans une architecture microservices Spring Boot. Il assure la gestion des cotisations, dépenses, remboursements et bilans, enrichis par cinq modèles d'intelligence artificielle (Random Forest, Isolation Forest, régression linéaire, catégorisation par mots-clés, RAG conversationnel) opérant directement sur la base de données métier.
+
+      \medskip
+      \textbf{Chiffres clés} : 192 paiements, 157 dépenses, 9 utilisateurs métier, 14 endpoints REST documentés, modèles ML entraînés à 90{,}5\,\% de précision sur 189 paiements historiques, 15 anomalies détectées dont 7 anomalies test capturées avec un score \(>0{,}5\).
+    \end{infobox}
+  \end{minipage}
+\end{center}
+\vfill
+
+\newpage
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Introduction}
+% ============================================================
+
+\subsection{Contexte}
+
+Le projet \textbf{ClubHub} est une plateforme universitaire ESPRIT destinée à la gestion intégrée des clubs étudiants. Il rassemble plusieurs modules développés par des étudiants : gestion des clubs et comités, gestion des événements (présentiels et virtuels), messagerie vocale, élections internes, procès-verbaux, et la \textbf{trésorerie} qui constitue le cœur du présent rapport.
+
+\subsection{Périmètre du module Trésorerie}
+
+Le module Trésorerie est un microservice Spring Boot autonome (port \texttt{8085}) qui interagit avec les autres services via le Gateway central (port \texttt{8084}). Il assure :
+
+\begin{itemize}[leftmargin=*]
+  \item La création et le suivi des règles de cotisation (mensuelle, trimestrielle, annuelle).
+  \item Le paiement des cotisations par carte (intégration Stripe) ou en espèces avec validation par le trésorier.
+  \item La soumission, la validation à deux niveaux et le suivi des dépenses avec un système de trois devis comparatifs.
+  \item Le remboursement des paiements via Stripe avec génération automatique d'un reçu PDF.
+  \item La détection d'anomalies par apprentissage automatique non supervisé (Isolation Forest).
+  \item La prédiction du risque de retard de paiement par membre via Random Forest.
+  \item La projection budgétaire à trois mois par régression linéaire avec baseline robuste.
+  \item Un journal d'audit immuable de toutes les actions sensibles.
+  \item Un assistant conversationnel (chatbot RAG) interrogeant directement la base de données.
+\end{itemize}
+
+\subsection{Acteurs}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{>{\bfseries}llX}
+    \toprule
+    Rôle & Compte de test & Périmètre fonctionnel \\
+    \midrule
+    Trésorier         & \texttt{rick.tresorier@clubhub.tn}  & Back-office complet : règles, paiements, dépenses, remboursements, audit, IA \\
+    Président         & \texttt{president@clubhub.tn}       & Approbation niveau 2 des dépenses validées \\
+    Membre simple     & \texttt{kayzeurdylan2@gmail.com}    & Espace membre : payer cotisation, soumettre dépense, voir notifications \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Comptes de test (mot de passe : \texttt{Test1234!})}
+\end{table}
+
+% ============================================================
+\section{Architecture globale}
+% ============================================================
+
+\subsection{Stack technique}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{>{\bfseries}lX}
+    \toprule
+    Couche & Technologies \\
+    \midrule
+    Backend microservices  & Spring Boot 3.3+, Java 21, Maven \\
+    Service Registry        & Eureka Server (Spring Cloud Netflix) \\
+    Gateway / Routing       & Spring Cloud Gateway WebFlux \\
+    Base de données        & MongoDB 8 (BDD séparée par service) \\
+    Sécurité               & JWT cookie partagé inter-services, Spring Security \\
+    Intégration paiement    & Stripe API (Checkout Session, PaymentIntent, Refund) \\
+    Apprentissage automatique & Smile ML 4.3 (Isolation Forest, Random Forest) \\
+    Génération PDF          & iText 8 (reçus, bilans, factures) \\
+    Documentation API       & SpringDoc OpenAPI 2.5+ (Swagger UI) \\
+    Frontend                & Angular 21, TypeScript 5.6, Tailwind CSS 4 \\
+    Email                   & Spring Mail + Gmail SMTP \\
+    Déploiement local       & Docker Compose (optionnel) \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Stack technique de la plateforme}
+\end{table}
+
+\subsection{Cartographie des microservices}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{>{\bfseries}lcXX}
+    \toprule
+    Service & Port & Rôle & Auth \\
+    \midrule
+    Eureka Server                & 8761 & Annuaire / discovery & N/A \\
+    Gateway                      & 8084 & Point d'entrée, routes, CORS & Forward JWT \\
+    user-service                 & 8081 & Authentification, profils, rôles & Émet JWT \\
+    \textbf{treasury-service}    & \textbf{8085} & \textbf{Trésorerie (présent rapport)} & Valide JWT \\
+    EventManagement              & 8088 & Événements, RSVP, devis, lenders & Valide JWT \\
+    club-service                 & 8083 & Clubs, comités, élections & Valide JWT \\
+    Virtual\_Event\_Management   & 8086 & Événements virtuels, transcriptions & Valide JWT \\
+    instant-voice-management     & 8082 & Canaux vocaux, rapports audio & Valide JWT \\
+    ai-service                   & 8000 & Service IA Python (FastAPI) & Local \\
+    Frontend Angular             & 4200 & Interface utilisateur unifiée & Cookie JWT \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Topologie des services au sein de la plateforme}
+\end{table}
+
+\subsection{Schéma d'architecture}
+
+\begin{verbatim}
+                  +------------------+
+                  |   Frontend       |
+                  |   Angular 21     |
+                  |   localhost:4200 |
+                  +--------+---------+
+                           |
+                           | HTTPS + Cookie JWT
+                           |
+                  +--------v---------+
+                  |    Gateway       |
+                  | Spring Cloud GW  |
+                  |   localhost:8084 |
+                  +---+----+----+----+
+                      |    |    |
+            +---------+    |    +---------+
+            |              |              |
+   +--------v-----+ +------v------+ +-----v--------+
+   | user-service | | TREASURY    | | event-mgmt   |
+   |    8081      | |   8085      | |   8088       |
+   +------+-------+ +------+------+ +------+-------+
+          |                |               |
+          +-----+----------+---------------+
+                |
+         +------v------+
+         |  MongoDB    |
+         |   27017     |
+         +-------------+
+\end{verbatim}
+
+\subsection{Authentification cross-service}
+
+L'authentification utilise un \textbf{JWT signé HS256} émis par \texttt{user-service}. Le secret partagé identique à tous les services :
+
+\begin{lstlisting}[language=bash, caption={Secret JWT partagé entre tous les microservices}]
+jwt.secret=clubhub_super_secret_key_must_be_at_least_32_chars!
+jwt.expiration=86400000   # 24h
+jwt.cookie-name=jwt
+\end{lstlisting}
+
+Le filter \texttt{JwtCookieAuthFilter} de chaque microservice extrait le token (cookie \texttt{jwt} ou en-tête \texttt{Authorization: Bearer}), le valide et reconstruit le contexte de sécurité avec les rôles de l'utilisateur.
+
+% ============================================================
+\section{Module Trésorerie -- vue détaillée}
+% ============================================================
+
+\subsection{Architecture interne}
+
+Le service Trésorerie suit une architecture hexagonale classique en couches :
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Controllers} (14 contrôleurs REST sous \texttt{/api/v1/treasury/{clubId}/*}) : Payment, Expense, Cotisation, Budget, Bilan, Receipt, Audit, Notification, AI, Stripe, Dashboard, User, Demo.
+  \item \textbf{Services métier} : 11 services orchestrant la logique applicative.
+  \item \textbf{Repositories MongoDB} : Spring Data, requêtes nommées et agrégations.
+  \item \textbf{Entités} : Payment, Expense, CotisationRule, Budget, Receipt, AuditLog, Notification, User.
+  \item \textbf{DTOs} : Couche de découplage entre l'API et le modèle métier.
+  \item \textbf{Sécurité} : Spring Security + filter JWT cookie + \texttt{@PreAuthorize} par rôle.
+\end{itemize}
+
+\subsection{Modèle de données}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{>{\bfseries}lX}
+    \toprule
+    Collection MongoDB & Description \\
+    \midrule
+    \texttt{users}              & Référentiel utilisateurs Trésorerie (Dylan, Fatma, Ali, etc.) \\
+    \texttt{cotisation\_rules}  & Règles de cotisation (montant, fréquence, période, exemptions) \\
+    \texttt{payments}           & Paiements (PAID, LATE, PENDING, PENDING\_CASH, REFUNDED, EXEMPT) \\
+    \texttt{expenses}           & Dépenses avec quotes (3 devis), catégorie IA, workflow N1+N2 \\
+    \texttt{budgets}            & Budgets annuels et événementiels avec seuils d'alerte \\
+    \texttt{receipts}           & Reçus PDF générés et envoyés par email \\
+    \texttt{audit\_logs}        & Journal d'audit immuable horodaté à la milliseconde \\
+    \texttt{notifications}      & Notifications in-app (paiements à venir, dépenses approuvées) \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Collections MongoDB du service Trésorerie}
+\end{table}
+
+\subsection{Endpoints REST principaux}
+
+L'intégralité des endpoints est documentée par \textbf{SpringDoc OpenAPI} et accessible à l'adresse :
+\begin{center}
+  \fbox{\texttt{http://localhost:8085/swagger-ui.html}}
+\end{center}
+
+\begin{table}[h]
+  \centering
+  \footnotesize
+  \begin{tabularx}{\linewidth}{>{\bfseries}lX}
+    \toprule
+    Méthode + Path & Description \\
+    \midrule
+    \texttt{GET /payments}          & Liste paginée des paiements (filtres : statut, membre) \\
+    \texttt{POST /payments}         & Création manuelle d'un paiement (TRESORIER) \\
+    \texttt{PATCH /payments/\{id\}/request-cash}  & Membre demande paiement espèces \\
+    \texttt{PATCH /payments/\{id\}/confirm}       & Trésorier confirme paiement (génère reçu) \\
+    \texttt{PATCH /payments/\{id\}/refund}        & Remboursement Stripe (TRESORIER) \\
+    \texttt{POST /stripe/checkout-session/\{id\}} & Crée session Stripe (conversion TND→EUR) \\
+    \texttt{GET /expenses}          & Liste dépenses avec filtres statut \\
+    \texttt{POST /expenses}         & Soumission dépense + 3 devis (\texttt{@Size(min=3, max=3)}) \\
+    \texttt{PATCH /expenses/\{id\}/validate}      & Validation N1 trésorier + sélection devis \\
+    \texttt{PATCH /expenses/\{id\}/approve}       & Approbation N2 président \\
+    \texttt{POST /expenses/\{id\}/reject}         & Rejet avec motif obligatoire \\
+    \texttt{GET /bilans}                          & Bilan agrégé par période (filtre \texttt{paidAt}) \\
+    \texttt{GET /bilans/pdf}                      & Export PDF du bilan \\
+    \texttt{GET /audit}                           & Journal d'audit chronologique \\
+    \texttt{POST /ai/categorize}                  & Catégorisation auto d'une dépense \\
+    \texttt{POST /ai/chat}                        & Chatbot RAG sur données BDD \\
+    \texttt{GET /demo/anomalies/ml}               & Anomalies détectées (Isolation Forest) \\
+    \texttt{GET /demo/late-payment/predictions}   & Prédictions retard (Random Forest) \\
+    \texttt{POST /demo/seed}                      & Re-seed des données de démonstration \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Principaux endpoints du service Trésorerie}
+\end{table}
+
+\subsection{Workflow paiement de cotisation}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Membre simple (Dylan)} se connecte sur le frontend Angular et accède à \texttt{/treasury/espace-membre}.
+  \item Trois cotisations en retard sont affichées : 15 TND (mensuelle janv.), 15 TND (mensuelle févr.), 120 TND (annuelle).
+  \item Le membre clique sur ``Carte bancaire''.
+  \item Le frontend appelle \texttt{POST /stripe/checkout-session/\{paymentId\}} qui invoque \texttt{StripeService.createCheckoutSession()}.
+  \item Le service convertit le montant TND vers EUR au taux Banque Centrale de Tunisie (\texttt{1 TND = 0,303 EUR}) car le compte Stripe France ne supporte pas TND nativement.
+  \item Stripe retourne une URL de checkout, le membre est redirigé.
+  \item Carte test : \texttt{4242 4242 4242 4242} -- Date : \texttt{12/30} -- CVC : \texttt{123}.
+  \item Stripe redirige vers le \texttt{successUrl} : \texttt{http://localhost:4200/treasury/payer-cotisation?session\_id=cs\_...}.
+  \item Le composant \texttt{PayerCotisationComponent.handleReturnFromStripe()} récupère le \texttt{paymentIntentId} via \texttt{getStripeSession()} puis appelle \texttt{PATCH /payments/\{id\}/confirm}.
+  \item Le \texttt{PaymentService.confirmPayment()} marque le paiement \texttt{PAID}, génère le reçu PDF (iText 8) avec les champs \emph{motif}, \emph{fréquence}, \emph{méthode de paiement}, écrit une entrée d'audit et envoie le reçu par email.
+\end{enumerate}
+
+\begin{successbox}[Conformité TND/EUR]
+  Le frontend, les bilans et les reçus PDF affichent toujours \textbf{TND}. La conversion en EUR est strictement limitée à l'envoi vers Stripe. La métadonnée \texttt{original\_amount\_tnd} est conservée côté Stripe pour la traçabilité comptable.
+\end{successbox}
+
+\subsection{Workflow dépense à deux niveaux}
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Membre} soumet une dépense avec \textbf{exactement 3 devis} (validation \texttt{@Size(min=3, max=3)}).
+  \item Le service appelle \texttt{GeminiService.categorizeExpense()} qui retourne automatiquement une catégorie (MATERIEL, TRANSPORT, etc.) via classification par mots-clés (8 catégories, 70+ keywords).
+  \item Statut initial : \texttt{SUBMITTED}.
+  \item \textbf{Trésorier (Rick)} valide en sélectionnant l'index du devis retenu : statut \texttt{VALIDATED}, \texttt{validatedQuoteIndex} mis à jour, \texttt{Expense.amount} aligné sur le devis sélectionné.
+  \item \textbf{Président (Ahmed)} approuve : statut \texttt{APPROVED}, \texttt{approvedAt} = \texttt{now()}, audit log enregistré.
+  \item Le bilan agrégé prend en compte cette dépense dans le total \texttt{totalApprovedExpenses}.
+\end{enumerate}
+
+% ============================================================
+\section{Intelligence artificielle embarquée}
+% ============================================================
+
+Le module Trésorerie embarque \textbf{cinq modèles d'IA propriétaires} fonctionnant sans dépendance externe critique (les services IA externes sont uniquement des enrichissements optionnels).
+
+\subsection{Random Forest -- prédiction de retard de paiement}
+
+\paragraph{Algorithme} Random Forest avec 100 arbres (Smile ML 4.3, classification binaire).
+
+\paragraph{Entraînement} 189 paiements historiques sur deux exercices (2024--2026), label binaire \texttt{LATE} vs \texttt{PAID}, 7 features : taux de retard historique du membre, nombre de paiements précédents, fréquence de cotisation, jour du mois moyen de paiement, écart-type des délais, montant cumulé impayé, ancienneté du membre.
+
+\paragraph{Performance} Précision d'entraînement \textbf{90{,}5\,\%}, taux de retard historique global 23{,}2\,\%.
+
+\paragraph{Sortie} Pour chaque membre actif du club : probabilité de retard sur le prochain paiement, niveau de risque (\texttt{LOW} \(<\) 0{,}3 ; \texttt{MEDIUM} 0{,}3--0{,}6 ; \texttt{HIGH} \(\geq\) 0{,}6).
+
+\begin{table}[h]
+  \centering
+  \footnotesize
+  \begin{tabularx}{\linewidth}{Xrlrr}
+    \toprule
+    \textbf{Membre} & \textbf{Probabilité} & \textbf{Risque} & \textbf{Historique} & \textbf{Retards} \\
+    \midrule
+    Omar Mansouri    & 0{,}580 & MEDIUM & 23 & 12 \\
+    Dylan Kayzeur    & 0{,}557 & MEDIUM &  3 &  2 \\
+    Yassine Bouazizi & 0{,}479 & MEDIUM & 24 & 10 \\
+    Amira Gharbi     & 0{,}360 & LOW    & 23 &  4 \\
+    Sana Khelifi     & 0{,}175 & LOW    & 23 &  3 \\
+    Ali Ben Salah    & 0{,}080 & LOW    & 24 &  0 \\
+    Fatma Haddad     & 0{,}080 & LOW    & 24 &  0 \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Sortie réelle du modèle Random Forest au moment des tests}
+\end{table}
+
+\subsection{Isolation Forest -- détection d'anomalies de dépenses}
+
+\paragraph{Algorithme} Isolation Forest non supervisé, 200 arbres, taux de contamination 7\,\%, calculé indépendamment par catégorie de dépense pour éviter les faux positifs liés aux ordres de grandeur (une cotisation annuelle 120 TND ne doit pas être marquée comme anomalie face à une cotisation mensuelle 15 TND).
+
+\paragraph{Entraînement} 150 échantillons couvrant 8 catégories (FOURNITURES, TRANSPORT, HEBERGEMENT, RESTAURATION, MATERIEL, COMMUNICATION, EVENEMENT, AUTRE).
+
+\paragraph{Sortie} 15 anomalies détectées dont 7 anomalies tests volontairement injectées dans le seed (montants supérieurs à 3$\sigma$) :
+
+\begin{itemize}[leftmargin=*]
+  \item Hôtel luxe \texttt{3200 TND} vs moyenne 437 TND $\rightarrow$ score 0{,}579.
+  \item Transport suspicieux \texttt{2500 TND} vs moyenne 188 TND $\rightarrow$ score 0{,}588.
+  \item Fournitures massive \texttt{1200 TND} vs moyenne 47 TND $\rightarrow$ score 0{,}598.
+  \item Buffet démesuré \texttt{850 TND} vs moyenne 99 TND $\rightarrow$ score 0{,}590.
+\end{itemize}
+
+\subsection{Régression linéaire -- projection budgétaire trois mois}
+
+Projection des recettes et dépenses sur les trois prochains mois à partir de l'historique mensuel (six derniers mois). \textbf{Innovation} : baseline robuste -- si le mois courant est anormalement bas (typiquement parce qu'il vient de commencer), le modèle bascule sur la moyenne historique des cinq mois précédents pour éviter une régression à zéro.
+
+\subsection{Catégorisation automatique par mots-clés}
+
+\paragraph{Approche} Le service \texttt{GeminiService.classifyByKeywords()} utilise un dictionnaire de 70+ mots-clés répartis sur 8 catégories. Le score de confiance dépend du nombre de mots-clés matchés (40\,\% si aucun match, 70\,\% pour 1 match, 85\,\% pour 2+ matches).
+
+\paragraph{Tests réussis (6/6)}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{Xll}
+    \toprule
+    \textbf{Dépense} & \textbf{Catégorie} & \textbf{Confiance} \\
+    \midrule
+    Achat 30 chaises pliantes événement   & MATERIEL       & 85\,\% \\
+    Bus pour conférence Sfax              & TRANSPORT      & 85\,\% \\
+    Buffet intégration nouveaux membres   & RESTAURATION   & 85\,\% \\
+    Hôtel 2 nuits Tunis                   & HEBERGEMENT    & 85\,\% \\
+    Hackathon 48h                         & EVENEMENT      & 70\,\% \\
+    \emph{Truc bizarre 12345}             & AUTRE          & 40\,\% \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Tests de catégorisation automatique}
+\end{table}
+
+\subsection{Chatbot RAG conversationnel}
+
+Le \texttt{RagService} interroge en temps réel les collections MongoDB pour répondre à des questions en langage naturel français.
+
+\begin{lstlisting}[language=bash, caption={Exemple de requête au chatbot}]
+$ curl -X POST http://localhost:8084/api/v1/treasury/1/ai/chat \
+  -H "Authorization: Bearer <token>" \
+  -d '{"message":"Combien de cotisations sont en retard ?"}'
+
+{"reply": "34 paiement(s) en retard pour un total de 1350 TND :
+  - Omar Mansouri : 120 TND (echeance 2026-01-01, 116 jours)
+  - Yassine Bouazizi : 120 TND (echeance 2026-02-01, 85 jours)
+  - Dylan Kayzeur : 15 TND (echeance 2026-02-01, 85 jours)
+  ..."}
+\end{lstlisting}
+
+% ============================================================
+\section{Intégration et conversion Stripe}
+% ============================================================
+
+\subsection{Problématique TND -- compte Stripe France}
+
+Le compte Stripe utilisé est immatriculé en France et ne supporte pas le Dinar Tunisien (TND) en mode live. La solution implémentée :
+
+\begin{enumerate}[leftmargin=*]
+  \item Conserver \texttt{TND} comme devise canonique en base de données et dans toute l'interface.
+  \item Convertir en EUR au taux Banque Centrale de Tunisie 2026 (\texttt{1 EUR = 3{,}3 TND} soit \texttt{1 TND = 0{,}303 EUR}) au moment de l'appel Stripe.
+  \item Stocker le montant TND original en métadonnée Stripe pour la traçabilité.
+\end{enumerate}
+
+\begin{lstlisting}[language=Java, caption={Méthode de conversion dans \texttt{StripeService.java}}]
+private long toStripeMinorUnits(BigDecimal amountTnd) {
+    BigDecimal target = amountTnd;
+    if ("eur".equalsIgnoreCase(currency)) {
+        target = amountTnd.multiply(BigDecimal.valueOf(tndToEurRate))
+                          .setScale(2, RoundingMode.HALF_UP);
+    }
+    return target.movePointRight(2).longValue();
+}
+\end{lstlisting}
+
+\subsection{Vérification par appel direct à l'API Stripe}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{Xll}
+    \toprule
+    \textbf{Cotisation BDD} & \textbf{Envoyé Stripe} & \textbf{Métadonnée} \\
+    \midrule
+    15{,}000 TND   & 4{,}55 EUR (455 cents) & \texttt{original\_amount\_tnd: 15.000} \\
+    120{,}000 TND  & 36{,}36 EUR (3636 cents) & \texttt{original\_amount\_tnd: 120.000} \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Conversion confirmée par l'API Stripe}
+\end{table}
+
+% ============================================================
+\section{Intégration cross-module : EventManagement → Treasury}
+% ============================================================
+
+Le module \texttt{EventManagement} déclenche automatiquement la création d'une dépense côté Trésorerie lorsqu'un emprunt de matériel possède trois devis dont l'un est validé par le trésorier.
+
+\paragraph{Endpoint cible} \texttt{POST http://localhost:8085/api/v1/treasury/1/expenses}
+
+\paragraph{Payload}
+\begin{lstlisting}[language=Java, caption={Construction du payload dans \texttt{TreasuryIntegrationService.java}}]
+{
+  "title": "<itemName>",
+  "description": "Emprunt materiel - <eventName>",
+  "amount": <moyenne des 3 devis>,
+  "quotes": [
+    { "providerName": ..., "amount": ..., "description": ... },
+    { ... },
+    { ... }
+  ]
+}
+\end{lstlisting}
+
+\paragraph{Authentification} L'authentification est propagée par \textbf{forward du cookie JWT} récupéré sur la requête HTTP entrante (header \texttt{Cookie}).
+
+\paragraph{Gestion d'erreur} Le \texttt{RestTemplate} est appelé en mode synchrone non bloquant : toute exception est capturée et journalisée sans interrompre le workflow principal de validation du devis côté EventManagement.
+
+% ============================================================
+\section{Tests et validation}
+% ============================================================
+
+\subsection{Tests end-to-end}
+
+Une suite de tests E2E par \texttt{curl} couvre 9 scénarios fonctionnels :
+
+\begin{table}[h]
+  \centering
+  \footnotesize
+  \begin{tabularx}{\linewidth}{lXr}
+    \toprule
+    \textbf{\#} & \textbf{Workflow} & \textbf{Résultat} \\
+    \midrule
+    1 & Authentification 3 rôles (Trésorier, Membre, Président) & PASS \\
+    2 & Re-seed (192 paiements, 157 dépenses, ML retrained 90{,}5\,\%) & PASS \\
+    3 & Membre Dylan possède exactement 3 cotisations \texttt{LATE} & PASS \\
+    4 & Stripe Checkout en mode \texttt{LIVE} (URL réelle) & PASS \\
+    5 & Workflow espèces : demande membre + confirmation trésorier & PASS \\
+    6 & Workflow dépense N1+N2 (Dylan $\rightarrow$ Rick $\rightarrow$ Ahmed APPROVED) & PASS \\
+    7 & Remboursement Stripe (statut REFUNDED) & PASS \\
+    8 & Bilan PDF généré (6{,}9 KB, magic \texttt{\%PDF}) & PASS \\
+    9 & Modèles ML opérationnels (RF + IF) & PASS \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Résultats des tests E2E}
+\end{table}
+
+\subsection{Audit fonctionnel}
+
+Le journal d'audit a été inspecté en temps réel : chaque action sensible (validation, approbation, refund, génération de reçu) génère bien une entrée immuable avec acteur, transition d'état, montant et horodatage à la milliseconde près. Les exports CSV (UTF-8 BOM compatible Excel) et JSON sont fonctionnels.
+
+\subsection{Documentation OpenAPI accessible}
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{http://localhost:8085/swagger-ui.html} -- Trésorerie
+  \item \texttt{http://localhost:8081/swagger-ui.html} -- user-service
+  \item \texttt{http://localhost:8083/swagger-ui.html} -- club-service
+  \item \texttt{http://localhost:8088/swagger-ui.html} -- EventManagement
+  \item \texttt{http://localhost:8086/swagger-ui.html} -- Virtual\_Event\_Management
+  \item \texttt{http://localhost:8084/swagger-ui.html} -- Gateway (hub agrégateur)
+\end{itemize}
+
+% ============================================================
+\section{Améliorations apportées en intégration}
+% ============================================================
+
+Au cours de l'intégration finale dans la branche \texttt{integration-v1.3}, plusieurs corrections ont été apportées pour assurer la cohérence inter-modules :
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{>{\bfseries}lX}
+    \toprule
+    Sujet & Correction \\
+    \midrule
+    Sidebar           & Ajout de l'item ``Trésorerie'' avec 13 sous-pages, filtré par rôle (TRESORIER, MEMBRE\_SIMPLE, BUREAU). \\
+    homeGuard         & Le trésorier et le membre simple ne sont plus forcés vers \texttt{/setup-club}. Ils atterrissent directement sur leur espace métier respectif. \\
+    Port EventMgmt    & Le service appelait Treasury sur \texttt{8082} (Voice). Corrigé vers \texttt{8085}. \\
+    JWT club-service  & Ajout du secret JWT manquant qui bloquait toute action authentifiée sur les clubs. \\
+    Route Gateway     & Ajout des routes \texttt{/api/v1/treasury/**}, \texttt{/api/v1/demo/**}, \texttt{/api/v1/users/**}. \\
+    Remboursements UI & Remplacement de \texttt{alert()} natif par modal in-app + toast + \textbf{vrais} appels backend. \\
+    Rejet dépense     & Remplacement de \texttt{prompt()} natif par modal avec textarea de motif. \\
+    Reçu PDF          & Ajout des champs \emph{motif}, \emph{fréquence}, \emph{méthode de paiement}. \\
+    Bilan             & Filtre par \texttt{paidAt}/\texttt{submittedAt} au lieu de \texttt{createdAt} (les transactions du mois apparaissent enfin). \\
+    Prédictions       & Baseline robuste : la projection ne tombe plus à zéro quand le mois courant est incomplet. \\
+    Catégorisation    & Classification par mots-clés (8 catégories, 70+ keywords) pour fonctionner sans dépendance LLM. \\
+    Sécurité          & Suppression de la clé Stripe en clair dans \texttt{application-dev.yml} (migration vers variable d'environnement). \\
+    Doublon header    & Correction du \texttt{ngClass} qui rendait deux fois la barre d'actions sur grand écran. \\
+    My Tasks          & Filtre désormais par utilisateur connecté (au lieu d'afficher toutes les tâches). \\
+    Borrowed-items    & Reset complet du formulaire à la fermeture de la modale. \\
+    Création événement & Ajout d'un formulaire de création d'événement (le bouton manquait). \\
+    Élections         & Statuts traduits en français avec pipes Angular dédiés. \\
+    Sécurité club     & Mot de passe créé pour un nouveau membre n'est plus affiché en \texttt{alert()}. \\
+    SpringDoc         & Documentation OpenAPI activée sur tous les microservices (Swagger UI agrégateur sur le Gateway). \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Liste des corrections appliquées lors de l'intégration}
+\end{table}
+
+% ============================================================
+\section{Conclusion et perspectives}
+% ============================================================
+
+\subsection{Bilan}
+
+Le module Trésorerie de ClubHub atteint l'ensemble des objectifs fixés : gestion complète du cycle de vie des cotisations et des dépenses, intégration fonctionnelle avec un fournisseur de paiement réel (Stripe), modèles de machine learning entraînés sur données réelles avec performance mesurable (90{,}5\,\% pour Random Forest, détection de 7/7 anomalies test pour Isolation Forest), traçabilité complète via journal d'audit immuable, et documentation OpenAPI exposée par SpringDoc.
+
+L'intégration au sein de la plateforme ClubHub v1.3 a permis de démontrer la capacité du module à interagir avec les autres microservices (\texttt{EventManagement}, \texttt{user-service}, \texttt{club-service}) tout en restant autonome dans son cycle de vie.
+
+\subsection{Perspectives d'évolution}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Migration TND native} : passage à un compte Stripe Tunisie pour supprimer l'étape de conversion EUR.
+  \item \textbf{Modèles supervisés enrichis} : ajout de XGBoost en complément de Random Forest pour comparer les performances.
+  \item \textbf{Détection d'anomalies temporelles} : Isolation Forest étendu aux séries temporelles (paiements en cluster suspect).
+  \item \textbf{Notifications push} : passage de l'in-app à un canal mobile (Firebase Cloud Messaging).
+  \item \textbf{Tests automatisés} : couverture JUnit/Cypress E2E intégrée à la pipeline CI/CD.
+  \item \textbf{Multi-club} : généralisation au-delà du \texttt{clubId=1} hardcodé pour supporter plusieurs clubs en parallèle.
+\end{itemize}
+
+\subsection{Remerciements}
+
+Merci à l'équipe pédagogique et aux camarades de promotion ayant développé les modules connexes (User, Club, Event Management, Voice, Virtual Events) pour leur collaboration et la cohérence d'ensemble obtenue dans la version intégrée \texttt{clubhub-v1.3}.
+
+\vfill
+\begin{center}
+  \rule{0.5\linewidth}{0.4pt}\\[0.4cm]
+  \textit{Document généré le \today\ -- Version intégration v1.3}
+\end{center}
+
+\end{document}

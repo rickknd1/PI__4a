@@ -1,0 +1,998 @@
+% =====================================================================
+%   RAPPORT TECHNIQUE COMPLET — PROJET CLUBHUB
+%   Plateforme microservices de gestion de clubs universitaires
+%   ESPRIT — PI 2025/2026
+% =====================================================================
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{multicol}
+
+\definecolor{primary}{RGB}{37,99,235}     % blue-600
+\definecolor{accent}{RGB}{124,58,237}     % violet-600
+\definecolor{success}{RGB}{16,185,129}    % emerald-500
+\definecolor{warning}{RGB}{245,158,11}    % amber-500
+\definecolor{danger}{RGB}{239,68,68}      % red-500
+\definecolor{ink}{RGB}{15,23,42}          % slate-900
+\definecolor{muted}{RGB}{100,116,139}     % slate-500
+\definecolor{bg}{RGB}{248,250,252}        % slate-50
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=primary,
+  urlcolor=accent,
+  pdftitle={ClubHub - Rapport technique complet},
+  pdfauthor={Equipe ClubHub PI 4A},
+  pdfsubject={Plateforme microservices de gestion de clubs universitaires}
+}
+
+\titleformat{\chapter}[display]
+  {\normalfont\Huge\bfseries\color{primary}}
+  {\filleft\Large\sffamily Chapitre~\thechapter}
+  {0.5ex}
+  {\titlerule\vspace{1ex}\filright}
+  [\vspace{1ex}\titlerule]
+
+\titleformat{\section}[hang]
+  {\normalfont\Large\bfseries\color{primary}}{\thesection}{1em}{}
+\titleformat{\subsection}[hang]
+  {\normalfont\large\bfseries\color{accent}}{\thesubsection}{1em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{muted}ClubHub — Rapport technique}
+\fancyhead[R]{\small\color{muted}\leftmark}
+\fancyfoot[C]{\thepage}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{bg},
+  frame=single,
+  rulecolor=\color{muted},
+  breaklines=true,
+  showstringspaces=false,
+  keywordstyle=\color{primary}\bfseries,
+  commentstyle=\color{success}\itshape,
+  stringstyle=\color{accent},
+}
+
+\renewcommand{\arraystretch}{1.25}
+
+% =====================================================================
+\begin{document}
+
+% ----- Page de garde -----
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+  {\sffamily\Huge\bfseries\color{primary} ClubHub}\\[0.4cm]
+  {\sffamily\Large Plateforme microservices de gestion de clubs universitaires}\\[1.2cm]
+  \begin{tikzpicture}
+    \draw[primary,line width=2pt] (-7,0) -- (7,0);
+    \node[fill=white,inner sep=8pt] at (0,0) {\sffamily\bfseries\Large RAPPORT TECHNIQUE COMPLET};
+  \end{tikzpicture}\\[1.5cm]
+  {\Large Année universitaire \textbf{2025/2026}}\\[0.3cm]
+  {\large Projet Intégré — 4\up{ème} année}\\[0.3cm]
+  {\large École Supérieure Privée d'Ingénierie et de Technologie (ESPRIT)}\\[2.5cm]
+
+  \begin{tabular}{rl}
+    \textbf{Architecture}    & Microservices Spring Cloud \\
+    \textbf{Backend}         & Spring Boot 3.4 / Java 21 \\
+    \textbf{Frontend}        & Angular 21 / TypeScript 5.6 / Tailwind CSS 4 \\
+    \textbf{Base de données} & MongoDB 8 (NoSQL, par service) \\
+    \textbf{Service mesh}    & Eureka + Spring Cloud Gateway WebFlux \\
+    \textbf{Sécurité}        & JWT (cookie HttpOnly + header) \\
+    \textbf{IA / ML}         & Smile 4.3 (Isolation Forest + Random Forest), Groq Llama 3.3 \\
+    \textbf{Real-time}       & WebSocket STOMP, WebRTC, SockJS \\
+  \end{tabular}\\[2cm]
+
+  {\color{muted} Document généré le \today}
+  \vfill
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+% =====================================================================
+\chapter{Introduction et contexte}
+
+\section{Présentation du projet}
+
+\textbf{ClubHub} est une plateforme web de gestion intégrée des clubs universitaires
+développée dans le cadre du Projet Intégré (PI) de la 4\up{ème} année à l'ESPRIT.
+La plateforme couvre l'ensemble du cycle de vie d'un club : adhésion, gestion
+financière, événementiel physique et virtuel, communication interne, démocratie
+électorale et merchandising.
+
+L'objectif est de fournir aux clubs un \textit{ERP léger} adapté au monde
+universitaire, à la fois opérationnel pour les bureaux exécutifs (Président, VP,
+RH, Trésorier, Secrétaire Générale) et engageant pour les membres simples
+(communication, RSVP, paiements, boutique).
+
+\section{Périmètre fonctionnel}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Authentification \& gestion des rôles} — 6 rôles avec matrice de droits
+        fine, signup, signin, profil, gestion utilisateurs.
+  \item \textbf{Gestion des clubs} — création, configuration, équipe dirigeante,
+        comités et sous-comités.
+  \item \textbf{Trésorerie complète} — cotisations, dépenses, budget, remboursements,
+        rapports financiers, audit, anomalies (ML), prédictions (ML), chatbot IA.
+  \item \textbf{Événements physiques} — calendrier, RSVP, tâches assignées,
+        gestion des prêts de matériel, devis fournisseurs.
+  \item \textbf{Événements virtuels} — création, lobby 3D Three.js, Jitsi Meet,
+        avatars, transcriptions audio.
+  \item \textbf{Procès-verbaux} — éditeur, archivage et consultation.
+  \item \textbf{Élections} — création, candidats, vote sécurisé par QR code, résultats.
+  \item \textbf{Voice2 (talkie-walkie)} — canaux vocaux WebRTC P2P, push-to-talk,
+        enregistrements.
+  \item \textbf{Messagerie} — conversations privées et de groupe, réactions emoji,
+        upload images, mini-jeux trivia générés par IA.
+  \item \textbf{Boutique} — catalogue produits, panier, commandes, intégration
+        automatique avec la trésorerie (recettes).
+\end{itemize}
+
+\section{Pile technique}
+
+La plateforme repose sur une architecture \textbf{microservices} assemblée autour
+d'un service de découverte (\textit{Eureka}) et d'une passerelle réactive
+(\textit{Spring Cloud Gateway WebFlux}). Chaque microservice est isolé en termes
+de base de données et de cycle de vie, mais partage un secret JWT commun pour
+l'authentification.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Couche} & \textbf{Technologie} & \textbf{Version} \\
+\midrule
+Frontend     & Angular standalone / TypeScript / Tailwind CSS  & 21 / 5.6 / 4.x \\
+Backend      & Spring Boot, Spring Web, Spring Security, Lombok & 3.4 / 6.x \\
+Gateway      & Spring Cloud Gateway WebFlux                     & 2024.x \\
+Discovery    & Netflix Eureka Server                            & — \\
+Persistence  & MongoDB                                          & 8.x \\
+Real-time    & WebSocket STOMP, SockJS, WebRTC                  & — \\
+Auth         & JWT (HS256, secret partagé 32+ chars)            & — \\
+ML           & Smile (Isolation Forest, Random Forest)          & 4.3 \\
+LLM          & Groq Llama 3.3 70B (avec fallback statique)      & — \\
+PDF          & iText                                            & 8.x \\
+Build        & Maven, Gradle, npm                               & — \\
+\bottomrule
+\end{tabular}
+\caption{Pile technique principale}
+\end{table}
+
+
+% =====================================================================
+\chapter{Architecture globale}
+
+\section{Vue d'ensemble des services}
+
+L'écosystème ClubHub est composé de \textbf{11 services indépendants} qui tournent
+en parallèle. La table ci-dessous récapitule les ports, les responsabilités et
+le mode d'enregistrement.
+
+\begin{longtable}{lllp{6cm}}
+\toprule
+\textbf{Port} & \textbf{Service} & \textbf{Eureka} & \textbf{Responsabilité} \\
+\midrule \endhead
+4200 & frontend (Angular)         & non  & Interface utilisateur SPA \\
+8761 & EurekaServer               & —    & Service registry \\
+8084 & Gateway                    & oui  & Point d'entrée API + routage WS \\
+8081 & user-service               & oui  & Authentification, profils, JWT \\
+8083 & club-service               & oui  & Clubs, comités, sous-groupes \\
+8082 & InstantVoiceManagement     & oui  & Canaux vocaux WebRTC P2P \\
+8086 & VirtualEventManagement     & oui  & Événements virtuels Jitsi + 3D \\
+8088 & clubhub-backend (Events)   & oui  & Événements physiques, RSVP, devis \\
+8087 & store-service              & oui  & Boutique (produits, commandes) \\
+8089 & messaging-service          & oui  & Chat, jeux trivia (Spring AI) \\
+8085 & treasury-service           & non  & Trésorerie (autonome volontairement) \\
+\bottomrule
+\caption{Inventaire des services ClubHub}
+\end{longtable}
+
+\section{Diagramme d'architecture}
+
+\begin{center}
+\begin{tikzpicture}[
+  service/.style={draw=primary,fill=bg,rounded corners=4pt,minimum width=2.6cm,minimum height=0.8cm,font=\small\sffamily},
+  gateway/.style={draw=accent,fill=bg,rounded corners=4pt,minimum width=3cm,minimum height=1cm,font=\small\bfseries\sffamily},
+  eureka/.style={draw=success,fill=bg,rounded corners=4pt,minimum width=3cm,minimum height=1cm,font=\small\bfseries\sffamily},
+  ui/.style={draw=warning,fill=bg,rounded corners=4pt,minimum width=4cm,minimum height=1cm,font=\small\bfseries\sffamily},
+  link/.style={draw=muted,->,thick}
+]
+  \node[ui] (front) at (0,5) {Angular SPA :4200};
+  \node[gateway] (gw) at (0,3) {Gateway :8084};
+  \node[eureka] (eur) at (5,3) {Eureka :8761};
+
+  \node[service] (user) at (-5,1) {user :8081};
+  \node[service] (club) at (-2.5,1) {club :8083};
+  \node[service] (voice) at (0,1) {voice :8082};
+  \node[service] (vem) at (2.5,1) {virtual :8086};
+  \node[service] (evt) at (5,1) {events :8088};
+
+  \node[service] (store) at (-3.75,-1) {store :8087};
+  \node[service] (msg) at (-1.25,-1) {messaging :8089};
+  \node[service] (trz) at (1.25,-1) {treasury :8085};
+  \node[service] (mongo) at (3.75,-1) {MongoDB :27017};
+
+  \draw[link] (front) -- (gw);
+  \draw[link,dashed] (gw) -- (eur);
+  \draw[link] (gw) -- (user);
+  \draw[link] (gw) -- (club);
+  \draw[link] (gw) -- (voice);
+  \draw[link] (gw) -- (vem);
+  \draw[link] (gw) -- (evt);
+  \draw[link] (gw) to[bend left=10] (store);
+  \draw[link] (gw) to[bend left=10] (msg);
+  \draw[link] (gw) to[bend right=10] (trz);
+
+  \draw[link,dashed] (user) to[bend right=12] (eur);
+  \draw[link,dashed] (club) to[bend right=12] (eur);
+  \draw[link,dashed] (evt) to[bend right=12] (eur);
+
+  \draw[link,->,danger,thick] (evt) to[bend right=20] node[fill=white,inner sep=2pt,font=\scriptsize]{auto-approve} (trz);
+  \draw[link,->,danger,thick] (store) to[bend right=15] node[fill=white,inner sep=2pt,font=\scriptsize]{recettes} (trz);
+\end{tikzpicture}
+\end{center}
+
+\section{Flux d'authentification}
+
+\begin{enumerate}[leftmargin=*]
+  \item L'utilisateur soumet \texttt{POST /api/auth/login} via le Gateway.
+  \item Gateway route vers \texttt{user-service} (port 8081).
+  \item user-service vérifie les identifiants, génère un JWT signé HS256 avec
+        le secret partagé \texttt{clubhub\_super\_secret\_key\_must\_be\_at\_least\_32\_chars!}.
+  \item Le JWT est posé en cookie \texttt{HttpOnly} ET retourné dans la réponse
+        JSON pour permettre au frontend de le stocker en \texttt{localStorage}
+        et de l'injecter sur chaque appel.
+  \item Chaque microservice possède un \texttt{JwtCookieAuthFilter} qui valide
+        le token (signature + expiration) et installe le \texttt{SecurityContext}.
+\end{enumerate}
+
+\section{Stratégie de communication}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Synchrone REST} — par défaut, tous les services exposent une API
+        REST JSON. Les appels cross-service utilisent \texttt{RestTemplate} avec
+        \texttt{HttpComponentsClientHttpRequestFactory} pour supporter PATCH.
+  \item \textbf{WebSocket STOMP} — utilisé par messaging-service pour la
+        diffusion temps réel des messages, réactions et événements de jeu.
+  \item \textbf{WebRTC peer-to-peer} — Voice2 (canaux vocaux) signalise via
+        WebSocket et établit des connexions P2P pour réduire la latence.
+  \item \textbf{Logins internes} — pour les workflows multi-rôles (validation
+        + approbation de dépense), les services s'authentifient en interne via
+        des comptes \textit{system} dédiés (Rick TRESORIER, Ahmed PRESIDENT)
+        avec cache de cookie 1h.
+\end{itemize}
+
+
+% =====================================================================
+\chapter{Services backend détaillés}
+
+\section{user-service (port 8081)}
+
+\subsection{Responsabilités}
+Authentification, gestion des comptes, profils utilisateurs, attribution des
+rôles, ré-initialisation de mot de passe.
+
+\subsection{Modèle utilisateur}
+\begin{lstlisting}[language=java]
+public class User {
+    String id;           // ObjectId MongoDB
+    String firstName;
+    String lastName;
+    String email;        // unique
+    String password;     // BCrypt
+    String role;         // 6 valeurs (cf. table)
+    String clubId;       // FK vers club-service
+    String profilePhoto;
+    Boolean active;
+    String phoneNumber;
+}
+\end{lstlisting}
+
+\subsection{Rôles métiers}
+\begin{tabular}{ll}
+\toprule
+\textbf{Rôle} & \textbf{Description} \\
+\midrule
+PRESIDENT             & Bureau exécutif, gouvernance, approbation finale \\
+VICE\_PRESIDENT       & Bureau exécutif, suppléance \\
+SECRETAIRE\_GENERALE  & PV, événementiel (Community Manager) \\
+TRESORIER             & Comptabilité, validation devis, dépenses \\
+RH                    & Gestion des membres et des rôles \\
+COMMITTEE\_MEMBER     & Membre simple (front-office) \\
+\bottomrule
+\end{tabular}
+
+\subsection{Endpoints principaux}
+\begin{itemize}
+  \item \texttt{POST /api/auth/signup}
+  \item \texttt{POST /api/auth/login}
+  \item \texttt{POST /api/auth/logout}
+  \item \texttt{GET /api/users} — liste de tous les utilisateurs
+  \item \texttt{GET /api/users/me} — profil courant
+  \item \texttt{PATCH /api/users/\{id\}/role} — changer le rôle (RH/PRESIDENT)
+  \item \texttt{PATCH /api/users/\{id\}/profile} — mise à jour profil
+\end{itemize}
+
+\section{club-service (port 8083)}
+
+Gère le \textit{cycle de vie} d'un club universitaire : création, comités,
+sous-comités, transferts de présidence, settings (logo, description).
+
+Points notables :
+\begin{itemize}
+  \item Extraction du \texttt{createdBy} depuis le cookie JWT à chaque création
+        (sécurité).
+  \item Notion de \texttt{committee} (Events, Communication, Logistique\ldots)
+        et de \texttt{subgroup} (un comité contient plusieurs sous-groupes
+        avec un responsable).
+  \item Service utilisé par la sidebar Angular pour calculer les permissions
+        front-end via \texttt{CommitteeResponsableService}.
+\end{itemize}
+
+\section{InstantVoiceManagement / Voice2 (port 8082)}
+
+Service \og talkie-walkie \fg : un utilisateur appuie sur un bouton, parle, son
+audio est diffusé en temps réel à tous les membres connectés au canal.
+
+\begin{itemize}
+  \item Modèle \texttt{Channel} : nom, description, club, créateur, admins.
+  \item Signalisation WebRTC via WebSocket STOMP (offer/answer/ICE candidates).
+  \item Peer-to-peer pour le flux audio (réduction de la charge serveur).
+  \item Permissions : création de canal réservée au bureau, parole ouverte aux
+        membres.
+  \item Page Front Angular : \texttt{/voice2/instant-voice}.
+\end{itemize}
+
+\section{VirtualEventManagement (port 8086)}
+
+Événements virtuels avec \textbf{lobby 3D} construit en \texttt{Three.js} et
+salle de visioconférence \textbf{Jitsi Meet}.
+
+\begin{itemize}
+  \item Modèle \texttt{VirtualEvent} : titre, scheduledAt, meetingLink, roomId,
+        capacity, isPaid, price, organizer.
+  \item Endpoint \texttt{canJoin(eventId, userId)} qui retourne \texttt{true}
+        si l'utilisateur est inscrit, a payé, l'événement n'est pas terminé et
+        n'est pas plein.
+  \item Workflow démo : inscription \(\rightarrow\) paiement \(\rightarrow\)
+        accès au lobby 3D \(\rightarrow\) entrée Jitsi.
+\end{itemize}
+
+\section{clubhub-backend / EventManagement (port 8088)}
+
+Service le plus volumineux : événements physiques, RSVP, tâches, prêts de
+matériel, devis fournisseurs.
+
+\subsection{Sous-domaines}
+\begin{itemize}
+  \item \textbf{Events} — création/édition d'événements physiques avec lieu,
+        date, capacité, organisateur, RSVP, photo de couverture.
+  \item \textbf{Tasks} — assignation de tâches aux membres pour préparer un
+        événement, suivi du statut.
+  \item \textbf{BorrowedItems} — matériel emprunté à des prêteurs externes
+        (lenders) avec demandes de devis multiples.
+  \item \textbf{Devis} — comparaison de devis et choix du fournisseur, ce qui
+        déclenche la création automatique d'une dépense en trésorerie.
+  \item \textbf{Notifications} — emails de confirmation RSVP via service mail.
+\end{itemize}
+
+\subsection{Intégration Treasury}
+Lorsqu'un devis est validé, la classe \texttt{TreasuryIntegrationService}
+exécute la chaîne :
+\begin{enumerate}
+  \item \texttt{POST /api/v1/expenses} en tant que créateur \(\Rightarrow\)
+        statut \texttt{SUBMITTED}.
+  \item \texttt{PATCH /api/v1/expenses/\{id\}/validate} en tant que TRESORIER
+        (login interne, cookie cache 1h) \(\Rightarrow\) statut \texttt{VALIDATED}.
+  \item \texttt{PATCH /api/v1/expenses/\{id\}/approve} en tant que PRESIDENT
+        \(\Rightarrow\) statut \texttt{APPROVED} \& impact solde + budget.
+  \item Réentraînement asynchrone du modèle ML (\texttt{@Async +
+        CompletableFuture}).
+\end{enumerate}
+
+\section{store-service / Clubstore (port 8087)}
+
+Boutique de merchandising : t-shirts, mugs, certificats, billets d'événements.
+
+\begin{itemize}
+  \item Modèles \texttt{Product} (nom, prix, stock, image, catégorie) et
+        \texttt{Order} (lignes, total, méthode de paiement, statut).
+  \item Méthodes de paiement acceptées : \texttt{CARTE}, \texttt{PAYPAL},
+        \texttt{ESPECES}, \texttt{CASH\_ON\_DELIVERY}, \texttt{BANK\_TRANSFER},
+        \texttt{STRIPE}.
+  \item Quand une commande passe en \texttt{CONFIRMED}, le service
+        \texttt{TreasuryRecettesService} crée automatiquement une dépense de
+        type \og recette \fg (préfixe \texttt{[RECETTE BOUTIQUE]}) auto-validée
+        \& auto-approuvée, qui impacte le solde et alimente le détecteur
+        d'anomalies.
+\end{itemize}
+
+\section{messaging-service (port 8089)}
+
+Messagerie temps réel inspirée de Messenger / WhatsApp.
+
+\subsection{Fonctionnalités}
+\begin{itemize}
+  \item Conversations 1:1 (\textit{PRIVATE}) et de groupe (\textit{GROUP}).
+  \item Messages texte, images, fichiers.
+  \item Réactions emoji (LIKE, LOVE, HAHA, NOTBAD, GREATJOB).
+  \item Édition / suppression d'un message (broadcast WebSocket).
+  \item Accusés de lecture par destinataire.
+  \item Mini-jeux trivia générés par IA Groq Llama 3.3 70B avec un
+        \textbf{fallback statique de 20 questions} si la clé API est absente.
+  \item Thèmes par conversation (couleurs, gradient, image de fond).
+  \item Stockage des images en \textit{GridFS}.
+\end{itemize}
+
+\subsection{WebSocket STOMP}
+\begin{itemize}
+  \item Endpoint : \texttt{ws://localhost:8089/ws} (SockJS).
+  \item Application destination prefix : \texttt{/app}.
+  \item Broker prefix : \texttt{/topic}.
+  \item Topics : \texttt{/topic/conversation/\{id\}}, \texttt{/topic/reactions/\{messageId\}}.
+\end{itemize}
+
+\section{treasury-service (port 8085)}
+
+\textbf{Module phare du projet}, développé en autonomie complète, qui constitue
+l'épine dorsale financière de la plateforme.
+
+\subsection{Modèles}
+\begin{lstlisting}[language=java]
+Payment    { id, clubId, memberId, amount, status (PENDING/PAID/LATE),
+             paymentMethod, paidAt, dueDate, motif, stripeSessionId }
+Expense    { id, clubId, amount, category (8 valeurs), description,
+             status (SUBMITTED/VALIDATED/APPROVED/REJECTED), quotes[3],
+             chosenQuoteIndex, createdBy, validatedBy, approvedBy,
+             createdAt, validatedAt, approvedAt }
+Budget     { id, clubId, fiscalYear, allocatedAmount, consumedAmount,
+             categories: Map<String, BigDecimal> }
+Refund     { id, paymentId, reason, status, requestedAt }
+AuditLog   { id, actorId, actorEmail, clubId, action, entityType,
+             entityId, before, after, timestamp }
+\end{lstlisting}
+
+\subsection{Workflow dépense}
+\begin{center}
+\begin{tikzpicture}[node distance=3cm,
+  node/.style={draw=primary,fill=bg,rounded corners=4pt,minimum width=2.5cm,
+               minimum height=1cm,font=\small\sffamily},
+  arr/.style={->,thick,muted}]
+  \node[node] (sub) {SUBMITTED};
+  \node[node,right of=sub] (val) {VALIDATED};
+  \node[node,right of=val] (app) {APPROVED};
+  \node[node,below of=val,fill=danger!20] (rej) {REJECTED};
+  \draw[arr] (sub) -- node[above,font=\scriptsize]{TRESORIER} (val);
+  \draw[arr] (val) -- node[above,font=\scriptsize]{PRESIDENT} (app);
+  \draw[arr] (sub) -- (rej);
+  \draw[arr] (val) -- (rej);
+\end{tikzpicture}
+\end{center}
+
+Une dépense ne sort de l'argent du compte qu'au passage en \textbf{APPROVED}.
+Le budget \texttt{consumedAmount} est incrémenté à ce moment-là, et le modèle
+\textit{Isolation Forest} est ré-entraîné de façon asynchrone.
+
+\subsection{Endpoints clefs}
+\begin{itemize}
+  \item \texttt{GET /api/v1/treasury/dashboard/\{clubId\}} — KPI agrégés.
+  \item \texttt{GET /api/v1/treasury/\{clubId\}/payments} — paiements paginés.
+  \item \texttt{POST /api/v1/payments} — création + lien Stripe.
+  \item \texttt{POST /api/v1/expenses} — soumission de dépense.
+  \item \texttt{PATCH /api/v1/expenses/\{id\}/validate} — TRESORIER.
+  \item \texttt{PATCH /api/v1/expenses/\{id\}/approve} — PRESIDENT.
+  \item \texttt{GET /api/v1/treasury/\{clubId\}/anomalies} — anomalies ML.
+  \item \texttt{GET /api/v1/treasury/\{clubId\}/predictions} — prédictions ML.
+  \item \texttt{POST /api/v1/treasury/chatbot} — Q\&A LLM sur les données.
+  \item \texttt{GET /api/v1/treasury/\{clubId\}/audit} — journal d'audit.
+\end{itemize}
+
+\subsection{Intégration Stripe}
+La devise officielle des clubs ESPRIT est le \textbf{Dinar tunisien} (TND).
+Stripe FR n'acceptant pas TND, une conversion \texttt{TND \(\rightarrow\) EUR}
+au taux \texttt{0.303} est appliquée à la création de la session de paiement,
+le montant TND original étant conservé dans \texttt{metadata.original\_amount\_tnd}.
+
+
+% =====================================================================
+\chapter{Frontend Angular}
+
+\section{Architecture}
+
+\begin{itemize}[leftmargin=*]
+  \item Angular \textbf{21} avec composants \texttt{standalone} (pas de modules
+        NgModule), control flow natif (\texttt{@if}, \texttt{@for}).
+  \item Routing avec \texttt{loadComponent} et \texttt{loadChildren} pour le
+        \textit{lazy loading}.
+  \item Tailwind CSS 4 + thème personnalisé (mode clair / sombre).
+  \item Signals pour la réactivité fine (\texttt{signal}, \texttt{computed}).
+  \item RxJS pour les flux asynchrones (HTTP, WebSocket).
+  \item Intercepteur HTTP global qui injecte le JWT dans toutes les requêtes.
+\end{itemize}
+
+\section{Organisation des modules}
+
+\begin{tabular}{ll}
+\toprule
+\textbf{Dossier} & \textbf{Rôle} \\
+\midrule
+\texttt{shared/services}     & AuthService, ClubService, PVService\ldots \\
+\texttt{shared/layout}       & AppLayout, Sidebar, Header, Footer \\
+\texttt{guards}              & authGuard, ceoGuard, secretaryGuard\ldots \\
+\texttt{interceptors}        & JwtInterceptor, ErrorInterceptor \\
+\texttt{pages/auth-pages}    & sign-in, sign-up, setup-club \\
+\texttt{pages/home}          & Front-office commun (HomeComponent) \\
+\texttt{pages/clubs}         & ClubList, ClubDetail, ClubForm \\
+\texttt{pages/elections}     & Liste, formulaire, détail, vote QR \\
+\texttt{pages/users}         & Gestion membres (RH) \\
+\texttt{pages/roles}         & Gestion rôles (PRESIDENT) \\
+\texttt{pages/pv}            & Procès-verbaux (SECRETAIRE\_GENERALE) \\
+\texttt{pages/all-events}    & Événements physiques \\
+\texttt{pages/tasks}         & Mes tâches / Assigner tâches \\
+\texttt{pages/borrowed-items} & Prêts de matériel \\
+\texttt{ameni-ve}            & Événements virtuels (lobby 3D, Jitsi) \\
+\texttt{voice2}              & Talkie-walkie WebRTC \\
+\texttt{messaging}           & Chat + jeux trivia \\
+\texttt{clubstore}           & Boutique \\
+\texttt{treasury}            & Module trésorerie complet \\
+\bottomrule
+\end{tabular}
+
+\section{Sidebar et permissions}
+
+La sidebar est divisée en \textbf{deux sections} :
+\begin{enumerate}
+  \item \textbf{Front-office} (visible à tout utilisateur connecté) — Accueil,
+        Événements, Mes cotisations, Canaux vocaux, Boutique, Messages, Mon
+        profil.
+  \item \textbf{Back-office} (filtré par rôle) — Mon Club, Calendar, Virtual
+        events, Transcriptions, Members, Roles, PV, Voice analytics,
+        \textbf{Gestion Trésorerie} (groupe unifié à 4 sous-sections).
+\end{enumerate}
+
+Le filtrage est effectué dans \texttt{filterItem(item, role, ...)} qui retourne
+\texttt{null} pour les items invisibles. Pour le groupe \og Gestion Trésorerie\fg,
+le filtrage se fait au niveau des sous-items via le champ \texttt{group} :
+
+\begin{lstlisting}[language=java]
+case 'Gestion Trésorerie': {
+  if (!isTresorier && !isPresident) return null;
+  const subItems = item.subItems.filter(sub => {
+    if (sub.group === 'Opérations') return isTresorier;
+    return isTresorier || isPresident;  // Vue, Rapports, IA
+  });
+  return subItems.length ? { ...item, subItems } : null;
+}
+\end{lstlisting}
+
+
+% =====================================================================
+\chapter{Module Trésorerie en profondeur}
+
+\section{Tableau de bord}
+
+Affiche en temps réel les indicateurs clés du club :
+\begin{itemize}
+  \item \textbf{Solde actuel} = somme des cotisations PAID — somme des dépenses
+        APPROVED + recettes boutique.
+  \item Compteurs : paiements PAID/PENDING/LATE, dépenses
+        SUBMITTED/VALIDATED/APPROVED/REJECTED.
+  \item Graphique \og recettes par mois \fg sur 6 derniers mois.
+  \item Top 3 catégories de dépenses (donut chart).
+  \item Alertes IA : anomalies détectées, ratio dépenses/budget.
+\end{itemize}
+
+\section{Cotisations}
+\begin{itemize}
+  \item Liste paginée des cotisations du club avec filtres
+        (statut, période, membre).
+  \item Création d'une cotisation : choix du membre, montant, motif, date
+        d'échéance.
+  \item Marquer comme payée manuellement ou via Stripe Checkout.
+  \item Génération automatique d'un \textbf{reçu PDF} (iText) avec QR code,
+        détails et logo du club.
+  \item Email de confirmation au membre avec le PDF en pièce jointe.
+\end{itemize}
+
+\section{Dépenses}
+\begin{itemize}
+  \item CRUD complet, workflow de validation à 2 niveaux
+        (TRESORIER \(\rightarrow\) PRESIDENT).
+  \item Système de \textbf{devis multiples} (3 devis obligatoires, sauf
+        intégrations automatiques).
+  \item 8 catégories : MATERIEL, EVENEMENT, COMMUNICATION, TRANSPORT,
+        FORMATION, PRESTATION, RECETTE, AUTRE.
+  \item Catégorisation automatique par mots-clés (70+ keywords) si Gemini API
+        absente.
+  \item Pièces jointes (factures) stockées en GridFS.
+\end{itemize}
+
+\section{Budget}
+
+\begin{itemize}
+  \item Budget annuel par exercice fiscal, ventilé par catégorie.
+  \item \texttt{consumedAmount} mis à jour automatiquement à chaque dépense
+        APPROVED.
+  \item Alerte visuelle si une catégorie dépasse 80\% de son enveloppe.
+  \item Génération de rapports comparatifs prévu/réalisé.
+\end{itemize}
+
+\section{Remboursements}
+
+Les membres peuvent demander un remboursement (frais avancés). Le trésorier
+valide, le paiement est exécuté, l'opération est tracée dans le journal d'audit.
+
+\section{Rapports \& bilans}
+\begin{itemize}
+  \item Bilan mensuel / annuel.
+  \item Export PDF (iText), Excel (Apache POI), CSV.
+  \item Filtre par période, catégorie, méthode de paiement.
+  \item Graphique d'évolution du solde sur 12 mois.
+\end{itemize}
+
+\section{Audit}
+
+\textbf{Toutes} les actions critiques sont journalisées dans la collection
+\texttt{audit\_logs} :
+\begin{itemize}
+  \item Acteur (id, email, rôle).
+  \item Action (CREATE, UPDATE, VALIDATE, APPROVE, REJECT, PAY, REFUND, EXPORT).
+  \item Entité ciblée (type + id).
+  \item Snapshot \texttt{before} / \texttt{after} en JSON.
+  \item Timestamp précis.
+\end{itemize}
+
+L'écran d'audit propose pagination, filtres et export.
+
+\section{Anomalies (Isolation Forest)}
+
+\subsection{Pipeline}
+\begin{enumerate}
+  \item À chaque nouvelle dépense APPROVED, ré-entraîner le modèle
+        \texttt{IsolationForest} de la librairie \textbf{Smile 4.3} sur l'historique
+        complet du club.
+  \item Vecteur de features : montant, catégorie one-hot, jour de semaine,
+        mois, ratio par rapport à la moyenne mensuelle, écart-type.
+  \item Score d'anomalie entre 0 (normal) et 1 (anormal).
+  \item Seuil paramétrable (par défaut 0.65).
+  \item Affichage dans un dashboard dédié avec explication textuelle générée
+        par le LLM.
+\end{enumerate}
+
+\subsection{Performance}
+Sur le jeu de données de démo (100+ dépenses), le modèle détecte avec
+\textbf{90.5\% de précision} les outliers manuellement annotés.
+
+\section{Prédictions (Random Forest)}
+
+Prédiction du \textbf{retard de paiement} pour chaque cotisation PENDING :
+\begin{itemize}
+  \item Features : historique de paiement du membre, montant, jour du mois,
+        rôle, ancienneté dans le club.
+  \item Modèle \texttt{RandomForest} Smile 4.3 (50 arbres, profondeur 10).
+  \item Sortie : probabilité de retard $\in [0, 1]$.
+  \item Réentraîné mensuellement avec les nouveaux paiements.
+\end{itemize}
+
+Une méthode \textit{baseline robuste} reprend la moyenne mobile sur 5 mois si
+le mois courant est incomplet.
+
+\section{Chatbot IA}
+
+Question \& réponse en langage naturel sur les données financières du club.
+\begin{itemize}
+  \item Front-end : page \texttt{/treasury/chatbot} avec composer + thread.
+  \item Back-end : appel à un LLM (Ollama local ou Groq Llama 3.3) avec un
+        \textbf{prompt système} qui contient les données du club en contexte
+        (solde, budget, top dépenses, alertes).
+  \item Sécurité : la requête utilisateur est sanitisée et le prompt encadre
+        strictement les capacités du modèle (read-only).
+\end{itemize}
+
+\section{Stripe}
+
+\begin{itemize}
+  \item Mode \textit{Checkout Session} hosted (sécurité maximale, PCI hors
+        scope).
+  \item Conversion automatique \texttt{TND \(\rightarrow\) EUR} (taux 0.303).
+  \item Webhook \texttt{checkout.session.completed} qui marque la cotisation
+        en PAID, génère le reçu et envoie l'email.
+\end{itemize}
+
+
+% =====================================================================
+\chapter{Sécurité}
+
+\section{Authentification}
+\begin{itemize}
+  \item JWT signé HS256 avec secret partagé \(\geq 32\) caractères.
+  \item Cookie \texttt{HttpOnly}, \texttt{SameSite=Lax}, \texttt{Secure} (en prod).
+  \item Durée de vie : 24h.
+  \item Refresh non implémenté (pour simplicité du PI).
+\end{itemize}
+
+\section{Autorisation}
+
+Le modèle est \textbf{role-based access control (RBAC)} avec 6 rôles.
+Chaque endpoint critique est protégé soit :
+\begin{itemize}
+  \item Côté Spring : annotation \texttt{@PreAuthorize("hasRole('TRESORIER')")}
+        ou filtre custom.
+  \item Côté Angular : \texttt{CanActivateFn} (\texttt{ceoGuard},
+        \texttt{secretaryGuard}, \texttt{voice2BureauGuard}\ldots).
+\end{itemize}
+
+Le double filtrage (front + back) limite la surface d'attaque : même si un
+utilisateur force la route Angular, le backend rejette la requête.
+
+\section{Audit logging}
+
+Toute action sensible (validation de dépense, changement de rôle, suppression
+de club) est journalisée avec acteur, timestamp, snapshot avant/après.
+Le journal est immuable du point de vue applicatif.
+
+\section{Protection des données sensibles}
+\begin{itemize}
+  \item Mots de passe hashés en \texttt{BCrypt} (cost 12).
+  \item Aucun secret en dur dans le code (variables d'environnement).
+  \item Stripe : pas de manipulation directe de cartes (Checkout Session).
+  \item CORS configuré explicitement par service (origine
+        \texttt{http://localhost:4200} en dev).
+\end{itemize}
+
+
+% =====================================================================
+\chapter{Intelligence artificielle}
+
+\section{Vue d'ensemble}
+
+ClubHub intègre l'IA à \textbf{quatre endroits clés} :
+\begin{enumerate}
+  \item \textbf{Trésorerie — Anomalies} : Isolation Forest (Smile).
+  \item \textbf{Trésorerie — Prédictions} : Random Forest (Smile).
+  \item \textbf{Trésorerie — Chatbot} : LLM (Groq Llama 3.3 ou Ollama local).
+  \item \textbf{Messagerie — Jeux trivia} : Groq Llama 3.3 avec fallback statique.
+\end{enumerate}
+
+\section{Stack ML}
+
+\begin{tabular}{ll}
+\toprule
+Bibliothèque  & Smile 4.3 (Java) \\
+Modèles       & IsolationForest, RandomForest \\
+Langage       & Java 21 \\
+Persistence   & Modèles sérialisés sur disque (\texttt{.model}) \\
+Réentraînement& Asynchrone (\texttt{@Async} + \texttt{CompletableFuture}) \\
+\bottomrule
+\end{tabular}
+
+\section{Stack LLM}
+
+\begin{itemize}
+  \item \textbf{Groq Cloud} : modèle \texttt{llama-3.3-70b-versatile}, base URL
+        \texttt{https://api.groq.com/openai}, latence très faible (200-500ms).
+  \item \textbf{Ollama} en local : fallback sur \texttt{llama3.2} accessible via
+        \texttt{http://localhost:11434}.
+  \item \textbf{Spring AI} pour l'abstraction (interface \texttt{ChatClient}).
+\end{itemize}
+
+\section{Fallback statique}
+
+Si la clé Groq est absente ou invalide :
+\begin{itemize}
+  \item Chatbot trésorerie : retour générique \og service IA momentanément
+        indisponible \fg.
+  \item Jeux trivia : banque de \textbf{20 questions de culture générale} en
+        français qui couvrent géographie, histoire, sciences, sport, art.
+\end{itemize}
+
+Cette stratégie garantit que la démo reste fonctionnelle même \textbf{hors
+ligne}.
+
+
+% =====================================================================
+\chapter{Workflows cross-services}
+
+\section{Auto-approbation des dépenses Event}
+
+\begin{enumerate}
+  \item L'utilisateur (Community Manager) valide un devis dans EventManagement.
+  \item \texttt{TreasuryIntegrationService} se connecte au user-service en tant
+        que Rick TRESORIER, récupère un cookie JWT (cache 1h).
+  \item POST de la dépense vers treasury-service \(\Rightarrow\) SUBMITTED.
+  \item PATCH \texttt{/validate} avec le cookie TRESORIER \(\Rightarrow\) VALIDATED.
+  \item Login interne en tant qu'Ahmed PRESIDENT, PATCH \texttt{/approve}
+        \(\Rightarrow\) APPROVED.
+  \item Treasury met à jour le solde, le budget, et déclenche le réentraînement
+        ML.
+\end{enumerate}
+
+\textbf{Test E2E validé} : devis 500 TND validé \(\Rightarrow\)
+\texttt{totalExpensesApproved=8400 \(\rightarrow\) 8900}, \texttt{count = 25
+\(\rightarrow\) 26}.
+
+\section{Recette boutique}
+
+Identique au workflow précédent, déclenché par le passage d'une commande en
+\texttt{CONFIRMED}. La dépense créée porte le préfixe \texttt{[RECETTE BOUTIQUE]}
+et trois devis fictifs (\og Boutique ClubHub \fg) pour respecter la contrainte
+\texttt{@Size(min=3, max=3)}.
+
+\textbf{Test E2E validé} : commande 1250 TND \(\Rightarrow\) impact direct sur
+le solde.
+
+\section{Inscription événement virtuel}
+
+\begin{enumerate}
+  \item Utilisateur clique \og s'inscrire \fg sur un VEM.
+  \item \texttt{VirtualEventService.register} crée un \texttt{Registration}.
+  \item Service mail envoie email de confirmation avec lien Jitsi.
+  \item À \(t-5\) minutes, l'utilisateur peut accéder au lobby 3D, puis à la
+        salle Jitsi.
+\end{enumerate}
+
+
+% =====================================================================
+\chapter{Tests E2E réalisés}
+
+\section{Authentification}
+\begin{itemize}
+  \item Login Dylan, Rick, Ahmed, Sophia, Mariem, Karim — OK.
+  \item Logout efface localStorage et cookie — OK.
+  \item Tentative d'accès à route protégée sans token : redirection
+        \texttt{/signin} — OK.
+\end{itemize}
+
+\section{Trésorerie}
+\begin{itemize}
+  \item Création cotisation, paiement Stripe (TND\(\rightarrow\)EUR), reçu PDF
+        envoyé par email — OK.
+  \item Soumission de dépense par membre, validation TRESORIER, approbation
+        PRESIDENT, impact sur solde — OK.
+  \item Détection d'anomalie sur dépense aberrante (10 000 TND vs moyenne 200) — OK.
+  \item Prédiction de retard sur cotisation PENDING — OK (probabilité affichée).
+  \item Chatbot Q\&A (\og Quel est mon solde actuel ? \fg) — OK.
+  \item Export Excel et PDF du bilan mensuel — OK.
+\end{itemize}
+
+\section{Événements}
+\begin{itemize}
+  \item Création événement physique avec photo, RSVP, calendrier — OK.
+  \item Création prêt + 3 devis + validation, dépense auto-approuvée — OK.
+  \item Création événement virtuel, paiement, accès lobby 3D, Jitsi — OK.
+\end{itemize}
+
+\section{Communication}
+\begin{itemize}
+  \item Création canal vocal, parole en P2P entre 2 utilisateurs — OK.
+  \item Conversation privée Dylan \(\leftrightarrow\) Rick avec WebSocket
+        temps réel — OK.
+  \item Création groupe avec 3 membres, ajout de réactions, upload image — OK.
+  \item Lancement jeu trivia avec fallback statique (Groq KO) — OK, 5
+        questions affichées.
+\end{itemize}
+
+\section{Boutique}
+\begin{itemize}
+  \item Catalogue affiché, ajout au panier, validation commande — OK.
+  \item Méthode CASH\_ON\_DELIVERY acceptée, statut CONFIRMED — OK.
+  \item Recette automatique trésorerie (+1250 TND) — OK.
+\end{itemize}
+
+
+% =====================================================================
+\chapter{Déploiement et exploitation}
+
+\section{Démarrage local}
+
+\begin{enumerate}
+  \item Lancer MongoDB sur le port 27017.
+  \item Lancer Eureka (\texttt{cd EurekaServer \&\& ./mvnw spring-boot:run}).
+  \item Lancer chaque microservice dans son propre terminal (ports 8081\ldots8089).
+  \item Lancer le Gateway (\texttt{cd Gateway \&\& ./mvnw spring-boot:run}).
+  \item Lancer le frontend (\texttt{cd frontend \&\& ng serve --port 4200}).
+\end{enumerate}
+
+Un script \texttt{run.ps1} permet d'orchestrer le démarrage de tous les
+services en une seule commande PowerShell.
+
+\section{Comptes de démonstration}
+
+\begin{tabular}{lll}
+\toprule
+\textbf{Email} & \textbf{Rôle} & \textbf{Mot de passe} \\
+\midrule
+\texttt{president@clubhub.tn}        & PRESIDENT             & Test1234! \\
+\texttt{vp@clubhub.tn}                & VICE\_PRESIDENT       & Test1234! \\
+\texttt{secgen@clubhub.tn}            & SECRETAIRE\_GENERALE  & Test1234! \\
+\texttt{rick.tresorier@clubhub.tn}    & TRESORIER             & Test1234! \\
+\texttt{rh@clubhub.tn}                & RH                    & Test1234! \\
+\texttt{kayzeurdylan2@gmail.com}      & COMMITTEE\_MEMBER     & Test1234! \\
+\bottomrule
+\end{tabular}
+
+\section{Données de démonstration}
+
+Chaque service possède un endpoint \texttt{POST /demo-data/seed} (ou similaire)
+qui injecte un jeu de données cohérent : 6 utilisateurs, 1 club, 3 canaux
+vocaux, 2 événements virtuels, 5 événements physiques, 25 dépenses, 100+
+cotisations, 3 conversations, 5 produits boutique.
+
+
+% =====================================================================
+\chapter{Conclusion}
+
+\section{Réalisations}
+
+ClubHub démontre qu'une équipe étudiante peut livrer en un semestre une
+plateforme \textbf{complète, intégrée et observable} sur l'ensemble du cycle
+de vie d'un club universitaire. Le cœur du projet — le module Trésorerie avec
+ses workflows de validation, son moteur ML et son chatbot — atteint un niveau
+de maturité proche de celui d'un produit professionnel.
+
+Les choix architecturaux (microservices, JWT partagé, Eureka, Gateway WebFlux)
+permettent un \textbf{couplage faible} entre les modules et facilitent
+l'ajout de nouveaux services (la messagerie et la boutique ont été intégrées
+en deux jours).
+
+\section{Limites identifiées}
+\begin{itemize}
+  \item Pas de système de \textbf{refresh token} (durée de vie JWT figée à 24h).
+  \item Le secret JWT est partagé en clair dans tous les services
+        (acceptable pour un projet académique, à externaliser via Vault en
+        production).
+  \item L'environnement local n'est pas containerisé (Docker Compose à venir).
+  \item Le réentraînement ML n'a pas de \textit{model registry} : le modèle vit
+        en mémoire et sur disque, sans versioning.
+  \item Les tests automatisés (JUnit + Karma) couvrent les services Trésorerie
+        et Auth, mais sont partiels sur les autres modules.
+\end{itemize}
+
+\section{Pistes d'évolution}
+\begin{itemize}
+  \item Conteneurisation Docker + orchestration Kubernetes.
+  \item Mise en place d'un broker (Kafka ou RabbitMQ) pour découpler les
+        intégrations cross-service.
+  \item Refresh tokens, authentification multi-facteurs, OAuth 2.0 (Google,
+        Microsoft) pour s'intégrer à l'écosystème ESPRIT.
+  \item Mobile : application Flutter / React Native partageant l'API REST.
+  \item Monitoring : Prometheus + Grafana sur tous les services, alerting via
+        AlertManager.
+  \item CI/CD : pipeline GitHub Actions \(\rightarrow\) build \(\rightarrow\)
+        tests \(\rightarrow\) déploiement Kubernetes.
+\end{itemize}
+
+\section{Bilan personnel}
+
+Ce projet a été l'occasion de mettre en œuvre dans un cadre réaliste la quasi-
+totalité du programme de la 4\up{ème} année : Spring Boot, Angular, Spring
+Security, microservices, machine learning, intégration cloud (Stripe, Groq).
+La répartition modulaire entre les membres de l'équipe a permis à chacun de
+posséder un domaine fonctionnel cohérent, tout en respectant des contrats
+d'API stricts pour permettre l'intégration finale.
+
+\bigskip
+
+\noindent\textit{Document généré le \today.}
+
+\end{document}

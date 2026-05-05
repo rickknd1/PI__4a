@@ -1,0 +1,23 @@
+<div class="management">
+  <h1>Event Management</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Date</th>
+        <th>Price</th>
+        <th>Participants</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let event of events">
+        <td>{{ event.title }}</td>
+        <td>{{ event.scheduledAt }}</td>
+        <td>{{ event.price || 'Free' }}</td>
+        <td>{{ event.currentParticipants }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

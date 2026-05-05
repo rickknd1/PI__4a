@@ -1,0 +1,135 @@
+<div class="p-6 space-y-6 relative">
+
+  <!-- Toast in-app (replace alert() systeme) -->
+  <div *ngIf="toast"
+       [ngClass]="{
+         'bg-green-50 border-green-200 text-green-800': toast.kind === 'success',
+         'bg-red-50 border-red-200 text-red-800': toast.kind === 'error',
+         'bg-blue-50 border-blue-200 text-blue-800': toast.kind === 'info'
+       }"
+       class="fixed top-6 right-6 z-50 max-w-md px-4 py-3 rounded-xl border shadow-lg flex items-start gap-3 animate-in slide-in-from-top-2">
+    <span class="font-medium text-sm flex-1">{{ toast.message }}</span>
+    <button (click)="closeToast()" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
+  </div>
+
+  <!-- Modal de confirmation (replace confirm() systeme) -->
+  <div *ngIf="showConfirmModal"
+       class="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4"
+       (click)="cancelRefund()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6"
+         (click)="$event.stopPropagation()">
+      <div class="flex items-start gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+          <span class="text-red-600 text-xl">!</span>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Confirmer le remboursement</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Action irreversible — Stripe traitera le remboursement sous 3-5 jours ouvres.</p>
+        </div>
+      </div>
+      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-5 text-sm">
+        <div class="flex justify-between mb-1">
+          <span class="text-gray-500">Paiements selectionnes</span>
+          <span class="font-semibold text-gray-800 dark:text-white">{{ selectedPayments.length }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Montant total a rembourser</span>
+          <span class="font-bold text-red-600">{{ selectedTotalAmount | number:'1.3-3' }} TND</span>
+        </div>
+      </div>
+      <div class="flex gap-3 justify-end">
+        <button (click)="cancelRefund()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">
+          Annuler
+        </button>
+        <button (click)="confirmRefund()"
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition">
+          Confirmer le remboursement
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bandeau "traitement en cours" -->
+  <div *ngIf="processing"
+       class="fixed top-6 left-1/2 -translate-x-1/2 z-40 bg-white border border-gray-200 rounded-xl shadow-lg px-5 py-3 flex items-center gap-3">
+    <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+    <span class="text-sm text-gray-700">Traitement Stripe en cours...</span>
+  </div>
+
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Remboursements</h1>
+      <p class="text-sm text-gray-500 mt-1">Initier des remboursements via Stripe — traitement 3-5 jours ouvrés</p>
+    </div>
+    <button (click)="initiateRefunds()" [disabled]="!selectedPayments.length || processing"
+      class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-40 transition">
+      Rembourser ({{ selectedPayments.length }})
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center py-10">
+    <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-blue-600"></div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Paid payments (can be refunded) -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div class="px-5 py-4 border-b border-gray-50 dark:border-gray-700 flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Paiements remboursables</h3>
+        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ allPaid.length }}</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-gray-700/50">
+          <tr>
+            <th class="px-4 py-3 w-10"></th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Membre</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Montant</th>
+            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Payé le</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+          <tr *ngFor="let p of paid"
+            class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition cursor-pointer"
+            (click)="toggle(p.id)">
+            <td class="px-4 py-3 text-center">
+              <input type="checkbox" [checked]="isSelected(p.id)" (click)="$event.stopPropagation()" (change)="toggle(p.id)"
+                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            </td>
+            <td class="px-4 py-3 font-medium text-gray-800 dark:text-gray-200">{{ p.memberName || resolveMember(p.memberId) }}</td>
+            <td class="px-4 py-3 font-semibold text-gray-800 dark:text-gray-200">{{ p.amount | number:'1.3-3' }} TND</td>
+            <td class="px-4 py-3 text-gray-400 text-xs">{{ p.paidAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+          <tr *ngIf="allPaid.length === 0">
+            <td colspan="4" class="px-4 py-8 text-center text-gray-400">Aucun paiement remboursable</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+        <span class="text-sm text-gray-500">Page {{page+1}} / {{totalPages}} ({{total}} elements)</span>
+        <div class="flex gap-2">
+          <button (click)="page=page-1; onPageChange()" [disabled]="page===0" class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Precedent</button>
+          <button (click)="page=page+1; onPageChange()" [disabled]="page>=totalPages-1" class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Suivant</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Already refunded -->
+    <div *ngIf="refunded.length > 0" class="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-5 border border-blue-100 dark:border-blue-800">
+      <h3 class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3">Remboursements effectués</h3>
+      <div class="space-y-2">
+        <div *ngFor="let p of refunded" class="flex items-center justify-between text-sm">
+          <span class="text-gray-700 dark:text-gray-300">{{ p.memberName || resolveMember(p.memberId) }}</span>
+          <div class="flex items-center gap-3">
+            <span class="font-semibold text-gray-800 dark:text-white">{{ p.amount | number:'1.3-3' }} TND</span>
+            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">{{ p.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

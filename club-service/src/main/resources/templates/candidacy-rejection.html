@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        .rejection-box { background: #fee2e2; padding: 20px; margin: 20px 0; border-left: 4px solid #ef4444; border-radius: 5px; }
+        .reason-section { background: white; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #e5e7eb; }
+        .reason-label { font-weight: bold; color: #6b7280; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+        .reason-text { color: #374151; font-style: italic; }
+        .encouragement { background: #f0fdf4; padding: 15px; margin: 20px 0; border-left: 4px solid #10b981; border-radius: 5px; }
+        .button { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>❌ Rejet de Candidature</h1>
+        </div>
+        <div class="content">
+            <p>Bonjour <strong th:text="${candidateName}"></strong>,</p>
+            <div class="rejection-box">
+                <p style="margin: 0; font-weight: bold;">Nous vous informons que votre candidature pour l'élection <strong th:text="${electionTitle}"></strong> a été rejetée.</p>
+            </div>
+            <div class="reason-section">
+                <div class="reason-label">Raison du rejet</div>
+                <div class="reason-text" th:text="${rejectionReason}"></div>
+            </div>
+            <div class="encouragement">
+                <p style="margin: 0;">Nous vous remercions pour votre intérêt et vous encourageons à postuler à de futures élections. Votre engagement envers le club est précieux ! 🍀</p>
+            </div>
+            <center>
+                <a th:href="${electionLink}" class="button">Voir l'élection</a>
+            </center>
+        </div>
+        <div class="footer">
+            <p>Cet email a été envoyé automatiquement par ClubHub</p>
+        </div>
+    </div>
+</body>
+</html>
