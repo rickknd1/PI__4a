@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { EcommerceComponent } from './pages/dashboard/ecommerce/ecommerce.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
+import { RoleAwareLayoutComponent } from './shared/layout/role-aware-layout/role-aware-layout.component';
 
 // -------- Composants IA (intégration Souha) --------
 import { QrValidationComponent } from './components/moi/qr-validation/qr-validation.component';
@@ -66,10 +67,12 @@ export const routes: Routes = [
   // setup-club est accessible aussitôt connecté (avant d'avoir un club)
   { path: 'setup-club', component: SetupClubComponent, canActivate: [authGuard], title: 'Créer votre club | ClubHub' },
 
-  // -------- Application protégée (avec sidebar + header) --------
+  // -------- Application protégée (layout choisi selon le role) --------
+  // RoleAwareLayoutComponent rend AppLayoutComponent (sidebar) pour le bureau
+  // ou MemberLayoutComponent (top navbar landing-style) pour MEMBRE_SIMPLE.
   {
     path: '',
-    component: AppLayoutComponent,
+    component: RoleAwareLayoutComponent,
     canActivate: [authGuard],
     children: [
       // -------- Front-office commun (page d'accueil pour TOUS les roles) --------
