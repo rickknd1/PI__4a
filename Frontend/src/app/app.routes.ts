@@ -40,6 +40,7 @@ import {
   clubSettingsGuard,
   voice2BureauGuard,
   voice2MyReportsGuard,
+  storeAdminGuard,
 } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -277,6 +278,7 @@ export const routes: Routes = [
       },
       {
         path: 'store-admin',
+        canActivate: [storeAdminGuard],
         loadComponent: () => import('./clubstore/admin/admin.component').then(m => m.StoreAdminComponent),
         title: 'Administration Boutique | ClubHub',
       },

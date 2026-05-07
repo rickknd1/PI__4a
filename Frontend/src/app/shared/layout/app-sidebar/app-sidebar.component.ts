@@ -666,6 +666,18 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       .filter(it => it.section === 'front')
       .map(it => ({ ...it }));
 
+    // Exception : Clubstore -> sous-item "Administration" (gestion produits/
+    // commandes du store-service) doit etre cache pour les membres simples.
+    // Les routes /products /tickets /cart /orders restent accessibles à tous,
+    // mais /store-admin n'est exposé qu'aux roles bureau.
+    const role = (this.currentUser?.role ?? '').toUpperCase();
+    const STORE_ADMIN_ROLES = ['PRESIDENT', 'VICE_PRESIDENT', 'TRESORIER', 'SECRETAIRE_GENERALE', 'COMMITTEE_MEMBER', 'RH'];
+    const canManageStore = STORE_ADMIN_ROLES.includes(role);
+    const clubstore = front.find(i => i.name === 'Clubstore');
+    if (clubstore?.subItems && !canManageStore) {
+      clubstore.subItems = clubstore.subItems.filter(s => s.path !== '/store-admin');
+    }
+
     // ---------------------------------------------------------------
     //  BACK-OFFICE : items conditionnels selon le rôle
     // ---------------------------------------------------------------

@@ -182,3 +182,24 @@ export const voice2MyReportsGuard: CanActivateFn = () => {
   router.navigate(['/voice2/audio-reports']);
   return false;
 };
+
+/**
+ * Boutique admin: réservé au bureau du club (Président, VP, Trésorier,
+ * Secrétaire, Comité). Les membres simples sont redirigés vers /products
+ * (catalogue front-office). Évite que n'importe quel client accède
+ * à la création/suppression de produits.
+ */
+const STORE_ADMIN_ROLES = ['PRESIDENT', 'VICE_PRESIDENT', 'TRESORIER', 'SECRETAIRE_GENERALE', 'COMMITTEE_MEMBER', 'RH'];
+
+export const storeAdminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const role = (authService.getCurrentRole() ?? '').toUpperCase();
+
+  if (STORE_ADMIN_ROLES.includes(role)) {
+    return true;
+  }
+
+  router.navigate(['/products']);
+  return false;
+};
