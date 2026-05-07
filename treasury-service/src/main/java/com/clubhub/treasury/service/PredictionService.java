@@ -37,7 +37,7 @@ public class PredictionService {
         this.geminiService = geminiService;
     }
 
-    public List<PredictionResponse> predict(Long clubId, int monthsAhead) {
+    public List<PredictionResponse> predict(String clubId, int monthsAhead) {
         // Collect historical data (last 6 months)
         List<Payment> payments = paymentRepository.findByClubIdOrderByCreatedAtDesc(clubId);
         List<Expense> expenses = expenseRepository.findByClubIdOrderByCreatedAtDesc(clubId);

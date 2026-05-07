@@ -1,5 +1,6 @@
 package esprit.com.clubhub.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import jakarta.validation.constraints.Email;
@@ -26,7 +27,11 @@ public class User {
     @Email(message = "Email invalide")
     private String email;
 
+    // WRITE_ONLY: le hash bcrypt n'est jamais serialise dans les reponses HTTP.
+    // Les controllers/services peuvent toujours le set/get via Java mais le client
+    // ne le verra jamais dans le JSON. Avant: les responses leakaient les hashes.
     @NotBlank(message = "Le mot de passe est obligatoire")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     private String role;  // Peut être un rôle système (PRESIDENT, etc.) OU un rôle personnalisé (nom du rôle)

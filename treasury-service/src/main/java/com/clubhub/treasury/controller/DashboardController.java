@@ -21,7 +21,7 @@ public class DashboardController {
 
     @GetMapping
     @Operation(summary = "Recuperer le dashboard financier du club")
-    public ResponseEntity<DashboardResponse> getDashboard(@PathVariable Long clubId) {
+    public ResponseEntity<DashboardResponse> getDashboard(@PathVariable String clubId) {
         return ResponseEntity.ok(dashboardService.getDashboard(clubId));
     }
 }

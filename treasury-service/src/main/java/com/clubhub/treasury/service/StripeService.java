@@ -40,6 +40,10 @@ public class StripeService {
         Stripe.apiKey = secretKey;
     }
 
+    public String getCurrency() {
+        return currency;
+    }
+
     public boolean isAvailable() {
         return secretKey != null && secretKey.startsWith("sk_") && !secretKey.contains("placeholder");
     }

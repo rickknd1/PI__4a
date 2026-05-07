@@ -29,7 +29,7 @@ public class DashboardService {
     private final CotisationRuleRepository cotisationRuleRepository;
     private final ExpenseRepository expenseRepository;
 
-    public DashboardResponse getDashboard(Long clubId) {
+    public DashboardResponse getDashboard(String clubId) {
         // Load all payments once for in-memory computation
         List<Payment> allPayments = paymentRepository.findByClubIdOrderByCreatedAtDesc(clubId);
 

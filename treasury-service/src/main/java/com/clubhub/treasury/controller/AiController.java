@@ -50,7 +50,7 @@ public class AiController {
     // BF11 - Chatbot Tresorerie IA (RAG)
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> chat(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @Valid @RequestBody ChatRequest request) {
 
         // RAG: Retrieval-Augmented Generation
@@ -66,32 +66,32 @@ public class AiController {
     // BF10 - Prediction budgetaire IA
     @GetMapping("/predictions")
     public ResponseEntity<List<PredictionResponse>> predictions(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @RequestParam(defaultValue = "3") int months) {
         return ResponseEntity.ok(predictionService.predict(clubId, months));
     }
 
     // BF12 - Detection d'anomalies
     @GetMapping("/anomalies")
-    public ResponseEntity<List<AnomalyResponse>> anomalies(@PathVariable Long clubId) {
+    public ResponseEntity<List<AnomalyResponse>> anomalies(@PathVariable String clubId) {
         return ResponseEntity.ok(anomalyService.detectAnomalies(clubId));
     }
 
     // BF12b - Detection d'anomalies avec modele ML uniquement (Isolation Forest)
     @GetMapping("/anomalies/ml")
-    public ResponseEntity<List<AnomalyResponse>> anomaliesMl(@PathVariable Long clubId) {
+    public ResponseEntity<List<AnomalyResponse>> anomaliesMl(@PathVariable String clubId) {
         return ResponseEntity.ok(mlAnomalyService.detectAnomalies(clubId));
     }
 
     // Statut du modele ML entraine localement
     @GetMapping("/ml/status")
-    public ResponseEntity<Map<String, Object>> mlStatus(@PathVariable Long clubId) {
+    public ResponseEntity<Map<String, Object>> mlStatus(@PathVariable String clubId) {
         return ResponseEntity.ok(mlAnomalyService.getModelStatus());
     }
 
     // Re-entrainement manuel du modele ML
     @PostMapping("/ml/retrain")
-    public ResponseEntity<Map<String, Object>> mlRetrain(@PathVariable Long clubId) {
+    public ResponseEntity<Map<String, Object>> mlRetrain(@PathVariable String clubId) {
         mlAnomalyService.trainModel();
         return ResponseEntity.ok(mlAnomalyService.getModelStatus());
     }
@@ -99,7 +99,7 @@ public class AiController {
     // BF13 - Categorisation auto depenses
     @PostMapping("/categorize")
     public ResponseEntity<Map<String, Object>> categorize(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @RequestBody Map<String, String> request) {
 
         String title = request.getOrDefault("title", "");
@@ -133,7 +133,7 @@ public class AiController {
 
     // Statut IA
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> status(@PathVariable Long clubId) {
+    public ResponseEntity<Map<String, Object>> status(@PathVariable String clubId) {
         return ResponseEntity.ok(Map.of(
                 "aiAvailable", true,
                 "model", "Treasury IA Engine",

@@ -34,7 +34,7 @@ public class AnomalyDetectionService {
         this.mlService = mlService;
     }
 
-    public List<AnomalyResponse> detectAnomalies(Long clubId) {
+    public List<AnomalyResponse> detectAnomalies(String clubId) {
         List<AnomalyResponse> anomalies = new ArrayList<>();
 
         anomalies.addAll(detectPaymentAnomalies(clubId));
@@ -65,7 +65,7 @@ public class AnomalyDetectionService {
      * regle de cotisation. Une anomalie n'est levee que si l'ecart au
      * montant de reference depasse 10% (et n'est pas un paiement echelonne).
      */
-    private List<AnomalyResponse> detectPaymentAnomalies(Long clubId) {
+    private List<AnomalyResponse> detectPaymentAnomalies(String clubId) {
         List<Payment> payments = paymentRepository.findByClubIdOrderByCreatedAtDesc(clubId);
         List<AnomalyResponse> anomalies = new ArrayList<>();
 
@@ -115,7 +115,7 @@ public class AnomalyDetectionService {
         return anomalies;
     }
 
-    private List<AnomalyResponse> detectExpenseAnomalies(Long clubId) {
+    private List<AnomalyResponse> detectExpenseAnomalies(String clubId) {
         List<Expense> expenses = expenseRepository.findByClubIdOrderByCreatedAtDesc(clubId);
         List<AnomalyResponse> anomalies = new ArrayList<>();
 
@@ -162,7 +162,7 @@ public class AnomalyDetectionService {
      * ne s'interesse qu'aux paiements PAID (un retard ou un PENDING ne
      * peut pas etre un "double paiement").
      */
-    private List<AnomalyResponse> detectDuplicatePayments(Long clubId) {
+    private List<AnomalyResponse> detectDuplicatePayments(String clubId) {
         List<Payment> payments = paymentRepository.findByClubIdOrderByCreatedAtDesc(clubId).stream()
                 .filter(p -> p.getStatus() == Payment.PaymentStatus.PAID)
                 .filter(p -> p.getPaidAt() != null)

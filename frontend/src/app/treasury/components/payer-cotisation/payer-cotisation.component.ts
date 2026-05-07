@@ -226,9 +226,12 @@ export class PayerCotisationComponent implements OnInit {
 
   loadPayments() {
     this.loading = true;
-    this.api.getMyPayments(1, this.user!.id).subscribe({
+    // D1 fix : utiliser le clubId reel du user (plus 1 hardcode).
+    // Status null tolere : backend cree des payments sans status -> on les considere PENDING.
+    const clubId = (this.user as any)?.clubId || '1';
+    this.api.getMyPayments(clubId, this.user!.id).subscribe({
       next: (data) => {
-        this.unpaid = data.filter(p => p.status === 'PENDING' || p.status === 'LATE' || p.status === 'PENDING_CASH');
+        this.unpaid = data.filter(p => !p.status || p.status === 'PENDING' || p.status === 'LATE' || p.status === 'PENDING_CASH');
         this.paid = data.filter(p => p.status === 'PAID');
         this.loading = false;
       },

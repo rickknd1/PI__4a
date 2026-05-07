@@ -4,6 +4,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface CotisationRuleRepository extends MongoRepository<CotisationRule, String> {
-    List<CotisationRule> findByClubIdAndActiveTrue(Long clubId);
-    List<CotisationRule> findByClubId(Long clubId);
+    List<CotisationRule> findByClubIdAndActiveTrue(String clubId);
+    List<CotisationRule> findByClubId(String clubId);
 }

@@ -6,6 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BudgetRepository extends MongoRepository<Budget, String> {
-    List<Budget> findByClubId(Long clubId);
-    Optional<Budget> findFirstByClubIdAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqualOrderByCreatedAtDesc(Long clubId, LocalDate date1, LocalDate date2);
+    List<Budget> findByClubId(String clubId);
+    Optional<Budget> findFirstByClubIdAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqualOrderByCreatedAtDesc(String clubId, LocalDate date1, LocalDate date2);
 }

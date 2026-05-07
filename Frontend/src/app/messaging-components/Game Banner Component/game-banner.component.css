@@ -1,0 +1,69 @@
+:host {
+    display: block;
+    perspective: 1200px; /* Gives the banner 3D depth */
+}
+
+/* 1. The Main Banner Body */
+.group {
+    transform-style: preserve-3d;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.group:hover {
+    transform: rotateX(2deg) rotateY(-1deg) translateY(-5px);
+    box-shadow: 0 30px 60px rgba(79, 70, 229, 0.4);
+}
+
+/* 2. The Animated "Scanline" Shimmer */
+.group::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+            45deg,
+            transparent,
+            rgba(255, 255, 255, 0.1),
+            transparent
+    );
+    transform: rotate(45deg);
+    animation: shimmer 4s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+}
+
+/* 3. Enhanced 3D Float for the Controller Icon */
+.animate-float {
+    animation: float 4s ease-in-out infinite;
+    transform-style: preserve-3d;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg) translateZ(20px); }
+    50% { transform: translateY(-10px) rotate(5deg) translateZ(40px); }
+}
+
+/* 4. The Neon Glow Pulse (Live Badge) */
+.animate-ping {
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+    background-color: #4ade80; /* Brighter green */
+}
+
+/* 5. Button "Lift" Effect */
+button.flex-1 {
+    transform-style: preserve-3d;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1); /* Fake 3D thickness */
+}
+
+button.flex-1:active {
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+    transform: translateY(4px);
+}

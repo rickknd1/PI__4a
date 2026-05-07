@@ -161,20 +161,13 @@ public class GameService {
             throw new IllegalStateException("Question is no longer active.");
         }
 
-        // Defensive: if the question was already revealed (timer fired or all players
-        // answered), reject — we are in the 4s reveal window before advance.
-        GameSession.Question currentQ = game.getQuestions().get(questionIndex);
-        if (currentQ.isRevealed()) {
-            throw new IllegalStateException("Question already revealed — wait for next.");
-        }
-
         boolean alreadyAnswered = gameAnswerRepository
                 .existsByGameSessionIdAndQuestionIndexAndUserId(gameSessionId, questionIndex, userId);
         if (alreadyAnswered) {
             throw new IllegalStateException("You already answered this question.");
         }
 
-        GameSession.Question q = currentQ;
+        GameSession.Question q = game.getQuestions().get(questionIndex);
         boolean isCorrect = q.getCorrectAnswer().equalsIgnoreCase(selectedAnswer.trim());
 
         int pointsEarned = 0;
@@ -394,36 +387,5 @@ public class GameService {
     public Optional<GameSession> getActiveGameForConversation(String conversationId) {
         return gameSessionRepository.findByConversationIdAndStatus(conversationId, GameStatus.IN_PROGRESS)
                 .or(() -> gameSessionRepository.findByConversationIdAndStatus(conversationId, GameStatus.WAITING));
-    }
-
-    // ==================== CANCEL ====================
-    /**
-     * Cancel an active or waiting game. Only the creator can cancel.
-     * Marks status as FINISHED with no leaderboard, broadcasts a GAME_CANCELLED
-     * event, and clears any pending question timers so the conversation is
-     * unblocked and a new game can be created.
-     */
-    public GameSession cancelGame(String gameSessionId, String userId) {
-        GameSession game = gameSessionRepository.findById(gameSessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Game not found"));
-
-        if (!game.getCreatedBy().equals(userId)) {
-            throw new IllegalStateException("Only the creator can cancel this game.");
-        }
-        if (game.getStatus() == GameStatus.FINISHED) {
-            return game; // already finished, idempotent
-        }
-
-        cancelQuestionTimer(gameSessionId);
-        game.setStatus(GameStatus.FINISHED);
-        game.setFinishedAt(Instant.now());
-        GameSession saved = gameSessionRepository.save(game);
-
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("type", "GAME_CANCELLED");
-        payload.put("gameId", saved.getId());
-        broadcast(saved.getConversationId(), payload);
-
-        return saved;
     }
 }

@@ -23,33 +23,33 @@ public class NotificationController {
 
     @GetMapping
     @PreAuthorize(Roles.READ_REPORTS)
-    public ResponseEntity<List<Notification>> getByClub(@PathVariable Long clubId) {
+    public ResponseEntity<List<Notification>> getByClub(@PathVariable String clubId) {
         return ResponseEntity.ok(notificationService.getByClub(clubId));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Notification>> getByUser(@PathVariable Long clubId, @PathVariable String userId) {
+    public ResponseEntity<List<Notification>> getByUser(@PathVariable String clubId, @PathVariable String userId) {
         return ResponseEntity.ok(notificationService.getByUser(userId));
     }
 
     @GetMapping("/user/{userId}/unread")
-    public ResponseEntity<List<Notification>> getUnread(@PathVariable Long clubId, @PathVariable String userId) {
+    public ResponseEntity<List<Notification>> getUnread(@PathVariable String clubId, @PathVariable String userId) {
         return ResponseEntity.ok(notificationService.getUnread(userId));
     }
 
     @GetMapping("/user/{userId}/count")
-    public ResponseEntity<Map<String, Long>> countUnread(@PathVariable Long clubId, @PathVariable String userId) {
+    public ResponseEntity<Map<String, Long>> countUnread(@PathVariable String clubId, @PathVariable String userId) {
         return ResponseEntity.ok(Map.of("unread", notificationService.countUnread(userId)));
     }
 
     @PatchMapping("/{notificationId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long clubId, @PathVariable String notificationId) {
+    public ResponseEntity<Void> markAsRead(@PathVariable String clubId, @PathVariable String notificationId) {
         notificationService.markAsRead(notificationId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/user/{userId}/read-all")
-    public ResponseEntity<Void> markAllAsRead(@PathVariable Long clubId, @PathVariable String userId) {
+    public ResponseEntity<Void> markAllAsRead(@PathVariable String clubId, @PathVariable String userId) {
         notificationService.markAllAsRead(userId);
         return ResponseEntity.ok().build();
     }

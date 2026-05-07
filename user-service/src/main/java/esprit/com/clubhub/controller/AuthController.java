@@ -86,19 +86,56 @@ public class AuthController {
         return ResponseEntity.ok("Session valid");
     }
 
-    // ✅ ENDPOINT TEMPORAIRE pour réinitialiser le mot de passe
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+    /**
+     * Retourne le user courant a partir du JWT cookie. Permet au frontend de
+     * refresh son state apres modifications cote backend (ex: le president a
+     * ete relie a un nouveau club, son state local est obsolete).
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> me() {
+        org.springframework.security.core.Authentication auth =
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
+        }
+        String email = (String) auth.getPrincipal();
         try {
-            String email = body.get("email");
-            String newPassword = body.get("newPassword");
-            
-            if (email == null || newPassword == null) {
-                return ResponseEntity.badRequest().body("Email et nouveau mot de passe requis");
+            return ResponseEntity.ok(authService.findUserByEmail(email));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Reset password — protege par auth.
+     *
+     * Avant : endpoint public, n'importe qui pouvait reset n'importe quel email
+     * (CVE majeure). Maintenant : seul l'utilisateur connecte peut changer son
+     * propre mot de passe (verifie via JWT cookie). Pour le flow "mot de passe
+     * oublie" classique avec token email, voir setup-password (qui utilise un
+     * token UUID expire 7j envoye dans l'email d'invitation).
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body,
+                                           jakarta.servlet.http.HttpServletRequest request) {
+        try {
+            // L'authentification a deja ete validee par JwtAuthFilter en amont.
+            // L'email du user connecte vient du token, pas du body — un attaquant
+            // ne peut donc pas reset le mot de passe d'un autre user.
+            org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+                return ResponseEntity.status(401).body("Authentification requise");
             }
-            
-            authService.resetPassword(email, newPassword);
-            return ResponseEntity.ok("Mot de passe réinitialisé avec succès");
+            String authedEmail = (String) auth.getPrincipal();
+
+            String newPassword = body.get("newPassword");
+            if (newPassword == null || newPassword.length() < 6) {
+                return ResponseEntity.badRequest().body("Nouveau mot de passe requis (minimum 6 caracteres)");
+            }
+
+            authService.resetPassword(authedEmail, newPassword);
+            return ResponseEntity.ok("Mot de passe reinitialise avec succes");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

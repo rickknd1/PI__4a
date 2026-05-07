@@ -246,8 +246,14 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       // ----------------------------------------------------------------------
       section: 'front',
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 9h18l-1.5 11.25a1.5 1.5 0 0 1-1.5 1.25H6a1.5 1.5 0 0 1-1.5-1.25L3 9z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 9V6a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
-      name: 'Boutique',
-      path: '/boutique',
+      name: 'Clubstore',
+      subItems: [
+        { name: 'Produits',       path: '/products' },
+        { name: 'Billets',        path: '/tickets' },
+        { name: 'Panier',         path: '/cart' },
+        { name: 'Commandes',      path: '/orders' },
+        { name: 'Administration', path: '/store-admin' },
+      ],
     },
     {
       // ----------------------------------------------------------------------

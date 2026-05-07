@@ -33,9 +33,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Integration mode: trust Gateway/JWT at edge and keep this
-                        // microservice open to avoid local role-mapping 403 issues.
-                        .anyRequest().permitAll()
+                        // Endpoints publics : actuator + websocket handshake.
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        // Avant : anyRequest().permitAll() — n'importe qui pouvait creer
+                        // un channel ou supprimer un membre en envoyant ?role=PRESIDENT
+                        // dans la query string. Maintenant : exige un JWT valide.
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtUtil),
                         UsernamePasswordAuthenticationFilter.class);

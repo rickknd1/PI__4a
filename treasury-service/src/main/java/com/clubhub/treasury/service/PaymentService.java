@@ -21,15 +21,15 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final AuditService auditService;
 
-    public List<Payment> getByClub(Long clubId) {
+    public List<Payment> getByClub(String clubId) {
         return paymentRepository.findByClubIdOrderByCreatedAtDesc(clubId);
     }
 
-    public List<Payment> getByClubAndStatus(Long clubId, PaymentStatus status) {
+    public List<Payment> getByClubAndStatus(String clubId, PaymentStatus status) {
         return paymentRepository.findByClubIdAndStatus(clubId, status);
     }
 
-    public List<Payment> getByMember(String memberId, Long clubId) {
+    public List<Payment> getByMember(String memberId, String clubId) {
         return paymentRepository.findByMemberIdAndClubId(memberId, clubId);
     }
 

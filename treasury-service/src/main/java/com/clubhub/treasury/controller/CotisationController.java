@@ -26,7 +26,7 @@ public class CotisationController {
     @GetMapping("/rules")
     @Operation(summary = "Lister les regles de cotisation actives")
     @PreAuthorize(Roles.AUTHENTICATED)
-    public ResponseEntity<List<CotisationRule>> getRules(@PathVariable Long clubId) {
+    public ResponseEntity<List<CotisationRule>> getRules(@PathVariable String clubId) {
         return ResponseEntity.ok(cotisationService.getActiveRules(clubId));
     }
 
@@ -34,7 +34,7 @@ public class CotisationController {
     @Operation(summary = "Creer une regle de cotisation")
     @PreAuthorize(Roles.TRESORIER_ONLY)
     public ResponseEntity<CotisationRule> createRule(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @Valid @RequestBody CreateCotisationRuleRequest request,
             @RequestHeader(value = "X-Actor-Id", defaultValue = "1") String actorId,
             @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
@@ -46,7 +46,7 @@ public class CotisationController {
     @Operation(summary = "Assigner une regle a des membres")
     @PreAuthorize(Roles.TRESORIER_ONLY)
     public ResponseEntity<List<Payment>> assignToMembers(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String ruleId,
             @RequestBody List<String> memberIds) {
         return ResponseEntity.ok(cotisationService.assignToMembers(ruleId, memberIds, clubId));

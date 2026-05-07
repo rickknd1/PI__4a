@@ -142,7 +142,7 @@ export class TreasuryApiService {
   }
 
   // Get member's own payments
-  getMyPayments(clubId: number, memberId: string): Observable<Payment[]> {
+  getMyPayments(clubId: number | string, memberId: string): Observable<Payment[]> {
     return this.http.get<Payment[]>(`${this.base}/${clubId}/payments/member/${memberId}`);
   }
 

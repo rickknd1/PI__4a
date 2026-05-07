@@ -49,7 +49,7 @@ public class BilanService {
     private final ExpenseRepository expenseRepository;
     private final BudgetRepository budgetRepository;
 
-    public BilanResponse generateBilan(Long clubId, LocalDate start, LocalDate end, String periodLabel) {
+    public BilanResponse generateBilan(String clubId, LocalDate start, LocalDate end, String periodLabel) {
         List<Payment> allPayments = paymentRepository.findByClubIdOrderByCreatedAtDesc(clubId);
         List<Expense> allExpenses = expenseRepository.findByClubIdOrderByCreatedAtDesc(clubId);
 
@@ -180,7 +180,7 @@ public class BilanService {
                 .build();
     }
 
-    public byte[] generateBilanPdf(Long clubId, LocalDate start, LocalDate end, String periodLabel) {
+    public byte[] generateBilanPdf(String clubId, LocalDate start, LocalDate end, String periodLabel) {
         BilanResponse bilan = generateBilan(clubId, start, end, periodLabel);
 
         // Black & white palette — professional accounting style

@@ -38,8 +38,17 @@ export class UserListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Refresh le user state depuis le backend pour avoir le clubId a jour
+    // (le president peut avoir ete relie a un nouveau club apres son login).
+    this.authService.refreshSession().subscribe({
+      next: () => this.initWithFreshUser(),
+      error: () => this.initWithFreshUser() // fallback sur le state local
+    });
+  }
+
+  private initWithFreshUser(): void {
     const authUser = this.authService.getCurrentUser();
-    
+
     if (authUser) {
       // Récupérer le nom du club via clubService
       if (authUser.clubId) {

@@ -209,7 +209,7 @@ public class LatePaymentPredictionService {
     }
 
     /** Predire pour TOUS les membres du club (utile pour dashboard "membres a risque"). */
-    public List<Map<String, Object>> predictForAllMembers(Long clubId) {
+    public List<Map<String, Object>> predictForAllMembers(String clubId) {
         if (model == null) return List.of();
 
         List<User> members = userRepository.findAll().stream()

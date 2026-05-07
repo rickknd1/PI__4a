@@ -162,7 +162,7 @@ public class MlAnomalyDetectionService {
     }
 
     /** Detecte toutes les anomalies pour un club via le modele entraine. */
-    public List<AnomalyResponse> detectAnomalies(Long clubId) {
+    public List<AnomalyResponse> detectAnomalies(String clubId) {
         if (model == null) {
             log.warn("Modele non entraine, detection ML indisponible");
             return List.of();
@@ -200,7 +200,7 @@ public class MlAnomalyDetectionService {
     }
 
     /** Score brut de toutes les expenses du club (pour debug/analyse distribution). */
-    public List<Map<String, Object>> scoreAllExpenses(Long clubId) {
+    public List<Map<String, Object>> scoreAllExpenses(String clubId) {
         if (model == null) return List.of();
         List<Expense> expenses = expenseRepository.findByClubIdOrderByCreatedAtDesc(clubId);
         List<Map<String, Object>> result = new ArrayList<>();

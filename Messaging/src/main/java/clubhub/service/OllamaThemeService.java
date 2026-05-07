@@ -1,46 +1,43 @@
 package clubhub.service;
 
-import clubhub.dto.OllamaRequestDTO;
-import clubhub.dto.OllamaResponseDTO;
+// NOTE: kept the class name (OllamaThemeService) for binary compat with ThemeService bean
+// wiring, but the implementation now calls Groq via Spring AI ChatClient (OpenAI-compatible).
+// Why: Ollama requires a local daemon + model pull; Groq Cloud API is faster, free-tier
+// generous, and works out of the box once GROQ_API_KEY is set. Better for deployment.
+
 import clubhub.dto.ThemeGenerationResultDTO;
 import clubhub.model.Theme;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class OllamaThemeService {
 
-    private final WebClient webClient;
+    private static final Logger log = LoggerFactory.getLogger(OllamaThemeService.class);
+
+    private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
     private final ThemeValidator themeValidator;
     private final ThemeJsonSanitizer sanitizer;
     private final HuggingFaceImageService imageService;
 
-    @Value("${ollama.model:llama3.2}")
-    private String defaultModel;
-
     private final Theme DEFAULT_FALLBACK = new Theme(
             "Classic Blue", "#0084FF", "#0084FF", "#0084FF",
-            "#F0F2F5", false, null, null);  // ← added null for backgroundImageUrl
+            "#F0F2F5", false, null, null);
 
-    public OllamaThemeService(WebClient.Builder webClientBuilder,
+    public OllamaThemeService(OpenAiChatModel chatModel,
                               ObjectMapper objectMapper,
                               ThemeValidator themeValidator,
                               ThemeJsonSanitizer sanitizer,
-                              HuggingFaceImageService imageService) {  // ← removed ImageStorageService
-        this.webClient = webClientBuilder
-                .baseUrl("http://localhost:11434")
-                .build();
+                              HuggingFaceImageService imageService) {
+        this.chatClient = ChatClient.create(chatModel);
         this.objectMapper = objectMapper.copy()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.themeValidator = themeValidator;
@@ -54,21 +51,19 @@ public class OllamaThemeService {
 
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                Theme theme = callOllamaAndParse(prompt, attempt);
+                Theme theme = callGroqAndParse(prompt);
 
                 if (themeValidator.isValid(theme)) {
-                    // ← URL only, no bytes, no GridFS
                     try {
                         String imageUrl = imageService.generateBackgroundImageUrl(userPrompt);
                         theme.setBackgroundImageUrl(imageUrl);
                     } catch (Exception imgEx) {
-                        System.err.println("Image URL generation failed: " + imgEx.getMessage());
+                        log.warn("Image URL generation failed: {}", imgEx.getMessage());
                     }
-                    return new ThemeGenerationResultDTO(theme, true, "Theme generated successfully");
+                    return new ThemeGenerationResultDTO(theme, true, "Theme generated successfully via Groq");
                 }
-
             } catch (Exception e) {
-                System.err.println("Attempt " + attempt + " failed: " + e.getMessage());
+                log.warn("Theme generation attempt {} failed: {}", attempt, e.getMessage());
             }
 
             if (attempt < maxAttempts) {
@@ -80,46 +75,27 @@ public class OllamaThemeService {
                 "AI generation failed. Using default Classic Blue theme.");
     }
 
-    private Theme callOllamaAndParse(String fullPrompt, int attempt) throws JsonProcessingException {
-        Map<String, Object> options = new HashMap<>();
-        options.put("temperature", attempt == 1 ? 0.7 : 0.3);
-        options.put("num_predict", 300);
+    private Theme callGroqAndParse(String fullPrompt) throws JsonProcessingException {
+        String response = chatClient.prompt()
+                .system("You return ONLY valid JSON. No markdown, no commentary.")
+                .user(fullPrompt)
+                .call()
+                .content();
 
-        OllamaRequestDTO request = new OllamaRequestDTO(
-                defaultModel,
-                fullPrompt,
-                false,
-                options
-        );
-
-        OllamaResponseDTO ollamaResp = webClient.post()
-                .uri("/api/generate")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(OllamaResponseDTO.class)
-                .timeout(Duration.ofSeconds(45))
-                .block();
-
-        if (ollamaResp == null || ollamaResp.getResponse() == null) {
-            throw new RuntimeException("Empty response from Ollama");
+        if (response == null || response.isBlank()) {
+            throw new RuntimeException("Empty response from Groq");
         }
 
-        String raw = ollamaResp.getResponse();
-        String cleanJson = sanitizer.extractCleanJson(raw);
+        log.debug("Groq raw theme response: {} chars", response.length());
 
+        String cleanJson = sanitizer.extractCleanJson(response);
         if (cleanJson == null || cleanJson.trim().isEmpty()) {
-            throw new RuntimeException("No valid JSON could be extracted from Ollama response. Raw: " +
-                    (raw.length() > 300 ? raw.substring(0, 300) + "..." : raw));
+            throw new RuntimeException("No valid JSON could be extracted. Raw: "
+                    + (response.length() > 300 ? response.substring(0, 300) + "..." : response));
         }
 
-        try {
-            JsonNode root = objectMapper.readTree(cleanJson);
-            return objectMapper.convertValue(root, Theme.class);
-        } catch (Exception e) {
-            System.err.println("JSON parsing failed. Cleaned JSON was: " + cleanJson);
-            throw e;
-        }
+        JsonNode root = objectMapper.readTree(cleanJson);
+        return objectMapper.convertValue(root, Theme.class);
     }
 
     private String buildSystemPrompt(String userPrompt) {

@@ -174,6 +174,11 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.events.forEach(event => {
       if (!event.id || !event.scheduledAt) return;
 
+      if (this.isFinished(event)) {
+        this.countdowns[event.id] = '✓ Terminé';
+        return;
+      }
+
       const eventTime = new Date(event.scheduledAt).getTime();
       const diff = eventTime - now;
 
@@ -201,24 +206,42 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   isLive(event: VirtualEvent): boolean {
     if (!event?.scheduledAt) return false;
+    if (event.status === 'FINISHED' || event.status === 'CANCELLED') return false;
 
     const now = new Date().getTime();
     const eventTime = new Date(event.scheduledAt).getTime();
+    if (now < eventTime) return false;
 
-    return now >= eventTime;
+    const endTime = event.endAt
+      ? new Date(event.endAt).getTime()
+      : eventTime + 2 * 60 * 60 * 1000;
+    if (now >= endTime) return false;
+
+    return true;
+  }
+
+  isFinished(event: VirtualEvent): boolean {
+    if (event.status === 'FINISHED' || event.status === 'CANCELLED') return true;
+    if (!event?.scheduledAt) return false;
+    const now = new Date().getTime();
+    const endTime = event.endAt
+      ? new Date(event.endAt).getTime()
+      : new Date(event.scheduledAt).getTime() + 2 * 60 * 60 * 1000;
+    return now >= endTime;
   }
 
   getJoinMessage(event: VirtualEvent): string {
     if (!event?.id || !event.scheduledAt) return 'Invalid event';
 
-    const now = new Date().getTime();
-    const eventTime = new Date(event.scheduledAt).getTime();
+    if (this.isFinished(event)) {
+      return '✓ Cet événement est terminé';
+    }
 
     if (this.joinAccess[event.id] !== true) {
       return '❌ You must register and pay first';
     }
 
-    if (now >= eventTime) {
+    if (this.isLive(event)) {
       return '🔴 Event is live';
     }
 
@@ -500,5 +523,75 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (!r || !r.count) return '';
     const full = Math.round(r.avg);
     return '★'.repeat(full) + '☆'.repeat(Math.max(0, 5 - full));
+  }
+
+  // ============================================================================
+  //  REVIEWS modal — read + create review pour un event terminé
+  // ============================================================================
+  reviewsModalEventId: string | null = null;
+  reviewsModalEventTitle = '';
+  reviewsList: any[] = [];
+  newReview = { rating: 5, comment: '' };
+  reviewSubmitting = false;
+  reviewError = '';
+
+  openReviews(event: VirtualEvent | null): void {
+    if (!event?.id) return;
+    this.reviewsModalEventId = event.id;
+    this.reviewsModalEventTitle = event.title || 'Événement';
+    this.newReview = { rating: 5, comment: '' };
+    this.reviewError = '';
+    this.loadReviewsList(event.id);
+  }
+
+  closeReviewsModal(): void {
+    this.reviewsModalEventId = null;
+    this.reviewsList = [];
+  }
+
+  private loadReviewsList(eventId: string): void {
+    this.http.get<any[]>(apiUrl(`/api/events/${eventId}/reviews`)).subscribe({
+      next: (data) => (this.reviewsList = data || []),
+      error: () => (this.reviewsList = []),
+    });
+  }
+
+  submitReview(): void {
+    if (!this.reviewsModalEventId) return;
+    if (!this.newReview.comment.trim()) {
+      this.reviewError = 'Le commentaire est obligatoire';
+      return;
+    }
+    const user = this.authService.getCurrentUser();
+    if (!user?.userId) {
+      this.reviewError = 'Vous devez être connecté';
+      return;
+    }
+    this.reviewSubmitting = true;
+    this.reviewError = '';
+    this.http
+      .post(apiUrl(`/api/events/${this.reviewsModalEventId}/reviews`), {
+        userId: user.userId,
+        userName: user.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : (user.email || 'Anonyme'),
+        rating: this.newReview.rating,
+        comment: this.newReview.comment,
+      })
+      .subscribe({
+        next: () => {
+          this.reviewSubmitting = false;
+          this.newReview = { rating: 5, comment: '' };
+          if (this.reviewsModalEventId) {
+            this.loadReviewsList(this.reviewsModalEventId);
+            // refresh aussi l'avg sur la carte
+            delete this.ratingsByEvent[this.reviewsModalEventId];
+            this.loadRatingFor(this.reviewsModalEventId);
+          }
+        },
+        error: (err) => {
+          this.reviewSubmitting = false;
+          this.reviewError =
+            err?.error?.message || err?.error || err?.message || 'Erreur lors de l envoi';
+        },
+      });
   }
 }

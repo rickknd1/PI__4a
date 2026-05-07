@@ -73,8 +73,8 @@ public class GameController {
 
     // ====================== SUBMIT ANSWER ======================
     @PostMapping("/{gameId}/answer")
-    public ResponseEntity<?> submitAnswer(@PathVariable String gameId,
-                                          @RequestBody SubmitAnswerRequest request) {
+    public ResponseEntity<Void> submitAnswer(@PathVariable String gameId,
+                                             @RequestBody SubmitAnswerRequest request) {
         try {
             gameService.submitAnswer(
                     gameId,
@@ -83,27 +83,9 @@ public class GameController {
                     request.getSelectedAnswer(),
                     request.getResponseTimeMs()
             );
-            return ResponseEntity.ok(Map.of("status", "accepted"));
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
-            // Return the actual reason so the UI can show it (game not started,
-            // question changed, already answered, etc.) instead of a silent 400.
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    // ====================== CANCEL GAME (creator only) ======================
-    @DeleteMapping("/{gameId}/cancel")
-    public ResponseEntity<?> cancelGame(@PathVariable String gameId,
-                                        @RequestParam String userId) {
-        try {
-            GameSession game = gameService.cancelGame(gameId, userId);
-            return ResponseEntity.ok(game);
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(403).body(Map.of("error", e.getMessage()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(404).body(Map.of("error", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Failed to cancel: " + e.getMessage()));
+            return ResponseEntity.badRequest().build();
         }
     }
 

@@ -1,4 +1,9 @@
 <div class="min-h-screen xl:flex">
+  <!-- Mobile sidebar backdrop -->
+  <div *ngIf="isMobileOpen$ | async"
+       class="fixed inset-0 bg-black/50 z-40 xl:hidden"
+       (click)="sidebarService.setMobileOpen(false)"
+       aria-label="Close sidebar"></div>
   <div>
     <app-sidebar></app-sidebar>
   </div>

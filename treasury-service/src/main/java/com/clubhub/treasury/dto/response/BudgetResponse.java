@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Data @Builder
 public class BudgetResponse {
     private Long id;
-    private Long clubId;
+    private String clubId;
     private String label;
     private BigDecimal totalAmount;
     private BigDecimal consumedAmount;

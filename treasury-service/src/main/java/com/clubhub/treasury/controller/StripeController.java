@@ -24,7 +24,7 @@ public class StripeController {
 
     @PostMapping("/create-payment-intent/{paymentId}")
     public ResponseEntity<Map<String, String>> createPaymentIntent(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId,
             @RequestParam(defaultValue = "Membre") String memberName) {
         var payment = paymentService.getOrThrow(paymentId);
@@ -33,7 +33,7 @@ public class StripeController {
 
     @PostMapping("/checkout-session/{paymentId}")
     public ResponseEntity<Map<String, String>> createCheckoutSession(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId,
             @RequestParam(defaultValue = "Membre") String memberName,
             @RequestParam(defaultValue = "http://localhost:4200/treasury/payer-cotisation") String successUrl,
@@ -44,16 +44,16 @@ public class StripeController {
 
     @GetMapping("/session/{sessionId}")
     public ResponseEntity<Map<String, String>> getSession(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String sessionId) {
         return ResponseEntity.ok(stripeService.getPaymentIntentFromSession(sessionId));
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> status(@PathVariable Long clubId) {
+    public ResponseEntity<Map<String, Object>> status(@PathVariable String clubId) {
         return ResponseEntity.ok(Map.of(
                 "available", stripeService.isAvailable(),
-                "currency", "EUR",
+                "currency", stripeService.getCurrency(),
                 "mode", stripeService.isAvailable() ? "LIVE" : "MOCK"
         ));
     }

@@ -40,7 +40,7 @@ public class NotificationService {
         return notificationRepository.findByRecipientIdOrderByCreatedAtDesc(userId);
     }
 
-    public List<Notification> getByClub(Long clubId) {
+    public List<Notification> getByClub(String clubId) {
         return notificationRepository.findByClubIdOrderByCreatedAtDesc(clubId);
     }
 
@@ -69,12 +69,12 @@ public class NotificationService {
     // === Envoi de notifications ===
 
     @Transactional
-    public Notification notify(Long clubId, String recipientId, NotificationType type, String title, String message) {
+    public Notification notify(String clubId, String recipientId, NotificationType type, String title, String message) {
         return notifyWithAttachment(clubId, recipientId, type, title, message, null, null);
     }
 
     @Transactional
-    public Notification notifyWithAttachment(Long clubId, String recipientId, NotificationType type,
+    public Notification notifyWithAttachment(String clubId, String recipientId, NotificationType type,
                                               String title, String message,
                                               byte[] pdfAttachment, String pdfFilename) {
         User user = userRepository.findById(recipientId).orElse(null);
@@ -112,65 +112,65 @@ public class NotificationService {
 
     // === Notifications metier ===
 
-    public void notifyPaymentDue(Long clubId, String memberId, String amount, String dueDate) {
+    public void notifyPaymentDue(String clubId, String memberId, String amount, String dueDate) {
         notify(clubId, memberId, NotificationType.PAYMENT_DUE,
                 "Cotisation a payer",
                 "Vous avez une cotisation de " + amount + " TND a payer avant le " + dueDate + ".");
     }
 
-    public void notifyPaymentConfirmed(Long clubId, String memberId, String amount) {
+    public void notifyPaymentConfirmed(String clubId, String memberId, String amount) {
         notify(clubId, memberId, NotificationType.PAYMENT_CONFIRMED,
                 "Paiement confirme",
                 "Votre paiement de " + amount + " TND a ete confirme. Merci !");
     }
 
-    public void notifyPaymentConfirmedWithReceipt(Long clubId, String memberId, String amount, byte[] receiptPdf) {
+    public void notifyPaymentConfirmedWithReceipt(String clubId, String memberId, String amount, byte[] receiptPdf) {
         notifyWithAttachment(clubId, memberId, NotificationType.PAYMENT_CONFIRMED,
                 "Paiement confirme - Recu joint",
                 "Votre paiement de " + amount + " TND a ete confirme.\nVotre recu est en piece jointe.",
                 receiptPdf, "recu-paiement.pdf");
     }
 
-    public void notifyPaymentLate(Long clubId, String memberId, String amount) {
+    public void notifyPaymentLate(String clubId, String memberId, String amount) {
         notify(clubId, memberId, NotificationType.PAYMENT_LATE,
                 "Paiement en retard",
                 "Votre paiement de " + amount + " TND est en retard. Veuillez regulariser rapidement.");
     }
 
-    public void notifyExpenseSubmitted(Long clubId, String submitterId, String title, String amount) {
+    public void notifyExpenseSubmitted(String clubId, String submitterId, String title, String amount) {
         userRepository.findByClubIdAndRole(clubId, User.UserRole.TRESORIER)
                 .forEach(t -> notify(clubId, t.getId(), NotificationType.EXPENSE_SUBMITTED,
                         "Nouvelle depense a valider",
                         "Depense '" + title + "' de " + amount + " TND soumise. A valider."));
     }
 
-    public void notifyExpenseValidated(Long clubId, String submitterId, String title) {
+    public void notifyExpenseValidated(String clubId, String submitterId, String title) {
         userRepository.findByClubIdAndRole(clubId, User.UserRole.PRESIDENT)
                 .forEach(p -> notify(clubId, p.getId(), NotificationType.EXPENSE_VALIDATED,
                         "Depense a approuver",
                         "Depense '" + title + "' validee par le tresorier. En attente de votre approbation."));
     }
 
-    public void notifyExpenseApproved(Long clubId, String submitterId, String title, String amount) {
+    public void notifyExpenseApproved(String clubId, String submitterId, String title, String amount) {
         notify(clubId, submitterId, NotificationType.EXPENSE_APPROVED,
                 "Depense approuvee",
                 "Votre depense '" + title + "' de " + amount + " TND a ete approuvee.");
     }
 
-    public void notifyExpenseApprovedWithInvoice(Long clubId, String submitterId, String title, String amount, byte[] invoicePdf) {
+    public void notifyExpenseApprovedWithInvoice(String clubId, String submitterId, String title, String amount, byte[] invoicePdf) {
         notifyWithAttachment(clubId, submitterId, NotificationType.EXPENSE_APPROVED,
                 "Depense approuvee - Facture jointe",
                 "Votre depense '" + title + "' de " + amount + " TND a ete approuvee.\nLa facture est en piece jointe.",
                 invoicePdf, "facture-depense.pdf");
     }
 
-    public void notifyExpenseRejected(Long clubId, String submitterId, String title, String reason) {
+    public void notifyExpenseRejected(String clubId, String submitterId, String title, String reason) {
         notify(clubId, submitterId, NotificationType.EXPENSE_REJECTED,
                 "Depense rejetee",
                 "Votre depense '" + title + "' a ete rejetee. Motif: " + reason);
     }
 
-    public void notifyBudgetAlert(Long clubId, String budgetLabel, int percentage) {
+    public void notifyBudgetAlert(String clubId, String budgetLabel, int percentage) {
         userRepository.findByClubIdAndRole(clubId, User.UserRole.PRESIDENT)
                 .forEach(p -> notify(clubId, p.getId(), NotificationType.BUDGET_ALERT,
                         "Alerte budget " + percentage + "%",
@@ -181,7 +181,7 @@ public class NotificationService {
                         "Le budget '" + budgetLabel + "' a atteint " + percentage + "% de consommation."));
     }
 
-    public void notifyReportGenerated(Long clubId, String recipientId, String reportName, byte[] reportPdf) {
+    public void notifyReportGenerated(String clubId, String recipientId, String reportName, byte[] reportPdf) {
         notifyWithAttachment(clubId, recipientId, NotificationType.REPORT_GENERATED,
                 "Bilan financier genere",
                 "Le bilan '" + reportName + "' a ete genere. Consultez le document en piece jointe.",

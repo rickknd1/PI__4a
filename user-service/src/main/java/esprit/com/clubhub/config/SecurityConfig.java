@@ -47,9 +47,12 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/roles/**").permitAll()
-                        .requestMatchers("/api/permissions/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+                        // /api/users/** exige un JWT valide pour eviter la fuite de bcrypt hashes.
+                        // (Avant: permitAll sur /api/users → tous les hashes exposes publiquement.)
+                        .requestMatchers("/api/users/**").authenticated()
+                        .requestMatchers("/api/roles/**").authenticated()
+                        .requestMatchers("/api/permissions/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtUtil),

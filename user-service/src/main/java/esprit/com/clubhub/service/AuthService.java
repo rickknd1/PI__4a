@@ -93,8 +93,14 @@ public class AuthService {
     public void resetPassword(String email, String newPassword) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
-        
+
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
+    }
+
+    /** Recupere le user par email (utilise par /api/auth/me pour refresh state frontend). */
+    public User findUserByEmail(String email) {
+        return userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable: " + email));
     }
 }

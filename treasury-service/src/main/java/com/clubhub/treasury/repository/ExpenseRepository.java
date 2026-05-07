@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface ExpenseRepository extends MongoRepository<Expense, String> {
-    List<Expense> findByClubIdOrderByCreatedAtDesc(Long clubId);
-    List<Expense> findByClubIdAndStatus(Long clubId, ExpenseStatus status);
-    List<Expense> findBySubmittedByMemberIdAndClubId(String memberId, Long clubId);
+    List<Expense> findByClubIdOrderByCreatedAtDesc(String clubId);
+    List<Expense> findByClubIdAndStatus(String clubId, ExpenseStatus status);
+    List<Expense> findBySubmittedByMemberIdAndClubId(String memberId, String clubId);
 }

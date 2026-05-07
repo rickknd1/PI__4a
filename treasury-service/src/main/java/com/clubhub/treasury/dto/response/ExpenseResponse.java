@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data @Builder
 public class ExpenseResponse {
     private String id;
-    private Long clubId;
+    private String clubId;
     private String submittedByMemberId;
     private String submittedByMemberName;
     private String title;

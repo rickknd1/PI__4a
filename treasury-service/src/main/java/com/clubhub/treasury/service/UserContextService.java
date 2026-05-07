@@ -24,18 +24,18 @@ public class UserContextService {
         return userRepository.findByEmail(email).orElse(null);
     }
 
-    public List<User> getUsersByClub(Long clubId) {
+    public List<User> getUsersByClub(String clubId) {
         return userRepository.findByClubId(clubId);
     }
 
-    public List<User> getMembersByClub(Long clubId) {
+    public List<User> getMembersByClub(String clubId) {
         List<User> members = userRepository.findByClubIdAndRole(clubId, User.UserRole.MEMBRE);
         members.addAll(userRepository.findByClubIdAndRole(clubId, User.UserRole.MEMBRE_BUREAU));
         return members;
     }
 
     @Transactional
-    public User createUser(String email, String firstName, String lastName, String role, Long clubId) {
+    public User createUser(String email, String firstName, String lastName, String role, String clubId) {
         if (userRepository.findByEmail(email).isPresent()) {
             throw new TreasuryException("Email deja utilise: " + email, 409);
         }
@@ -71,7 +71,7 @@ public class UserContextService {
         return getUser(userId).getRole() == User.UserRole.TRESORIER;
     }
 
-    public long countByClub(Long clubId) {
+    public long countByClub(String clubId) {
         return userRepository.findByClubId(clubId).size();
     }
 }

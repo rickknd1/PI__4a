@@ -65,83 +65,83 @@ public class DemoDataController {
         auditLogRepo.deleteAll();
 
         // Users en BDD (MongoDB generates String IDs)
-        User president = userRepo.save(User.builder().email("ali.bensalah@esprit.tn").firstName("Ali").lastName("Ben Salah").role(User.UserRole.PRESIDENT).clubId(1L).build());
-        User tresorier = userRepo.save(User.builder().email("fatma.haddad@esprit.tn").firstName("Fatma").lastName("Haddad").role(User.UserRole.TRESORIER).clubId(1L).build());
-        User bureau = userRepo.save(User.builder().email("hedi.saidi@esprit.tn").firstName("Hedi").lastName("Saidi").role(User.UserRole.MEMBRE_BUREAU).clubId(1L).build());
-        User sana = userRepo.save(User.builder().email("sana.khelifi@esprit.tn").firstName("Sana").lastName("Khelifi").role(User.UserRole.MEMBRE).clubId(1L).build());
-        User omar = userRepo.save(User.builder().email("omar.mansouri@esprit.tn").firstName("Omar").lastName("Mansouri").role(User.UserRole.MEMBRE).clubId(1L).build());
-        User nour = userRepo.save(User.builder().email("nour.triki@esprit.tn").firstName("Nour").lastName("Triki").role(User.UserRole.MEMBRE).clubId(1L).build());
-        User yassine = userRepo.save(User.builder().email("yassine.bouazizi@esprit.tn").firstName("Yassine").lastName("Bouazizi").role(User.UserRole.MEMBRE).clubId(1L).build());
-        User amira = userRepo.save(User.builder().email("amira.gharbi@esprit.tn").firstName("Amira").lastName("Gharbi").role(User.UserRole.MEMBRE).clubId(1L).build());
+        User president = userRepo.save(User.builder().email("ali.bensalah@esprit.tn").firstName("Ali").lastName("Ben Salah").role(User.UserRole.PRESIDENT).clubId("1").build());
+        User tresorier = userRepo.save(User.builder().email("fatma.haddad@esprit.tn").firstName("Fatma").lastName("Haddad").role(User.UserRole.TRESORIER).clubId("1").build());
+        User bureau = userRepo.save(User.builder().email("hedi.saidi@esprit.tn").firstName("Hedi").lastName("Saidi").role(User.UserRole.MEMBRE_BUREAU).clubId("1").build());
+        User sana = userRepo.save(User.builder().email("sana.khelifi@esprit.tn").firstName("Sana").lastName("Khelifi").role(User.UserRole.MEMBRE).clubId("1").build());
+        User omar = userRepo.save(User.builder().email("omar.mansouri@esprit.tn").firstName("Omar").lastName("Mansouri").role(User.UserRole.MEMBRE).clubId("1").build());
+        User nour = userRepo.save(User.builder().email("nour.triki@esprit.tn").firstName("Nour").lastName("Triki").role(User.UserRole.MEMBRE).clubId("1").build());
+        User yassine = userRepo.save(User.builder().email("yassine.bouazizi@esprit.tn").firstName("Yassine").lastName("Bouazizi").role(User.UserRole.MEMBRE).clubId("1").build());
+        User amira = userRepo.save(User.builder().email("amira.gharbi@esprit.tn").firstName("Amira").lastName("Gharbi").role(User.UserRole.MEMBRE).clubId("1").build());
         // ID force pour matcher l'ID user-service (sinon le JWT de Dylan ne pointe sur aucun user Treasury)
-        User dylan = userRepo.save(User.builder().id("69dbc2ce1983a953cd948382").email("kayzeurdylan2@gmail.com").firstName("Dylan").lastName("Kayzeur").role(User.UserRole.MEMBRE).clubId(1L).build());
+        User dylan = userRepo.save(User.builder().id("69dbc2ce1983a953cd948382").email("kayzeurdylan2@gmail.com").firstName("Dylan").lastName("Kayzeur").role(User.UserRole.MEMBRE).clubId("1").build());
 
         // Cotisation rules
         CotisationRule annual = cotisationRuleRepo.save(CotisationRule.builder()
-                .clubId(1L).name("Cotisation annuelle 2025/2026").amount(new BigDecimal("120.000"))
+                .clubId("1").name("Cotisation annuelle 2025/2026").amount(new BigDecimal("120.000"))
                 .frequency(CotisationRule.Frequency.ANNUAL).startDate(LocalDate.of(2025, 9, 1))
                 .endDate(LocalDate.of(2026, 8, 31)).active(true)
                 .allowExemption(false).allowInstallments(true).maxInstallments(3).build());
 
         CotisationRule monthly = cotisationRuleRepo.save(CotisationRule.builder()
-                .clubId(1L).name("Cotisation mensuelle activites").amount(new BigDecimal("15.000"))
+                .clubId("1").name("Cotisation mensuelle activites").amount(new BigDecimal("15.000"))
                 .frequency(CotisationRule.Frequency.MONTHLY).startDate(LocalDate.of(2025, 10, 1))
                 .active(true).allowExemption(true).allowInstallments(false).build());
 
         // Payments - use actual MongoDB user IDs as memberId
         // Paid payments (with dates spread across months for dashboard chart)
-        paymentRepo.save(Payment.builder().memberId(president.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(president.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2025, 10, 1))
                 .paidAt(LocalDateTime.of(2025, 10, 3, 10, 30)).build());
-        paymentRepo.save(Payment.builder().memberId(tresorier.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(tresorier.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2025, 11, 1))
                 .paidAt(LocalDateTime.of(2025, 11, 2, 9, 0)).build());
-        paymentRepo.save(Payment.builder().memberId(bureau.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(bureau.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2025, 11, 1))
                 .paidAt(LocalDateTime.of(2025, 11, 5, 14, 0)).build());
-        paymentRepo.save(Payment.builder().memberId(nour.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(nour.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2025, 12, 1))
                 .paidAt(LocalDateTime.of(2025, 12, 3, 9, 0)).build());
-        paymentRepo.save(Payment.builder().memberId(yassine.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(yassine.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2026, 1, 1))
                 .paidAt(LocalDateTime.of(2026, 1, 2, 11, 0)).build());
-        paymentRepo.save(Payment.builder().memberId(president.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(president.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2026, 2, 1))
                 .paidAt(LocalDateTime.of(2026, 2, 3, 10, 0)).build());
-        paymentRepo.save(Payment.builder().memberId(amira.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(amira.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2026, 2, 1))
                 .paidAt(LocalDateTime.of(2026, 2, 5, 15, 0)).build());
-        paymentRepo.save(Payment.builder().memberId(tresorier.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(tresorier.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.PAID).dueDate(LocalDate.of(2026, 3, 1))
                 .paidAt(LocalDateTime.of(2026, 3, 2, 9, 0)).build());
 
         // Pending/Late payments
-        paymentRepo.save(Payment.builder().memberId(sana.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(sana.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.PENDING).dueDate(LocalDate.of(2026, 4, 15)).build());
-        paymentRepo.save(Payment.builder().memberId(omar.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(omar.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.LATE).dueDate(LocalDate.of(2026, 1, 1)).build());
-        paymentRepo.save(Payment.builder().memberId(yassine.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(yassine.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.LATE).dueDate(LocalDate.of(2026, 2, 1)).build());
 
         // Dylan (kayzeurdylan2) - 3 cotisations en retard
-        paymentRepo.save(Payment.builder().memberId(dylan.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(dylan.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.LATE).dueDate(LocalDate.of(2026, 1, 1)).build());
-        paymentRepo.save(Payment.builder().memberId(dylan.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(dylan.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.LATE).dueDate(LocalDate.of(2026, 2, 1)).build());
-        paymentRepo.save(Payment.builder().memberId(dylan.getId()).clubId(1L).cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
+        paymentRepo.save(Payment.builder().memberId(dylan.getId()).clubId("1").cotisationRuleId(annual.getId()).amount(new BigDecimal("120.000"))
                 .status(Payment.PaymentStatus.LATE).dueDate(LocalDate.of(2026, 3, 1)).build());
 
         // Refunded
-        paymentRepo.save(Payment.builder().memberId(nour.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(nour.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.REFUNDED).dueDate(LocalDate.of(2025, 12, 1))
                 .paidAt(LocalDateTime.of(2025, 12, 3, 9, 0)).build());
 
         // Exempt
-        paymentRepo.save(Payment.builder().memberId(bureau.getId()).clubId(1L).cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
+        paymentRepo.save(Payment.builder().memberId(bureau.getId()).clubId("1").cotisationRuleId(monthly.getId()).amount(new BigDecimal("15.000"))
                 .status(Payment.PaymentStatus.EXEMPT).dueDate(LocalDate.of(2026, 3, 1)).build());
 
         // Expenses - all workflow statuses (avec 3 devis chacune pour demo)
-        expenseRepo.save(Expense.builder().clubId(1L).submittedByMemberId(president.getId()).title("Materiel evenement")
+        expenseRepo.save(Expense.builder().clubId("1").submittedByMemberId(president.getId()).title("Materiel evenement")
                 .description("Tables et chaises pour journee portes ouvertes").amount(new BigDecimal("320.000"))
                 .status(Expense.ExpenseStatus.SUBMITTED).category(Expense.ExpenseCategory.MATERIEL)
                 .categoryConfidenceScore(87)
@@ -151,7 +151,7 @@ public class DemoDataController {
                         Expense.Quote.builder().providerName("Location Pro").amount(new BigDecimal("350.000")).description("25 tables + 100 chaises, montage inclus").selected(false).build()
                 ))
                 .build());
-        expenseRepo.save(Expense.builder().clubId(1L).submittedByMemberId(sana.getId()).title("Transport deplacement")
+        expenseRepo.save(Expense.builder().clubId("1").submittedByMemberId(sana.getId()).title("Transport deplacement")
                 .description("Location bus pour competition inter-universitaire").amount(new BigDecimal("180.000"))
                 .status(Expense.ExpenseStatus.VALIDATED).validatedByTreasurerId(tresorier.getId())
                 .category(Expense.ExpenseCategory.TRANSPORT).categoryConfidenceScore(94)
@@ -162,7 +162,7 @@ public class DemoDataController {
                         Expense.Quote.builder().providerName("Royal Bus").amount(new BigDecimal("220.000")).description("Bus VIP 40 places, service premium").selected(false).build()
                 ))
                 .build());
-        expenseRepo.save(Expense.builder().clubId(1L).submittedByMemberId(omar.getId()).title("Restauration reunion")
+        expenseRepo.save(Expense.builder().clubId("1").submittedByMemberId(omar.getId()).title("Restauration reunion")
                 .description("Buffet reunion mensuelle du bureau").amount(new BigDecimal("95.000"))
                 .status(Expense.ExpenseStatus.APPROVED).validatedByTreasurerId(tresorier.getId()).approvedByPresidentId(president.getId())
                 .category(Expense.ExpenseCategory.RESTAURATION).categoryConfidenceScore(91)
@@ -174,7 +174,7 @@ public class DemoDataController {
                         Expense.Quote.builder().providerName("Delices Tunisiens").amount(new BigDecimal("120.000")).description("Buffet 20 personnes, 3 plats + dessert").selected(false).build()
                 ))
                 .build());
-        expenseRepo.save(Expense.builder().clubId(1L).submittedByMemberId(bureau.getId()).title("Impression flyers")
+        expenseRepo.save(Expense.builder().clubId("1").submittedByMemberId(bureau.getId()).title("Impression flyers")
                 .description("500 flyers evenement de bienvenue").amount(new BigDecimal("45.000"))
                 .status(Expense.ExpenseStatus.REJECTED).rejectionReason("Budget communication depasse")
                 .category(Expense.ExpenseCategory.COMMUNICATION).categoryConfidenceScore(96)
@@ -184,7 +184,7 @@ public class DemoDataController {
                         Expense.Quote.builder().providerName("Flyers Pro").amount(new BigDecimal("40.000")).description("500 flyers A5 couleur standard").selected(false).build()
                 ))
                 .build());
-        expenseRepo.save(Expense.builder().clubId(1L).submittedByMemberId(yassine.getId()).title("Hebergement conference")
+        expenseRepo.save(Expense.builder().clubId("1").submittedByMemberId(yassine.getId()).title("Hebergement conference")
                 .description("2 nuits hotel pour 3 membres - conference nationale").amount(new BigDecimal("450.000"))
                 .status(Expense.ExpenseStatus.SUBMITTED).category(Expense.ExpenseCategory.HEBERGEMENT)
                 .categoryConfidenceScore(89)
@@ -205,32 +205,32 @@ public class DemoDataController {
         generateBulkPayments(allMembers, annual, monthly);
 
         // Budgets
-        budgetRepo.save(Budget.builder().clubId(1L).label("Budget annuel 2025/2026")
+        budgetRepo.save(Budget.builder().clubId("1").label("Budget annuel 2025/2026")
                 .totalAmount(new BigDecimal("5000.000")).consumedAmount(new BigDecimal("3100.000"))
                 .periodStart(LocalDate.of(2025, 9, 1)).periodEnd(LocalDate.of(2026, 8, 31))
                 .alert50Sent(true).alert75Sent(false).alert90Sent(false).alert100Sent(false).build());
-        budgetRepo.save(Budget.builder().clubId(1L).label("Budget evenements S2")
+        budgetRepo.save(Budget.builder().clubId("1").label("Budget evenements S2")
                 .totalAmount(new BigDecimal("1500.000")).consumedAmount(new BigDecimal("1380.000"))
                 .periodStart(LocalDate.of(2026, 2, 1)).periodEnd(LocalDate.of(2026, 6, 30))
                 .alert50Sent(true).alert75Sent(true).alert90Sent(true).alert100Sent(false).build());
-        budgetRepo.save(Budget.builder().clubId(1L).label("Budget communication")
+        budgetRepo.save(Budget.builder().clubId("1").label("Budget communication")
                 .totalAmount(new BigDecimal("800.000")).consumedAmount(new BigDecimal("350.000"))
                 .periodStart(LocalDate.of(2025, 9, 1)).periodEnd(LocalDate.of(2026, 8, 31))
                 .alert50Sent(false).alert75Sent(false).alert90Sent(false).alert100Sent(false).build());
 
         // Audit logs (actorId and entityId are now String)
-        auditLogRepo.save(AuditLog.builder().actorId(tresorier.getId()).actorEmail("tresorier@clubhub.tn").clubId(1L)
+        auditLogRepo.save(AuditLog.builder().actorId(tresorier.getId()).actorEmail("tresorier@clubhub.tn").clubId("1")
                 .action(AuditLog.ActionType.PAYMENT_CREATED).entityType("Payment").entityId("seed-payment-1")
                 .valuesAfter("{\"memberId\":\"" + president.getId() + "\",\"amount\":120}").amount(new BigDecimal("120.000")).build());
-        auditLogRepo.save(AuditLog.builder().actorId(tresorier.getId()).actorEmail("tresorier@clubhub.tn").clubId(1L)
+        auditLogRepo.save(AuditLog.builder().actorId(tresorier.getId()).actorEmail("tresorier@clubhub.tn").clubId("1")
                 .action(AuditLog.ActionType.EXPENSE_VALIDATED).entityType("Expense").entityId("seed-expense-2")
                 .valuesBefore("{\"status\":\"SUBMITTED\"}").valuesAfter("{\"status\":\"VALIDATED\"}")
                 .amount(new BigDecimal("180.000")).build());
-        auditLogRepo.save(AuditLog.builder().actorId(president.getId()).actorEmail("president@clubhub.tn").clubId(1L)
+        auditLogRepo.save(AuditLog.builder().actorId(president.getId()).actorEmail("president@clubhub.tn").clubId("1")
                 .action(AuditLog.ActionType.EXPENSE_APPROVED).entityType("Expense").entityId("seed-expense-3")
                 .valuesBefore("{\"status\":\"VALIDATED\"}").valuesAfter("{\"status\":\"APPROVED\"}")
                 .amount(new BigDecimal("95.000")).build());
-        auditLogRepo.save(AuditLog.builder().actorId(president.getId()).actorEmail("president@clubhub.tn").clubId(1L)
+        auditLogRepo.save(AuditLog.builder().actorId(president.getId()).actorEmail("president@clubhub.tn").clubId("1")
                 .action(AuditLog.ActionType.BUDGET_CREATED).entityType("Budget").entityId("seed-budget-1")
                 .valuesAfter("{\"label\":\"Budget annuel\",\"total\":5000}").build());
 
@@ -261,13 +261,13 @@ public class DemoDataController {
     // Endpoint public pour voir les anomalies detectees (sans auth, pour demo)
     @GetMapping("/anomalies/ml")
     public ResponseEntity<?> mlAnomalies() {
-        return ResponseEntity.ok(mlAnomalyService.detectAnomalies(1L));
+        return ResponseEntity.ok(mlAnomalyService.detectAnomalies("1"));
     }
 
     // Debug: scores bruts de toutes les expenses (voir distribution)
     @GetMapping("/anomalies/ml/all")
     public ResponseEntity<?> mlAllScores() {
-        return ResponseEntity.ok(mlAnomalyService.scoreAllExpenses(1L));
+        return ResponseEntity.ok(mlAnomalyService.scoreAllExpenses("1"));
     }
 
     // Re-entrainement Random Forest (prediction retards)
@@ -280,27 +280,27 @@ public class DemoDataController {
     // Prediction retard pour tous les membres du club 1
     @GetMapping("/late-payment/predictions")
     public ResponseEntity<?> latePaymentPredictions() {
-        return ResponseEntity.ok(latePaymentPredictor.predictForAllMembers(1L));
+        return ResponseEntity.ok(latePaymentPredictor.predictForAllMembers("1"));
     }
 
     // Toutes les anomalies (paiements + depenses ML + doublons) pour le club 1
     @GetMapping("/anomalies/all")
     public ResponseEntity<?> allAnomalies() {
-        return ResponseEntity.ok(anomalyService.detectAnomalies(1L));
+        return ResponseEntity.ok(anomalyService.detectAnomalies("1"));
     }
 
     // Solde net (calcul rapide pour verif sans auth)
     @GetMapping("/balance")
     public ResponseEntity<Map<String, Object>> balance() {
-        BigDecimal totalCollected = paymentRepo.findByClubIdOrderByCreatedAtDesc(1L).stream()
+        BigDecimal totalCollected = paymentRepo.findByClubIdOrderByCreatedAtDesc("1").stream()
                 .filter(p -> p.getStatus() == Payment.PaymentStatus.PAID)
                 .map(Payment::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalApproved = expenseRepo.findByClubIdOrderByCreatedAtDesc(1L).stream()
+        BigDecimal totalApproved = expenseRepo.findByClubIdOrderByCreatedAtDesc("1").stream()
                 .filter(e -> e.getStatus() == Expense.ExpenseStatus.APPROVED)
                 .map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-        long approvedCount = expenseRepo.findByClubIdOrderByCreatedAtDesc(1L).stream()
+        long approvedCount = expenseRepo.findByClubIdOrderByCreatedAtDesc("1").stream()
                 .filter(e -> e.getStatus() == Expense.ExpenseStatus.APPROVED).count();
-        long paidCount = paymentRepo.findByClubIdOrderByCreatedAtDesc(1L).stream()
+        long paidCount = paymentRepo.findByClubIdOrderByCreatedAtDesc("1").stream()
                 .filter(p -> p.getStatus() == Payment.PaymentStatus.PAID).count();
 
         Map<String, Object> response = new java.util.LinkedHashMap<>();
@@ -377,7 +377,7 @@ public class DemoDataController {
             quotes.add(Expense.Quote.builder().providerName("Fournisseur C").amount(baseAmount.multiply(new BigDecimal("0.92")).setScale(3, RoundingMode.HALF_UP)).description(desc + " - offre C eco").selected(false).build());
 
             Expense.ExpenseBuilder builder = Expense.builder()
-                    .clubId(1L)
+                    .clubId("1")
                     .submittedByMemberId(submitter.getId())
                     .title(desc)
                     .description(desc + " - " + cat.name().toLowerCase())
@@ -441,7 +441,7 @@ public class DemoDataController {
 
                 paymentRepo.save(Payment.builder()
                         .memberId(member.getId())
-                        .clubId(1L)
+                        .clubId("1")
                         .cotisationRuleId(monthly.getId())
                         .amount(new BigDecimal("15.000"))
                         .status(status)
@@ -461,7 +461,7 @@ public class DemoDataController {
 
                 paymentRepo.save(Payment.builder()
                         .memberId(member.getId())
-                        .clubId(1L)
+                        .clubId("1")
                         .cotisationRuleId(annual.getId())
                         .amount(new BigDecimal("120.000"))
                         .status(status)
@@ -500,7 +500,7 @@ public class DemoDataController {
             );
 
             expenseRepo.save(Expense.builder()
-                    .clubId(1L)
+                    .clubId("1")
                     .submittedByMemberId(submitter.getId())
                     .title(title)
                     .description(desc)

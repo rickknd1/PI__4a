@@ -11,7 +11,7 @@ public class PaymentResponse {
     private String id;
     private String memberId;
     private String memberName;
-    private Long clubId;
+    private String clubId;
     private String cotisationRuleId;
     private String cotisationRuleName;
     private BigDecimal amount;

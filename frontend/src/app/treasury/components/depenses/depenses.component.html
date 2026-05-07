@@ -85,7 +85,7 @@
     <div *ngIf="loading" class="flex justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
     </div>
-    <table *ngIf="!loading" class="w-full text-sm">
+    <div class="overflow-x-auto"><table *ngIf="!loading" class="w-full text-sm min-w-[640px]">
       <thead class="bg-gray-50 dark:bg-gray-700/50">
         <tr>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Titre</th>
@@ -147,7 +147,7 @@
           <td colspan="6" class="px-4 py-10 text-center text-gray-400">Aucune dépense</td>
         </tr>
       </tbody>
-    </table>
+    </table></div>
     <!-- Pagination -->
     <div *ngIf="totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
       <span class="text-sm text-gray-500">Page {{page+1}} / {{totalPages}} ({{total}} elements)</span>

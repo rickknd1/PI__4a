@@ -22,7 +22,7 @@ public class AuditLog {
 
     @Indexed
     @Field("club_id")
-    private Long clubId;
+    private String clubId;
 
     private ActionType action;
 

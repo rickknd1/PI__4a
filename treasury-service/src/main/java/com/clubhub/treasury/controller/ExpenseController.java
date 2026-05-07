@@ -30,7 +30,7 @@ public class ExpenseController {
 
     @GetMapping
     @PreAuthorize(Roles.READ_REPORTS)
-    public ResponseEntity<List<Map<String, Object>>> getAll(@PathVariable Long clubId,
+    public ResponseEntity<List<Map<String, Object>>> getAll(@PathVariable String clubId,
             @RequestParam(required = false) ExpenseStatus status) {
         List<Expense> expenses = status != null
                 ? expenseService.getByStatus(clubId, status)
@@ -62,7 +62,7 @@ public class ExpenseController {
     @PostMapping
     @Operation(summary = "Soumettre une depense — tout authentifie (membre simple inclus)")
     @PreAuthorize(Roles.AUTHENTICATED)
-    public ResponseEntity<Expense> submit(@PathVariable Long clubId,
+    public ResponseEntity<Expense> submit(@PathVariable String clubId,
             @Valid @RequestBody CreateExpenseRequest req) {
         String memberId = CurrentUser.userId();
         return ResponseEntity.status(201).body(expenseService.submit(clubId, memberId != null ? memberId : "unknown", req));
@@ -71,7 +71,7 @@ public class ExpenseController {
     @PatchMapping("/{expenseId}/validate")
     @Operation(summary = "Valider une depense (tresorier — N1) — selectionne le devis retenu")
     @PreAuthorize(Roles.TRESORIER_ONLY)
-    public ResponseEntity<Expense> validate(@PathVariable Long clubId, @PathVariable String expenseId,
+    public ResponseEntity<Expense> validate(@PathVariable String clubId, @PathVariable String expenseId,
             @RequestHeader(value = "X-Actor-Id", defaultValue = "1") String actorId,
             @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail,
             @RequestBody Map<String, Object> body) {
@@ -84,7 +84,7 @@ public class ExpenseController {
     @PatchMapping("/{expenseId}/approve")
     @Operation(summary = "Approuver une depense (president/VP/SG — N2)")
     @PreAuthorize(Roles.APPROVE_EXPENSES)
-    public ResponseEntity<Expense> approve(@PathVariable Long clubId, @PathVariable String expenseId,
+    public ResponseEntity<Expense> approve(@PathVariable String clubId, @PathVariable String expenseId,
             @RequestHeader(value = "X-Actor-Id", defaultValue = "1") String actorId,
             @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
         return ResponseEntity.ok(expenseService.approve(expenseId, actorId, actorEmail));
@@ -93,7 +93,7 @@ public class ExpenseController {
     @PatchMapping("/{expenseId}/reject")
     @Operation(summary = "Rejeter une depense (tresorier ou bureau)")
     @PreAuthorize(Roles.BUREAU_OR_TRESORIER)
-    public ResponseEntity<Expense> reject(@PathVariable Long clubId, @PathVariable String expenseId,
+    public ResponseEntity<Expense> reject(@PathVariable String clubId, @PathVariable String expenseId,
             @RequestHeader(value = "X-Actor-Id", defaultValue = "1") String actorId,
             @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail,
             @RequestBody Map<String, String> body) {

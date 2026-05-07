@@ -22,7 +22,7 @@ public class ReceiptController {
 
     @PostMapping("/generate/{paymentId}")
     public ResponseEntity<Receipt> generate(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId,
             @RequestParam(defaultValue = "Membre") String memberName,
             @RequestParam(defaultValue = "Club") String clubName) {
@@ -31,7 +31,7 @@ public class ReceiptController {
 
     @GetMapping("/download/{paymentId}")
     public ResponseEntity<byte[]> download(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId,
             @RequestParam(defaultValue = "Membre") String memberName,
             @RequestParam(defaultValue = "Club") String clubName) {
@@ -44,7 +44,7 @@ public class ReceiptController {
 
     @GetMapping("/payment/{paymentId}")
     public ResponseEntity<Receipt> getByPayment(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId) {
         return receiptService.getByPayment(paymentId)
                 .map(ResponseEntity::ok)

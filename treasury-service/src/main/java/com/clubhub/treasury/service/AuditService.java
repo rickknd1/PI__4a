@@ -15,7 +15,7 @@ public class AuditService {
 
     private final AuditLogRepository auditLogRepository;
 
-    public void log(String actorId, String actorEmail, Long clubId, String action,
+    public void log(String actorId, String actorEmail, String clubId, String action,
                     String entityType, String entityId, String before, String after, BigDecimal amount) {
         AuditLog log = AuditLog.builder()
                 .actorId(actorId)
@@ -31,7 +31,7 @@ public class AuditService {
         auditLogRepository.save(log);
     }
 
-    public List<AuditLog> getByClub(Long clubId) {
+    public List<AuditLog> getByClub(String clubId) {
         return auditLogRepository.findByClubIdOrderByTimestampDesc(clubId);
     }
 }

@@ -23,7 +23,7 @@ public class AuditController {
 
     @GetMapping
     @Operation(summary = "Recuperer le journal d'audit du club")
-    public ResponseEntity<List<AuditLog>> getAuditLog(@PathVariable Long clubId) {
+    public ResponseEntity<List<AuditLog>> getAuditLog(@PathVariable String clubId) {
         return ResponseEntity.ok(auditService.getByClub(clubId));
     }
 }

@@ -29,7 +29,7 @@ public class User {
 
     @Indexed
     @Field("club_id")
-    private Long clubId;
+    private String clubId;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 

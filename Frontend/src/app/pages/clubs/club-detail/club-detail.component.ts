@@ -112,11 +112,12 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Initial check based on system role (will be refined when club loads)
     const role = this.authService.getCurrentRole();
-    this.isAdmin = role === 'PRESIDENT' || role === 'RH' || role === 'SECRETAIRE_GENERALE';
+    const ADMIN_ROLES = ['PRESIDENT', 'RH', 'SECRETAIRE_GENERALE', 'VICE_PRESIDENT'];
+    this.isAdmin = ADMIN_ROLES.includes(role || '');
 
-    console.log('🔍 ngOnInit - Role:', role, 'isAdmin:', this.isAdmin);
-    console.log('🔍 Permissions actuelles:', this.permissionService.getPermissions());
+    console.log('🔍 ngOnInit - System role:', role, 'isAdmin (preliminary):', this.isAdmin);
 
     const id = this.route.snapshot.paramMap.get('id');
     console.log('🔍 ngOnInit - Club ID:', id);
@@ -363,12 +364,27 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.club = data;
         this.loading = false;
+        this.refreshIsAdminFromClubMembership();
       },
       error: (err) => {
         console.error('Erreur:', err);
         this.loading = false;
       }
     });
+  }
+
+  /** Admin status = system-wide admin OR admin role inside this specific club. */
+  private refreshIsAdminFromClubMembership(): void {
+    const ADMIN_ROLES = ['PRESIDENT', 'RH', 'SECRETAIRE_GENERALE', 'VICE_PRESIDENT'];
+    const systemRole = this.authService.getCurrentRole() || '';
+    const currentUserId = this.authService.getCurrentUser()?.userId;
+    let inClubRole = '';
+    if (currentUserId && this.club?.members) {
+      const me = this.club.members.find((m: any) => m.userId === currentUserId);
+      inClubRole = me?.role || '';
+    }
+    this.isAdmin = ADMIN_ROLES.includes(systemRole) || ADMIN_ROLES.includes(inClubRole);
+    console.log('🔍 isAdmin refreshed - system:', systemRole, 'inClub:', inClubRole, 'isAdmin:', this.isAdmin);
   }
 
   refreshClubMembers(): void {

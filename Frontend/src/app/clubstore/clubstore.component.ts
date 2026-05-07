@@ -51,6 +51,18 @@ interface CartLine {
           >
             Actualiser
           </button>
+          <button
+            (click)="openMyOrders()"
+            class="px-4 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
+          >
+            Mes commandes
+          </button>
+          <button *ngIf="isAdmin"
+            (click)="openAdmin()"
+            class="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition"
+          >
+            Admin
+          </button>
           <div
             class="relative px-4 py-2 text-sm bg-brand-500 text-white rounded-lg cursor-pointer"
             (click)="showCart = !showCart"
@@ -230,6 +242,170 @@ interface CartLine {
           </ng-template>
         </div>
       </div>
+
+      <!-- ============================================================ -->
+      <!-- ADMIN BOUTIQUE (modal) — CRUD produits + gestion orders       -->
+      <!-- ============================================================ -->
+      <div *ngIf="showAdmin" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+           (click)="showAdmin = false">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto p-6"
+             (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold dark:text-white">⚙️ Admin Boutique</h3>
+            <button (click)="showAdmin = false"
+                    class="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+          </div>
+
+          <!-- Onglets -->
+          <div class="flex gap-2 mb-4 border-b border-gray-200 dark:border-gray-700">
+            <button (click)="adminTab = 'products'"
+                    [class.border-b-2]="adminTab === 'products'"
+                    [class.border-amber-500]="adminTab === 'products'"
+                    [class.text-amber-600]="adminTab === 'products'"
+                    class="px-4 py-2 text-sm font-medium dark:text-gray-300">
+              Produits ({{ products.length }})
+            </button>
+            <button (click)="adminTab = 'orders'; loadAllOrders()"
+                    [class.border-b-2]="adminTab === 'orders'"
+                    [class.border-amber-500]="adminTab === 'orders'"
+                    [class.text-amber-600]="adminTab === 'orders'"
+                    class="px-4 py-2 text-sm font-medium dark:text-gray-300">
+              Commandes ({{ allOrders.length }})
+            </button>
+          </div>
+
+          <!-- ===== PRODUITS TAB ===== -->
+          <div *ngIf="adminTab === 'products'">
+            <h4 class="font-semibold mb-2 dark:text-white">{{ editingProduct?.id ? 'Modifier' : 'Ajouter' }} un produit</h4>
+            <form (submit)="saveProduct(); $event.preventDefault()" class="grid grid-cols-2 gap-3 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <input [(ngModel)]="productForm.name" name="name" placeholder="Nom *" required
+                     class="border rounded-lg p-2 text-sm dark:bg-gray-900 dark:text-white"/>
+              <input [(ngModel)]="productForm.price" name="price" type="number" step="0.01" min="0" placeholder="Prix TND *" required
+                     class="border rounded-lg p-2 text-sm dark:bg-gray-900 dark:text-white"/>
+              <input [(ngModel)]="productForm.description" name="description" placeholder="Description"
+                     class="border rounded-lg p-2 text-sm dark:bg-gray-900 dark:text-white col-span-2"/>
+              <select [(ngModel)]="productForm.productType" name="productType" required
+                      class="border rounded-lg p-2 text-sm dark:bg-gray-900 dark:text-white">
+                <option value="TSHIRT">TSHIRT</option>
+                <option value="SWEATSHIRT">SWEATSHIRT</option>
+                <option value="HAT">HAT</option>
+                <option value="ACCESSORY">ACCESSORY</option>
+                <option value="TICKET">TICKET</option>
+                <option value="MEMBERSHIP">MEMBERSHIP</option>
+              </select>
+              <input [(ngModel)]="productForm.stockQuantity" name="stockQuantity" type="number" min="0" placeholder="Stock *" required
+                     class="border rounded-lg p-2 text-sm dark:bg-gray-900 dark:text-white"/>
+              <div class="col-span-2 flex gap-2">
+                <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm">
+                  {{ editingProduct?.id ? 'Mettre à jour' : 'Ajouter' }}
+                </button>
+                <button type="button" (click)="resetProductForm()" class="bg-gray-200 dark:bg-gray-700 px-4 py-2 rounded-lg text-sm dark:text-white">
+                  Annuler
+                </button>
+              </div>
+            </form>
+
+            <h4 class="font-semibold mb-2 dark:text-white">Catalogue</h4>
+            <div class="space-y-2">
+              <div *ngFor="let p of products" class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div>
+                  <strong class="dark:text-white">{{ p.name }}</strong>
+                  <span class="ml-2 text-xs text-gray-500">{{ p.productType }} · {{ p.price }} TND · stock {{ p.stockQuantity }}</span>
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="editProduct(p)" class="text-blue-600 hover:bg-blue-50 px-3 py-1 rounded text-sm">✏️ Éditer</button>
+                  <button (click)="deleteProduct(p)" class="text-red-600 hover:bg-red-50 px-3 py-1 rounded text-sm">🗑️ Supprimer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== ORDERS TAB ===== -->
+          <div *ngIf="adminTab === 'orders'">
+            <div *ngIf="loadingAllOrders" class="text-center text-gray-500 py-6">Chargement...</div>
+            <div *ngIf="!loadingAllOrders && allOrders.length === 0" class="text-center text-gray-500 py-6">Aucune commande.</div>
+            <div *ngIf="!loadingAllOrders && allOrders.length > 0" class="space-y-2">
+              <div *ngFor="let o of allOrders" class="p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div class="flex items-center justify-between mb-2">
+                  <div>
+                    <strong class="dark:text-white">#{{ o.orderNumber }}</strong>
+                    <span class="ml-2 text-xs text-gray-500">{{ o.memberId }} · {{ o.totalAmount }} TND</span>
+                  </div>
+                  <select [ngModel]="o.status" (ngModelChange)="changeOrderStatus(o, $event)"
+                          class="border rounded-lg p-1 text-sm dark:bg-gray-900 dark:text-white">
+                    <option value="PENDING">PENDING</option>
+                    <option value="CONFIRMED">CONFIRMED</option>
+                    <option value="SHIPPED">SHIPPED</option>
+                    <option value="DELIVERED">DELIVERED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
+                </div>
+                <div class="text-sm dark:text-gray-300">
+                  <span *ngFor="let it of o.items; let last = last">{{ it.quantity }}× {{ it.productName }}<span *ngIf="!last">, </span></span>
+                </div>
+                <div *ngIf="o.shippingAddress" class="text-xs text-gray-500 mt-1">
+                  📍 {{ o.shippingAddress }} · 💳 {{ paymentLabel(o.paymentMethod) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- MES COMMANDES (modal) — historique des orders du user         -->
+      <!-- ============================================================ -->
+      <div *ngIf="showMyOrders" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+           (click)="showMyOrders = false">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6"
+             (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold dark:text-white">📦 Mes commandes</h3>
+            <button (click)="showMyOrders = false"
+                    class="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
+          </div>
+
+          <div *ngIf="loadingOrders" class="text-center text-gray-500 py-6">Chargement...</div>
+
+          <div *ngIf="!loadingOrders && myOrders.length === 0" class="text-center text-gray-500 py-6">
+            Aucune commande pour le moment.
+          </div>
+
+          <div *ngIf="!loadingOrders && myOrders.length > 0" class="space-y-3">
+            <div *ngFor="let o of myOrders"
+                 class="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <strong class="dark:text-white">#{{ o.orderNumber }}</strong>
+                  <span class="ml-2 text-xs px-2 py-0.5 rounded-full"
+                        [class.bg-yellow-100]="o.status === 'PENDING'"
+                        [class.text-yellow-800]="o.status === 'PENDING'"
+                        [class.bg-blue-100]="o.status === 'CONFIRMED'"
+                        [class.text-blue-800]="o.status === 'CONFIRMED'"
+                        [class.bg-emerald-100]="o.status === 'DELIVERED' || o.status === 'PAID'"
+                        [class.text-emerald-800]="o.status === 'DELIVERED' || o.status === 'PAID'"
+                        [class.bg-red-100]="o.status === 'CANCELLED'"
+                        [class.text-red-800]="o.status === 'CANCELLED'">
+                    {{ o.status }}
+                  </span>
+                </div>
+                <span class="font-semibold dark:text-white">{{ o.totalAmount }} TND</span>
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                {{ o.orderDate | date:'medium' }}
+              </div>
+              <div class="text-sm dark:text-gray-300">
+                <span *ngFor="let it of o.items; let last = last">
+                  {{ it.quantity }}× {{ it.productName }}<span *ngIf="!last">, </span>
+                </span>
+              </div>
+              <div *ngIf="o.shippingAddress" class="text-xs text-gray-500 mt-1">
+                📍 {{ o.shippingAddress }} · 💳 {{ paymentLabel(o.paymentMethod) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   `,
 })
@@ -248,10 +424,39 @@ export class ClubstoreComponent implements OnInit {
   orderMessage = '';
   orderOk = false;
 
+  // My orders
+  showMyOrders = false;
+  myOrders: any[] = [];
+  loadingOrders = false;
+
+  // Admin
+  isAdmin = false;
+  showAdmin = false;
+  adminTab: 'products' | 'orders' = 'products';
+  productForm: StoreProduct = this.emptyProductForm();
+  editingProduct: StoreProduct | null = null;
+  allOrders: any[] = [];
+  loadingAllOrders = false;
+
   constructor(private store: ClubstoreService, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadProducts();
+    this.computeIsAdmin();
+  }
+
+  /** isAdmin = role bureau (PRESIDENT/TRESORIER/RH/SECRETAIRE_GENERALE/VICE_PRESIDENT). */
+  private computeIsAdmin(): void {
+    try {
+      const raw = localStorage.getItem('currentUser') || localStorage.getItem('user');
+      if (!raw) { this.isAdmin = false; return; }
+      const u = JSON.parse(raw);
+      const role = (u?.user?.role || u?.role || '').toUpperCase();
+      const ADMIN_ROLES = ['PRESIDENT', 'VICE_PRESIDENT', 'TRESORIER', 'RH', 'SECRETAIRE_GENERALE'];
+      this.isAdmin = ADMIN_ROLES.includes(role);
+    } catch {
+      this.isAdmin = false;
+    }
   }
 
   loadProducts(): void {
@@ -363,12 +568,101 @@ export class ClubstoreComponent implements OnInit {
     });
   }
 
-  private paymentLabel(code: string): string {
+  paymentLabel(code: string): string {
     return ({
       CASH_ON_DELIVERY: 'à la livraison',
       BANK_TRANSFER: 'par virement bancaire',
       ESPECES: 'en espèces',
     } as Record<string, string>)[code] || code;
+  }
+
+  openMyOrders(): void {
+    this.showMyOrders = true;
+    this.loadingOrders = true;
+    const memberId = this.guessMemberId();
+    this.store.myOrders(memberId).subscribe({
+      next: (orders) => {
+        this.myOrders = (orders || []).sort((a: any, b: any) =>
+          new Date(b.orderDate || 0).getTime() - new Date(a.orderDate || 0).getTime()
+        );
+        this.loadingOrders = false;
+      },
+      error: () => {
+        this.myOrders = [];
+        this.loadingOrders = false;
+      }
+    });
+  }
+
+  // ============================================================
+  //  ADMIN BOUTIQUE — CRUD products + manage orders
+  // ============================================================
+  private emptyProductForm(): StoreProduct {
+    return { name: '', description: '', price: 0, productType: 'TSHIRT', stockQuantity: 0 };
+  }
+
+  openAdmin(): void {
+    this.showAdmin = true;
+    this.adminTab = 'products';
+    this.resetProductForm();
+  }
+
+  resetProductForm(): void {
+    this.productForm = this.emptyProductForm();
+    this.editingProduct = null;
+  }
+
+  editProduct(p: StoreProduct): void {
+    this.editingProduct = p;
+    this.productForm = { ...p };
+  }
+
+  saveProduct(): void {
+    const op = this.editingProduct?.id
+      ? this.store.update(this.editingProduct.id, this.productForm)
+      : this.store.create(this.productForm);
+    op.subscribe({
+      next: () => {
+        this.resetProductForm();
+        this.loadProducts();
+      },
+      error: (err) => alert('Erreur : ' + (err?.error?.message || err?.message || 'Service indisponible'))
+    });
+  }
+
+  deleteProduct(p: StoreProduct): void {
+    if (!p.id) return;
+    if (!confirm(`Supprimer "${p.name}" ?`)) return;
+    this.store.remove(p.id).subscribe({
+      next: () => this.loadProducts(),
+      error: (err) => alert('Erreur : ' + (err?.error?.message || err?.message))
+    });
+  }
+
+  loadAllOrders(): void {
+    this.loadingAllOrders = true;
+    this.store.allOrders().subscribe({
+      next: (orders) => {
+        this.allOrders = (orders || []).sort((a: any, b: any) =>
+          new Date(b.orderDate || 0).getTime() - new Date(a.orderDate || 0).getTime()
+        );
+        this.loadingAllOrders = false;
+      },
+      error: () => {
+        this.allOrders = [];
+        this.loadingAllOrders = false;
+      }
+    });
+  }
+
+  changeOrderStatus(order: any, newStatus: string): void {
+    if (!order.id || order.status === newStatus) return;
+    this.store.updateOrderStatus(order.id, newStatus).subscribe({
+      next: (updated) => {
+        order.status = updated.status;
+      },
+      error: (err) => alert('Erreur : ' + (err?.error?.message || err?.message))
+    });
   }
 
   // Recupere le memberId depuis le bon storage (AuthService stocke sous

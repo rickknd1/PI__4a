@@ -24,14 +24,14 @@ public class BudgetController {
 
     @GetMapping
     @PreAuthorize(Roles.READ_REPORTS)
-    public ResponseEntity<List<Budget>> getAll(@PathVariable Long clubId) {
+    public ResponseEntity<List<Budget>> getAll(@PathVariable String clubId) {
         return ResponseEntity.ok(budgetService.getByClub(clubId));
     }
 
     @PostMapping
     @Operation(summary = "Creer un budget")
     @PreAuthorize(Roles.TRESORIER_ONLY)
-    public ResponseEntity<Budget> create(@PathVariable Long clubId,
+    public ResponseEntity<Budget> create(@PathVariable String clubId,
             @Valid @RequestBody CreateBudgetRequest req) {
         return ResponseEntity.status(201).body(budgetService.create(clubId, req));
     }

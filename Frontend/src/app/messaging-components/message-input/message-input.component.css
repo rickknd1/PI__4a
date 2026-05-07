@@ -1,0 +1,130 @@
+/* ── Emoji picker ────────────────────────────────────────────────── */
+.emoji-mart-wrapper {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 12px;
+    z-index: 1000;
+    width: 320px !important;
+    height: 350px !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.2) !important;
+}
+
+::ng-deep .emoji-mart-search label,
+::ng-deep .emoji-mart-search-icon { display: none !important; }
+::ng-deep .emoji-mart-search { padding: 12px !important; }
+::ng-deep .emoji-mart-search input {
+    width: 100% !important;
+    background: #f1f5f9 !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+    font-size: 14px !important;
+}
+::ng-deep .emoji-mart {
+    display: flex !important;
+    flex-direction: column !important;
+    border: none !important;
+    background: transparent !important;
+    width: 100% !important;
+}
+::ng-deep .emoji-mart-anchors { border-bottom: 1px solid #f1f5f9 !important; padding: 0 10px !important; }
+::ng-deep .emoji-mart-category-list { display: grid !important; grid-template-columns: repeat(7, 1fr) !important; }
+::ng-deep .emoji-mart-scroll { height: 250px !important; }
+::ng-deep .emoji-mart-bar { display: none !important; }
+
+/* ── Attachment preview bar ──────────────────────────────────────── */
+.attachment-preview-bar {
+    padding: 10px 12px 2px 12px;
+    background: rgba(255,255,255,0.8);
+    border-top: 1px solid #f1f5f9;
+    backdrop-filter: blur(8px);
+}
+
+/* Image preview */
+.image-preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 8px 10px;
+}
+.image-preview-thumb {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+    border: 1px solid #e2e8f0;
+}
+.image-preview-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+/* File preview (non-image) */
+.file-preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 14px;
+    padding: 8px 10px;
+}
+.file-icon {
+    width: 40px;
+    height: 40px;
+    background: #0ea5e9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+.file-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+/* Shared text styles */
+.attach-filename {
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+.attach-filesize {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+.attach-remove-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #64748b;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.attach-remove-btn:hover { background: #fee2e2; color: #ef4444; }

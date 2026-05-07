@@ -46,6 +46,18 @@ export const routes: Routes = [
   // Racine — redirige selon l'état (logged in / no club / has club)
   { path: '', pathMatch: 'full', canActivate: [homeGuard], children: [] },
 
+  // -------- Pages publiques (sans layout, sans guard — visibles aussi aux non-connectes) --------
+  {
+    path: 'landing',
+    loadComponent: () => import('./landing/landing-page.component').then(m => m.LandingPageComponent),
+    title: 'ClubHub — The operating system for student organizations',
+  },
+  {
+    path: 'features/:featureId',
+    loadComponent: () => import('./landing/features/feature-detail.component').then(m => m.FeatureDetailComponent),
+    title: 'Feature | ClubHub',
+  },
+
   // -------- Pages d'authentification (sans layout) --------
   { path: 'signin',     component: SignInComponent,    canActivate: [guestGuard], title: 'Sign In | ClubHub' },
   { path: 'signup',     component: SignUpComponent,    canActivate: [guestGuard], title: 'Sign Up | ClubHub' },
@@ -111,6 +123,11 @@ export const routes: Routes = [
             path: 'recordings',
             loadComponent: () => import('./ameni-ve/pages/recordings/recordings.component').then(m => m.RecordingsComponent),
             title: 'Enregistrements virtuels | ClubHub',
+          },
+          {
+            path: 'admin-dashboard',
+            loadComponent: () => import('./ameni-ve/pages/admin-dashboard/admin-dashboard.component').then(m => m.VemAdminDashboardComponent),
+            title: 'VEM Admin Dashboard | ClubHub',
           },
         ],
       },
@@ -226,17 +243,50 @@ export const routes: Routes = [
       },
 
       // -------- Boutique (module Clubstore — store-service:8087) --------
+      // Page legacy single-page (kept for backward compat)
       {
         path: 'boutique',
         loadComponent: () => import('./clubstore/clubstore.component').then(m => m.ClubstoreComponent),
         title: 'Boutique | ClubHub',
       },
+      // Nouvelle architecture : pages dédiées (intégration depuis groupe/clubstore-final)
+      {
+        path: 'products',
+        loadComponent: () => import('./clubstore/products/products.component').then(m => m.ProductsComponent),
+        title: 'Produits | ClubHub',
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () => import('./clubstore/product-detail/product-detail.component').then(m => m.ProductDetailComponent),
+        title: 'Détail produit | ClubHub',
+      },
+      {
+        path: 'tickets',
+        loadComponent: () => import('./clubstore/tickets/tickets.component').then(m => m.TicketsComponent),
+        title: 'Billets et Événements | ClubHub',
+      },
+      {
+        path: 'cart',
+        loadComponent: () => import('./clubstore/cart/cart.component').then(m => m.CartComponent),
+        title: 'Mon Panier | ClubHub',
+      },
+      {
+        path: 'orders',
+        loadComponent: () => import('./clubstore/orders/orders.component').then(m => m.OrdersComponent),
+        title: 'Mes Commandes | ClubHub',
+      },
+      {
+        path: 'store-admin',
+        loadComponent: () => import('./clubstore/admin/admin.component').then(m => m.StoreAdminComponent),
+        title: 'Administration Boutique | ClubHub',
+      },
 
-      // -------- Messages (messaging-service:8089 — chat + games trivia) --------
+      // -------- Messages (messaging-service:8089 — chat + games trivia + themes) --------
       // Visible à TOUS les utilisateurs connectés (front-office).
+      // Nouvelle implémentation (branche messaging-service) : conversation-list + chat-window + games + emoji-mart.
       {
         path: 'messaging',
-        loadComponent: () => import('./messaging/messaging-page.component').then(m => m.MessagingPageComponent),
+        loadComponent: () => import('./messaging-components/conversation-list.component/conversation-list.component').then(m => m.ConversationListComponent),
         title: 'Messages | ClubHub',
       },
     ],

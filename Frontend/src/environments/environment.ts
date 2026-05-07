@@ -23,3 +23,12 @@ export function apiUrl(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
   return `${getGatewayBase().replace(/\/$/, '')}${p}`;
 }
+
+// Supabase config (consume au runtime — clés a renseigner via build env si upload de photos de groupe utilise)
+// SECURITE: supabaseServiceRoleKey ne doit PAS contenir une vraie clé service_role en prod
+//           — le frontend serait exposé. Utiliser anon key + RLS, ou bouger l'upload côté backend.
+export const environment = {
+  production: false,
+  supabaseUrl: '',
+  supabaseServiceRoleKey: '',
+};

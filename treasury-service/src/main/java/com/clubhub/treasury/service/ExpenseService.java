@@ -35,7 +35,7 @@ public class ExpenseService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional
-    public Expense submit(Long clubId, String memberId, CreateExpenseRequest req) {
+    public Expense submit(String clubId, String memberId, CreateExpenseRequest req) {
         // Validate exactly 3 quotes
         if (req.getQuotes() == null || req.getQuotes().size() != 3) {
             throw new TreasuryException("Exactly 3 quotes from different providers are required", 400);
@@ -165,11 +165,11 @@ public class ExpenseService {
         return saved;
     }
 
-    public List<Expense> getByClub(Long clubId) {
+    public List<Expense> getByClub(String clubId) {
         return expenseRepository.findByClubIdOrderByCreatedAtDesc(clubId);
     }
 
-    public List<Expense> getByStatus(Long clubId, ExpenseStatus status) {
+    public List<Expense> getByStatus(String clubId, ExpenseStatus status) {
         return expenseRepository.findByClubIdAndStatus(clubId, status);
     }
 

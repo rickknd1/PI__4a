@@ -40,9 +40,10 @@ stripe:
   secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
   publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
-  # Compte Stripe FR : ne supporte pas TND. On utilise EUR pour le checkout uniquement.
-  # L'UI et les PDF affichent toujours TND. Conversion TND->EUR au taux fixe ci-dessous.
-  currency: eur
+  # Devise affichee a l'utilisateur (UI, PDF, status endpoint).
+  # En prod la devise reelle Stripe peut differer si compte Stripe FR ne supporte pas TND :
+  # le service convertit alors via tnd-to-eur-rate au moment du checkout.
+  currency: tnd
   # 1 EUR ~= 3.3 TND (taux Banque Centrale Tunisie 2026), donc 1 TND ~= 0.303 EUR.
   # Exemple : 15 TND -> 4.55 EUR sur Stripe / 120 TND -> 36.36 EUR sur Stripe.
   tnd-to-eur-rate: 0.303

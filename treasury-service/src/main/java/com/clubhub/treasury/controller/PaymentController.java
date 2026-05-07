@@ -36,7 +36,7 @@ public class PaymentController {
     @Operation(summary = "Lister tous les paiements du club")
     @PreAuthorize(Roles.READ_REPORTS)
     public ResponseEntity<List<Map<String, Object>>> getAll(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @RequestParam(required = false) PaymentStatus status) {
         List<Payment> payments = status != null
                 ? paymentService.getByClubAndStatus(clubId, status)
@@ -46,10 +46,14 @@ public class PaymentController {
 
     @GetMapping("/member/{memberId}")
     @Operation(summary = "Paiements d'un membre — un membre ne voit que les siens")
+    // MEMBRE_SIMPLE / MEMBRE / COMMITTEE_MEMBER / MEMBER : roles non-bureau, le user ne peut voir
+    // que ses propres paiements (#memberId == son userId du JWT). Bureau (TRESORIER/PRESIDENT/...)
+    // voit tout. Avant: COMMITTEE_MEMBER recevait 403 (role manquant dans la whitelist).
     @PreAuthorize("hasAnyRole('TRESORIER','PRESIDENT','VICE_PRESIDENT','SECRETAIRE_GENERALE','RH') "
-                + "or (hasRole('MEMBRE_SIMPLE') and #memberId == authentication.details)")
+                + "or ((hasAnyRole('MEMBRE_SIMPLE','MEMBRE','COMMITTEE_MEMBER','MEMBER')) "
+                + "    and #memberId == authentication.details)")
     public ResponseEntity<List<Map<String, Object>>> getByMember(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String memberId) {
         return ResponseEntity.ok(enrichWithNames(paymentService.getByMember(memberId, clubId)));
     }
@@ -57,7 +61,7 @@ public class PaymentController {
     @PatchMapping("/{paymentId}/request-cash")
     @Operation(summary = "Demande de paiement en especes — le tresorier devra valider")
     @PreAuthorize(Roles.AUTHENTICATED)
-    public ResponseEntity<Payment> requestCash(@PathVariable Long clubId, @PathVariable String paymentId) {
+    public ResponseEntity<Payment> requestCash(@PathVariable String clubId, @PathVariable String paymentId) {
         Payment payment = paymentService.getOrThrow(paymentId);
         if (payment.getStatus() == Payment.PaymentStatus.PAID) {
             return ResponseEntity.badRequest().build();
@@ -107,7 +111,7 @@ public class PaymentController {
     @GetMapping("/{paymentId}")
     @Operation(summary = "Détail d'un paiement")
     @PreAuthorize(Roles.AUTHENTICATED)
-    public ResponseEntity<Payment> getOne(@PathVariable Long clubId, @PathVariable String paymentId) {
+    public ResponseEntity<Payment> getOne(@PathVariable String clubId, @PathVariable String paymentId) {
         return ResponseEntity.ok(paymentService.getOrThrow(paymentId));
     }
 
@@ -115,7 +119,7 @@ public class PaymentController {
     @Operation(summary = "Confirmer un paiement + generer recu PDF + envoyer email (tresorier ou membre proprietaire)")
     @PreAuthorize(Roles.AUTHENTICATED)
     public ResponseEntity<Payment> confirm(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId,
             @RequestBody Map<String, String> body,
             @RequestHeader(value = "X-Actor-Id", defaultValue = "1") String actorId,
@@ -179,7 +183,7 @@ public class PaymentController {
     @Operation(summary = "Marquer un paiement comme remboursé")
     @PreAuthorize(Roles.TRESORIER_ONLY)
     public ResponseEntity<Payment> refund(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId,
             @RequestHeader(value = "X-Actor-Id", defaultValue = "1") String actorId,
             @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {
@@ -190,7 +194,7 @@ public class PaymentController {
     @Operation(summary = "Exempter un membre de paiement")
     @PreAuthorize(Roles.TRESORIER_ONLY)
     public ResponseEntity<Payment> exempt(
-            @PathVariable Long clubId,
+            @PathVariable String clubId,
             @PathVariable String paymentId,
             @RequestHeader(value = "X-Actor-Id", defaultValue = "1") String actorId,
             @RequestHeader(value = "X-Actor-Email", defaultValue = "dev@clubhub.tn") String actorEmail) {

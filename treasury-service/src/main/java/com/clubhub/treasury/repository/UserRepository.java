@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends MongoRepository<User, String> {
-    List<User> findByClubId(Long clubId);
+    List<User> findByClubId(String clubId);
     Optional<User> findByEmail(String email);
-    List<User> findByClubIdAndRole(Long clubId, User.UserRole role);
+    List<User> findByClubIdAndRole(String clubId, User.UserRole role);
 }

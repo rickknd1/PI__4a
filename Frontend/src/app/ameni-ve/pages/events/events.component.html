@@ -57,11 +57,17 @@
             <div class="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-xl text-xs">
               🔴 LIVE
             </div>
+          } @else if (isFinished(event)) {
+            <div class="absolute top-4 left-4 bg-gray-700 text-white px-3 py-1 rounded-xl text-xs">
+              ✓ Terminé
+            </div>
           }
 
-          <div class="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-xl text-xs">
-            ⏱ {{ countdowns[event.id!] }}
-          </div>
+          @if (!isFinished(event)) {
+            <div class="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-xl text-xs">
+              ⏱ {{ countdowns[event.id!] }}
+            </div>
+          }
         </div>
 
         <div class="p-6">
@@ -243,38 +249,125 @@
           </div>
         }
 
-        <div class="flex gap-2 pt-2">
-          <button
-            type="button"
-            (click)="registerToEvent(selectedEvent)"
-            [disabled]="loading"
-            class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 rounded-xl"
-          >
-            {{ loading ? 'Registering...' : 'Register' }}
-          </button>
+        @if (isFinished(selectedEvent)) {
+          <div class="flex flex-col gap-2 pt-2">
+            <div class="text-center text-sm font-medium text-gray-700 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 py-3 rounded-xl">
+              ✓ Cet événement est terminé
+            </div>
+            <button
+              type="button"
+              (click)="openReviews(selectedEvent)"
+              class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl"
+            >
+              ⭐ Voir / laisser une review
+            </button>
+          </div>
+        } @else {
+          <div class="flex gap-2 pt-2">
+            <button
+              type="button"
+              (click)="registerToEvent(selectedEvent)"
+              [disabled]="loading"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 rounded-xl"
+            >
+              {{ loading ? 'Registering...' : 'Register' }}
+            </button>
 
-          <button
-            type="button"
-            (click)="payForEvent(selectedEvent)"
-            [disabled]="loading"
-            class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 rounded-xl"
-          >
-            💰 Pay
-          </button>
+            <button
+              type="button"
+              (click)="payForEvent(selectedEvent)"
+              [disabled]="loading"
+              class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 rounded-xl"
+            >
+              💰 Pay
+            </button>
 
-          <button
-            type="button"
-            (click)="joinMeeting(selectedEvent)"
-            [disabled]="!canUserJoin(selectedEvent)"
-            [ngClass]="{
-              'bg-gray-400 cursor-not-allowed': !canUserJoin(selectedEvent),
-              'bg-indigo-600 hover:bg-indigo-700': canUserJoin(selectedEvent)
-            }"
-            class="flex-1 text-white py-2 rounded-xl"
-          >
-            🎥 Join
-          </button>
+            <button
+              type="button"
+              (click)="joinMeeting(selectedEvent)"
+              [disabled]="!canUserJoin(selectedEvent)"
+              [ngClass]="{
+                'bg-gray-400 cursor-not-allowed': !canUserJoin(selectedEvent),
+                'bg-indigo-600 hover:bg-indigo-700': canUserJoin(selectedEvent)
+              }"
+              class="flex-1 text-white py-2 rounded-xl"
+            >
+              🎥 Join
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (reviewsModalEventId) {
+  <div
+    class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+    (click)="closeReviewsModal()"
+  >
+    <div
+      class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold dark:text-white">⭐ Reviews — {{ reviewsModalEventTitle }}</h3>
+        <button
+          type="button"
+          (click)="closeReviewsModal()"
+          class="text-gray-400 hover:text-gray-700 text-2xl leading-none"
+        >×</button>
+      </div>
+
+      @if (reviewsList.length === 0) {
+        <p class="text-gray-500 dark:text-gray-400 italic mb-4">Aucune review pour l'instant. Soyez le premier !</p>
+      } @else {
+        <div class="space-y-3 mb-6">
+          @for (rev of reviewsList; track rev.id) {
+            <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-3">
+              <div class="flex items-center justify-between mb-1">
+                <strong class="dark:text-white">{{ rev.userName }}</strong>
+                <span class="text-yellow-500">{{ '★'.repeat(rev.rating) }}{{ '☆'.repeat(5 - rev.rating) }}</span>
+              </div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">{{ rev.comment }}</p>
+            </div>
+          }
         </div>
+      }
+
+      <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+        <h4 class="font-semibold mb-2 dark:text-white">Laisser une review</h4>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-sm dark:text-gray-300">Note :</span>
+          @for (n of [1,2,3,4,5]; track n) {
+            <button
+              type="button"
+              (click)="newReview.rating = n"
+              [class.text-yellow-500]="newReview.rating >= n"
+              [class.text-gray-300]="newReview.rating < n"
+              class="text-2xl leading-none"
+            >★</button>
+          }
+          <span class="text-sm text-gray-500 ml-2">{{ newReview.rating }}/5</span>
+        </div>
+        <textarea
+          [(ngModel)]="newReview.comment"
+          name="comment"
+          rows="3"
+          placeholder="Votre avis..."
+          class="w-full border border-gray-300 dark:border-gray-700 rounded-xl p-2 text-sm dark:bg-gray-800 dark:text-white"
+        ></textarea>
+        @if (reviewError) {
+          <p class="text-red-600 text-sm mt-1">{{ reviewError }}</p>
+        }
+        <button
+          type="button"
+          (click)="submitReview()"
+          [disabled]="reviewSubmitting"
+          class="mt-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-xl"
+        >
+          {{ reviewSubmitting ? 'Envoi...' : 'Envoyer' }}
+        </button>
       </div>
     </div>
   </div>

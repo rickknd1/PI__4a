@@ -19,7 +19,7 @@ public class Expense {
 
     @Indexed
     @Field("club_id")
-    private Long clubId;
+    private String clubId;
 
     private String submittedByMemberId;
 

@@ -102,6 +102,13 @@ export class ClubstoreService {
     });
   }
 
+  /** Update product (admin). */
+  update(id: string, p: StoreProduct): Observable<StoreProduct> {
+    return this.http.put<StoreProduct>(`${this.base}/products/${id}`, p, {
+      withCredentials: true,
+    });
+  }
+
   // ========== ORDERS ==========
   myOrders(memberId: string): Observable<StoreOrder[]> {
     return this.http
@@ -109,6 +116,23 @@ export class ClubstoreService {
         withCredentials: true,
       })
       .pipe(catchError(() => of([])));
+  }
+
+  /** Liste de TOUTES les commandes (admin). */
+  allOrders(): Observable<StoreOrder[]> {
+    return this.http
+      .get<StoreOrder[]>(`${this.base}/orders`, { withCredentials: true })
+      .pipe(catchError(() => of([])));
+  }
+
+  /** Update status d'une order (admin: PENDING -> CONFIRMED -> SHIPPED -> DELIVERED). */
+  updateOrderStatus(id: string, status: string): Observable<StoreOrder> {
+    // Backend expects @RequestParam, so status goes in the query string
+    return this.http.put<StoreOrder>(
+      `${this.base}/orders/${id}/status?status=${encodeURIComponent(status)}`,
+      {},
+      { withCredentials: true }
+    );
   }
 
   placeOrder(req: StoreOrderRequest): Observable<StoreOrder> {

@@ -25,7 +25,7 @@ public class CotisationService {
     private final AuditService auditService;
 
     @Transactional
-    public CotisationRule createRule(Long clubId, CreateCotisationRuleRequest req, String actorId, String actorEmail) {
+    public CotisationRule createRule(String clubId, CreateCotisationRuleRequest req, String actorId, String actorEmail) {
         CotisationRule rule = CotisationRule.builder()
                 .clubId(clubId)
                 .name(req.getName())
@@ -43,12 +43,12 @@ public class CotisationService {
         return saved;
     }
 
-    public List<CotisationRule> getActiveRules(Long clubId) {
+    public List<CotisationRule> getActiveRules(String clubId) {
         return ruleRepository.findByClubIdAndActiveTrue(clubId);
     }
 
     @Transactional
-    public List<Payment> assignToMembers(String ruleId, List<String> memberIds, Long clubId) {
+    public List<Payment> assignToMembers(String ruleId, List<String> memberIds, String clubId) {
         CotisationRule rule = ruleRepository.findById(ruleId)
                 .orElseThrow(() -> new TreasuryException("Cotisation rule not found", 404));
 

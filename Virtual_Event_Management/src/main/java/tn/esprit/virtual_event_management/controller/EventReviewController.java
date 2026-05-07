@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/event-reviews")
+@RequestMapping("/api/events")
 @RequiredArgsConstructor
 public class EventReviewController {
 
@@ -22,8 +22,9 @@ public class EventReviewController {
     private final VirtualEventRepository eventRepository;
     private final ProfanityCheckService profanityCheckService;
 
-    @PostMapping
-    public ResponseEntity<?> addReview(@RequestBody ReviewRequest request) {
+    @PostMapping("/{eventId}/reviews")
+    public ResponseEntity<?> addReview(@PathVariable String eventId,
+                                       @RequestBody ReviewRequest request) {
 
         if (request.rating() < 1 || request.rating() > 5) {
             return ResponseEntity.badRequest().body("Rating must be between 1 and 5");
@@ -33,7 +34,7 @@ public class EventReviewController {
             return ResponseEntity.badRequest().body("Comment is required");
         }
 
-        VirtualEvent event = eventRepository.findById(request.eventId())
+        VirtualEvent event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
         if (!isEventFinished(event)) {
@@ -47,9 +48,9 @@ public class EventReviewController {
         }
 
         EventReview review = reviewRepository
-                .findByEventIdAndUserId(request.eventId(), request.userId())
+                .findByEventIdAndUserId(eventId, request.userId())
                 .orElse(EventReview.builder()
-                        .eventId(request.eventId())
+                        .eventId(eventId)
                         .userId(request.userId())
                         .createdAt(LocalDateTime.now())
                         .build());
@@ -64,14 +65,14 @@ public class EventReviewController {
         return ResponseEntity.ok(reviewRepository.save(review));
     }
 
-    @GetMapping("/{eventId}")
+    @GetMapping("/{eventId}/reviews")
     public ResponseEntity<List<EventReview>> getReviews(@PathVariable String eventId) {
         return ResponseEntity.ok(
                 reviewRepository.findByEventIdAndApprovedTrueOrderByCreatedAtDesc(eventId)
         );
     }
 
-    @GetMapping("/{eventId}/summary")
+    @GetMapping("/{eventId}/reviews/summary")
     public ResponseEntity<ReviewSummary> getSummary(@PathVariable String eventId) {
         List<EventReview> reviews =
                 reviewRepository.findByEventIdAndApprovedTrueOrderByCreatedAtDesc(eventId);
@@ -105,7 +106,6 @@ public class EventReviewController {
     }
 
     public record ReviewRequest(
-            String eventId,
             String userId,
             String userName,
             int rating,

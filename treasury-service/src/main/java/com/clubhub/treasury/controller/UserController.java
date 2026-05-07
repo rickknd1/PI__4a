@@ -27,12 +27,12 @@ public class UserController {
     }
 
     @GetMapping("/club/{clubId}")
-    public ResponseEntity<List<User>> getUsersByClub(@PathVariable Long clubId) {
+    public ResponseEntity<List<User>> getUsersByClub(@PathVariable String clubId) {
         return ResponseEntity.ok(userContextService.getUsersByClub(clubId));
     }
 
     @GetMapping("/club/{clubId}/members")
-    public ResponseEntity<List<User>> getMembersByClub(@PathVariable Long clubId) {
+    public ResponseEntity<List<User>> getMembersByClub(@PathVariable String clubId) {
         return ResponseEntity.ok(userContextService.getMembersByClub(clubId));
     }
 
@@ -43,7 +43,7 @@ public class UserController {
                 body.get("firstName"),
                 body.get("lastName"),
                 body.getOrDefault("role", "MEMBRE"),
-                Long.parseLong(body.getOrDefault("clubId", "1"))
+                body.getOrDefault("clubId", "1")
         );
         return ResponseEntity.status(201).body(user);
     }

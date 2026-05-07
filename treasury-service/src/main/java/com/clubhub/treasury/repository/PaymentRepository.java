@@ -6,8 +6,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface PaymentRepository extends MongoRepository<Payment, String> {
-    List<Payment> findByClubIdAndStatus(Long clubId, PaymentStatus status);
-    List<Payment> findByMemberIdAndClubId(String memberId, Long clubId);
+    List<Payment> findByClubIdAndStatus(String clubId, PaymentStatus status);
+    List<Payment> findByMemberIdAndClubId(String memberId, String clubId);
     List<Payment> findByStatusAndDueDateBefore(PaymentStatus status, LocalDate date);
-    List<Payment> findByClubIdOrderByCreatedAtDesc(Long clubId);
+    List<Payment> findByClubIdOrderByCreatedAtDesc(String clubId);
 }

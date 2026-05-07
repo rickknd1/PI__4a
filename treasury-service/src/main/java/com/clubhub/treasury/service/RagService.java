@@ -42,7 +42,7 @@ public class RagService {
     /**
      * Point d'entree RAG : question -> retrieval -> augmented prompt -> generation
      */
-    public String askWithRag(Long clubId, String question) {
+    public String askWithRag(String clubId, String question) {
         Set<Intent> intents = detectIntents(question);
         log.info("[RAG] Question: '{}' -> Intents: {}", question, intents);
 
@@ -101,7 +101,7 @@ public class RagService {
 
     // === DATA RETRIEVAL ===
 
-    private String retrieveContext(Long clubId, Set<Intent> intents) {
+    private String retrieveContext(String clubId, Set<Intent> intents) {
         StringBuilder ctx = new StringBuilder();
         ctx.append("=== DONNEES REELLES DU CLUB (extraites de la base de donnees) ===\n\n");
 
@@ -136,7 +136,7 @@ public class RagService {
         return ctx.toString();
     }
 
-    private String retrieveGeneralStats(Long clubId) {
+    private String retrieveGeneralStats(String clubId) {
         List<Payment> allPayments = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         BigDecimal totalPaid = allPayments.stream()
                 .filter(p -> p.getStatus() == Payment.PaymentStatus.PAID)
@@ -175,7 +175,7 @@ public class RagService {
                 """, totalPaid, totalPending, totalLate, recoveryRate, membersUp, membersLate, totalUsers, totalPayments, totalExpenses);
     }
 
-    private String retrievePayments(Long clubId) {
+    private String retrievePayments(String clubId) {
         List<Payment> payments = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         Map<String, Long> byStatus = payments.stream()
                 .collect(Collectors.groupingBy(p -> p.getStatus().name(), Collectors.counting()));
@@ -193,7 +193,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String retrieveLateMembers(Long clubId) {
+    private String retrieveLateMembers(String clubId) {
         List<Payment> latePayments = paymentRepo.findByClubIdAndStatus(clubId, Payment.PaymentStatus.LATE);
         StringBuilder sb = new StringBuilder("[MEMBRES EN RETARD]\n");
         if (latePayments.isEmpty()) {
@@ -210,7 +210,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String retrieveBudgets(Long clubId) {
+    private String retrieveBudgets(String clubId) {
         List<Budget> budgets = budgetRepo.findByClubId(clubId);
         StringBuilder sb = new StringBuilder("[BUDGETS]\n");
         budgets.forEach(b -> sb.append(String.format(
@@ -221,7 +221,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String retrieveExpenses(Long clubId) {
+    private String retrieveExpenses(String clubId) {
         List<Expense> expenses = expenseRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         Map<String, Long> byStatus = expenses.stream()
                 .collect(Collectors.groupingBy(e -> e.getStatus().name(), Collectors.counting()));
@@ -244,7 +244,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String retrieveRules(Long clubId) {
+    private String retrieveRules(String clubId) {
         var rules = ruleRepo.findByClubIdAndActiveTrue(clubId);
         StringBuilder sb = new StringBuilder("[REGLES DE COTISATION ACTIVES]\n");
         rules.forEach(r -> sb.append(String.format(
@@ -257,7 +257,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String retrieveMembers(Long clubId) {
+    private String retrieveMembers(String clubId) {
         List<User> users = userRepo.findByClubId(clubId);
         StringBuilder sb = new StringBuilder("[MEMBRES DU CLUB]\n");
         users.forEach(u -> sb.append(String.format(
@@ -267,7 +267,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String retrieveAuditLogs(Long clubId) {
+    private String retrieveAuditLogs(String clubId) {
         var logs = auditRepo.findByClubIdOrderByTimestampDesc(clubId);
         StringBuilder sb = new StringBuilder("[JOURNAL D'AUDIT - 10 dernieres actions]\n");
         logs.stream().limit(10).forEach(l -> sb.append(String.format(
@@ -279,7 +279,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String retrieveNotifications(Long clubId) {
+    private String retrieveNotifications(String clubId) {
         var notifs = notifRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         StringBuilder sb = new StringBuilder("[NOTIFICATIONS RECENTES]\n");
         sb.append(String.format("Total: %d notifications | Non lues: %d\n",
@@ -390,7 +390,7 @@ public class RagService {
     }
 
     /** Recherche un membre par nom, prenom ou email dans la question */
-    private User findMemberMention(String question, Long clubId) {
+    private User findMemberMention(String question, String clubId) {
         String q = question.toLowerCase();
         List<User> users = userRepo.findByClubId(clubId);
         for (User u : users) {
@@ -420,7 +420,7 @@ public class RagService {
 
     // ========== DISPATCHER ==========
 
-    public String answerWithoutLlm(Long clubId, String question, Set<Intent> intents) {
+    public String answerWithoutLlm(String clubId, String question, Set<Intent> intents) {
         if (question == null || question.trim().isEmpty()) return helpText();
         String q = question.toLowerCase();
 
@@ -453,7 +453,7 @@ public class RagService {
 
     // ========== HANDLERS ==========
 
-    private String greeting(Long clubId) {
+    private String greeting(String clubId) {
         List<Payment> pays = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         BigDecimal collected = sumPayments(pays, Payment.PaymentStatus.PAID);
         BigDecimal late = sumPayments(pays, Payment.PaymentStatus.LATE);
@@ -489,7 +489,7 @@ public class RagService {
             + "Astuce : precise une periode (ex: 'il y a 3 semaines', 'ce mois', 'cette annee').";
     }
 
-    private String answerLateMembers(Long clubId, TimeWindow tw) {
+    private String answerLateMembers(String clubId, TimeWindow tw) {
         List<Payment> lates = paymentRepo.findByClubIdAndStatus(clubId, Payment.PaymentStatus.LATE);
         if (tw != null) lates = lates.stream().filter(p -> p.getDueDate()!=null && !p.getDueDate().isBefore(tw.since)).collect(Collectors.toList());
         if (lates.isEmpty()) {
@@ -510,7 +510,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String answerRecoveryRate(Long clubId, TimeWindow tw) {
+    private String answerRecoveryRate(String clubId, TimeWindow tw) {
         List<Payment> pays = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         if (tw != null) pays = pays.stream().filter(p -> p.getCreatedAt()!=null && !p.getCreatedAt().isBefore(tw.since.atStartOfDay())).collect(Collectors.toList());
         BigDecimal paid = sumPayments(pays, Payment.PaymentStatus.PAID);
@@ -528,7 +528,7 @@ public class RagService {
             paid, pending, late, total, pays.size());
     }
 
-    private String answerBudget(Long clubId, String question) {
+    private String answerBudget(String clubId, String question) {
         List<Budget> budgets = budgetRepo.findByClubId(clubId);
         String q = question.toLowerCase();
         // Filtre par label si mentionne
@@ -553,7 +553,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String answerExpenses(Long clubId, TimeWindow tw, Expense.ExpenseCategory cat, String q) {
+    private String answerExpenses(String clubId, TimeWindow tw, Expense.ExpenseCategory cat, String q) {
         List<Expense> exps = expenseRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         if (tw != null) exps = exps.stream().filter(e -> e.getCreatedAt()!=null && !e.getCreatedAt().isBefore(tw.since.atStartOfDay())).collect(Collectors.toList());
         if (cat != null) exps = exps.stream().filter(e -> e.getCategory() == cat).collect(Collectors.toList());
@@ -615,7 +615,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String answerPayments(Long clubId, TimeWindow tw, User member) {
+    private String answerPayments(String clubId, TimeWindow tw, User member) {
         List<Payment> pays = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         if (tw != null) pays = pays.stream().filter(p -> p.getCreatedAt()!=null && !p.getCreatedAt().isBefore(tw.since.atStartOfDay())).collect(Collectors.toList());
         if (member != null) pays = pays.stream().filter(p -> member.getId().equals(p.getMemberId())).collect(Collectors.toList());
@@ -640,7 +640,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String answerRules(Long clubId) {
+    private String answerRules(String clubId) {
         var rules = ruleRepo.findByClubIdAndActiveTrue(clubId);
         if (rules.isEmpty()) return "Aucune regle de cotisation active.";
         StringBuilder sb = new StringBuilder(rules.size() + " regle(s) de cotisation active(s) :\n");
@@ -652,7 +652,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String answerMembers(Long clubId, User mention) {
+    private String answerMembers(String clubId, User mention) {
         List<User> users = userRepo.findByClubId(clubId);
         if (mention != null) {
             List<Payment> pays = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId).stream()
@@ -675,7 +675,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String answerAnomalies(Long clubId) {
+    private String answerAnomalies(String clubId) {
         List<Payment> pays = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         List<Budget> budgets = budgetRepo.findByClubId(clubId);
         List<Expense> exps = expenseRepo.findByClubIdOrderByCreatedAtDesc(clubId);
@@ -700,7 +700,7 @@ public class RagService {
         return anomalies.size() + " anomalie(s) detectee(s) :\n- " + String.join("\n- ", anomalies);
     }
 
-    private String answerPredictions(Long clubId) {
+    private String answerPredictions(String clubId) {
         List<Payment> pays = paymentRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         List<Payment> paid = pays.stream().filter(p -> p.getStatus() == Payment.PaymentStatus.PAID && p.getPaidAt() != null).collect(Collectors.toList());
         if (paid.size() < 2) return "Donnees insuffisantes pour une prediction (besoin d'au moins 2 paiements).";
@@ -731,7 +731,7 @@ public class RagService {
             trend, monthlyAvg, monthlyAvg.multiply(BigDecimal.valueOf(3)), avgExp);
     }
 
-    private String answerAudit(Long clubId, TimeWindow tw) {
+    private String answerAudit(String clubId, TimeWindow tw) {
         var logs = auditRepo.findByClubIdOrderByTimestampDesc(clubId);
         if (tw != null) logs = logs.stream().filter(l -> l.getTimestamp() != null && !l.getTimestamp().isBefore(tw.since.atStartOfDay())).collect(Collectors.toList());
         if (logs.isEmpty()) return "Aucune action tracee" + (tw != null ? " pour " + tw.label : "") + ".";
@@ -745,7 +745,7 @@ public class RagService {
         return sb.toString();
     }
 
-    private String answerNotifications(Long clubId) {
+    private String answerNotifications(String clubId) {
         var notifs = notifRepo.findByClubIdOrderByCreatedAtDesc(clubId);
         if (notifs.isEmpty()) return "Aucune notification.";
         long unread = notifs.stream().filter(n -> !n.isRead()).count();

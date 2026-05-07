@@ -132,6 +132,35 @@ export class AuthService {
   //  Lecture
   // ============================================================
   /**
+   * Refresh le user state depuis le backend (/api/auth/me).
+   * A appeler apres une modif backend qui change le user (ex: clubId mis a jour).
+   * Sans ca, getCurrentClubId() retourne l'ancien clubId du JWT/state local.
+   */
+  refreshSession(): Observable<StoredUser> {
+    return this.http.get<any>(apiUrl('/api/auth/me')).pipe(
+      tap((fresh: any) => {
+        if (fresh && fresh.email) {
+          const stored: StoredUser = {
+            id: fresh.id,
+            userId: fresh.id,
+            email: fresh.email,
+            firstName: fresh.firstName,
+            lastName: fresh.lastName,
+            role: fresh.role || fresh.systemRole,
+            clubId: fresh.clubId,
+            phoneNumber: fresh.phoneNumber,
+            profilePhoto: fresh.profilePhoto,
+            token: this.currentUserSignal()?.token || '',
+          } as StoredUser;
+          this.currentUserSignal.set(stored);
+          this.userProfileSubject.next(stored);
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stored)); } catch {}
+        }
+      })
+    );
+  }
+
+  /**
    * Re-synchronise le signal avec localStorage si necessaire.
    * Garantit que header (BehaviorSubject) et pages (lecture localStorage)
    * affichent toujours le MEME utilisateur, meme si une autre route a

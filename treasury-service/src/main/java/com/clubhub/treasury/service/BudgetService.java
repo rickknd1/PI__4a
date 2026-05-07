@@ -17,7 +17,7 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
 
     @Transactional
-    public Budget create(Long clubId, CreateBudgetRequest req) {
+    public Budget create(String clubId, CreateBudgetRequest req) {
         Budget budget = Budget.builder()
                 .clubId(clubId)
                 .label(req.getLabel())
@@ -28,7 +28,7 @@ public class BudgetService {
         return budgetRepository.save(budget);
     }
 
-    public List<Budget> getByClub(Long clubId) {
+    public List<Budget> getByClub(String clubId) {
         return budgetRepository.findByClubId(clubId);
     }
 
