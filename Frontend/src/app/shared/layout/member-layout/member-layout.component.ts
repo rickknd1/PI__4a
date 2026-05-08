@@ -172,7 +172,8 @@ export class MemberLayoutComponent implements OnInit {
    */
   navLinks: NavLink[] = [
     { label: 'Home',     path: '/home',     icon: 'home' },
-    { label: 'Events',   path: '/events',   icon: 'calendar' },
+    // Membre simple : /rsvp (RSVP simplifie, pas la page admin /events).
+    { label: 'Events',   path: '/rsvp',     icon: 'calendar' },
     {
       label: 'Store', path: '/products', icon: 'shop',
       children: [
@@ -187,7 +188,7 @@ export class MemberLayoutComponent implements OnInit {
       label: 'More', path: '#', icon: 'more',
       children: [
         { label: 'My Dues',         path: '/treasury/payer-cotisation', icon: '' },
-        { label: 'My RSVPs',        path: '/rsvp',                       icon: '' },
+        { label: 'My Tasks',        path: '/tasks',                      icon: '' },
         { label: 'Voice Channels',  path: '/voice2/instant-voice',       icon: '' },
         { label: 'Virtual Events',  path: '/ameni/events',               icon: '' },
       ],

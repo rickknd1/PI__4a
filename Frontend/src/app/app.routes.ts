@@ -42,6 +42,7 @@ import {
   voice2BureauGuard,
   voice2MyReportsGuard,
   storeAdminGuard,
+  eventsAdminGuard,
 } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -89,8 +90,11 @@ export const routes: Routes = [
       { path: 'calendar',  component: CalenderComponent,  title: 'Calendar | ClubHub' },
       { path: 'profile',   component: ProfileComponent,   title: 'Profile | ClubHub' },
 
+      // /events = page admin de gestion des evenements (CRUD, stats, filtres).
+      // Membres simples + COMMITTEE_MEMBER redirigés vers /rsvp.
       {
         path: 'events',
+        canActivate: [eventsAdminGuard],
         loadComponent: () => import('./pages/all-events/all-events.component').then(m => m.AllEventsComponent),
         title: 'Events | ClubHub',
       },

@@ -31,8 +31,8 @@ import { RouterLink } from '@angular/router';
             <h3 class="text-xs font-semibold uppercase tracking-wider text-white mb-4">Member Area</h3>
             <ul class="space-y-2.5 text-sm">
               <li><a routerLink="/home" class="hover:text-brand-400 transition">Home</a></li>
-              <li><a routerLink="/events" class="hover:text-brand-400 transition">Events</a></li>
-              <li><a routerLink="/rsvp" class="hover:text-brand-400 transition">My RSVPs</a></li>
+              <li><a routerLink="/rsvp" class="hover:text-brand-400 transition">Events &amp; RSVP</a></li>
+              <li><a routerLink="/tasks" class="hover:text-brand-400 transition">My Tasks</a></li>
               <li><a routerLink="/treasury/payer-cotisation" class="hover:text-brand-400 transition">My Dues</a></li>
               <li><a routerLink="/messaging" class="hover:text-brand-400 transition">Messages</a></li>
             </ul>

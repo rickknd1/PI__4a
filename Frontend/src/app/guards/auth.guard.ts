@@ -184,6 +184,25 @@ export const voice2MyReportsGuard: CanActivateFn = () => {
 };
 
 /**
+ * Events admin (page /events) : réservé aux event managers
+ * (PRESIDENT / VP / SecGen / Resp Events). Les membres simples sont
+ * redirigés vers /rsvp (vue RSVP simplifiée pour s'inscrire/désinscrire).
+ */
+const EVENTS_ADMIN_ROLES = ['PRESIDENT', 'VICE_PRESIDENT', 'SECRETAIRE_GENERALE'];
+
+export const eventsAdminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  const role = (authService.getCurrentRole() ?? '').toUpperCase();
+
+  if (EVENTS_ADMIN_ROLES.includes(role)) {
+    return true;
+  }
+  router.navigate(['/rsvp']);
+  return false;
+};
+
+/**
  * Boutique admin: réservé au bureau du club (Président, VP, Trésorier,
  * Secrétaire, Comité). Les membres simples sont redirigés vers /products
  * (catalogue front-office). Évite que n'importe quel client accède
