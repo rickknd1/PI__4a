@@ -73,10 +73,15 @@ export class HomeComponent implements OnInit {
   /** Role normalise (uppercase, sans espaces). */
   readonly role = computed(() => (this.user()?.role || '').toUpperCase().trim());
 
-  /** Vrai si l'utilisateur a un back-office (autre que MEMBRE_SIMPLE). */
+  /**
+   * Vrai si l'utilisateur a un back-office. Aligne sur la matrice RBAC :
+   * seul le bureau executif a une zone admin (sidebar TailAdmin).
+   * COMMITTEE_MEMBER et MEMBRE_SIMPLE restent en front-office uniquement.
+   */
   readonly hasBackoffice = computed(() => {
     const r = this.role();
-    return !!r && r !== 'MEMBRE_SIMPLE' && r !== 'MEMBER';
+    return r === 'PRESIDENT' || r === 'VICE_PRESIDENT' || r === 'TRESORIER'
+        || r === 'SECRETAIRE_GENERALE' || r === 'RH';
   });
 
   /** Libelle du back-office en fonction du role. */

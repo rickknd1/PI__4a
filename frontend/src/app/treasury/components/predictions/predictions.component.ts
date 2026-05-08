@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { TreasuryApiService } from '../../services/treasury-api.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { BudgetPrediction } from '../../models/treasury.models';
 
 @Component({
@@ -94,7 +95,7 @@ import { BudgetPrediction } from '../../models/treasury.models';
   `,
 })
 export class PredictionsComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   predictions: any[] = [];
   alerts: string[] = [];
   loading = true;
@@ -102,9 +103,11 @@ export class PredictionsComponent implements OnInit {
   aiSource = 'Chargement...';
   aiStatusClass = 'bg-gray-100 text-gray-600';
 
-  constructor(private api: TreasuryApiService) {}
+  constructor(private api: TreasuryApiService, private auth: AuthService) {}
 
   ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.api.getPredictions(this.clubId, 3).subscribe({
       next: (data: any[]) => {
         this.predictions = data;

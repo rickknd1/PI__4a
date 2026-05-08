@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { HttpClient } from '@angular/common/http';
 import { TreasuryApiService } from '../../services/treasury-api.service';
 import { UserContextService } from '../../services/user-context.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { Expense, ExpenseStatus, MockUser } from '../../models/treasury.models';
 
 @Component({
@@ -13,7 +14,7 @@ import { Expense, ExpenseStatus, MockUser } from '../../models/treasury.models';
   templateUrl: './depenses.component.html',
 })
 export class DepensesComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   expenses: Expense[] = [];
   allExpenses: Expense[] = [];
   loading = true;
@@ -43,7 +44,7 @@ export class DepensesComponent implements OnInit {
 
   statusFilters = ['', 'SUBMITTED', 'VALIDATED', 'APPROVED', 'REJECTED'];
 
-  constructor(private api: TreasuryApiService, private fb: FormBuilder, private userCtx: UserContextService, private http: HttpClient) {
+  constructor(private api: TreasuryApiService, private fb: FormBuilder, private userCtx: UserContextService, private http: HttpClient, private auth: AuthService) {
     this.form = this.fb.group({
       title: ['', Validators.required],
       description: [''],
@@ -67,6 +68,8 @@ export class DepensesComponent implements OnInit {
   }
 
   ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.user = this.userCtx.getCurrentUser();
     this.loadMembers();
     this.load();

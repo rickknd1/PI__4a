@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
@@ -73,6 +74,7 @@ public class ClubController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('PRESIDENT')")
     public ResponseEntity<Club> createClub(@RequestBody Club club, HttpServletRequest request) {
         // Extrait le userId du JWT (cookie ou header) et l'utilise comme
         // createdBy si le client n'a pas fourni explicitement la valeur. Ceci
@@ -86,6 +88,7 @@ public class ClubController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PRESIDENT','VICE_PRESIDENT')")
     public ResponseEntity<Club> updateClub(@PathVariable String id, @RequestBody Club club) {
         try {
             Club updatedClub = clubService.updateClub(id, club);
@@ -96,6 +99,7 @@ public class ClubController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('PRESIDENT')")
     public ResponseEntity<Void> deleteClub(@PathVariable String id) {
         clubService.deleteClub(id);
         return ResponseEntity.noContent().build();
@@ -104,6 +108,7 @@ public class ClubController {
     // ========== GESTION DES MEMBRES ==========
 
     @PostMapping("/{clubId}/members")
+    @PreAuthorize("hasAnyRole('PRESIDENT','RH','SECRETAIRE_GENERALE')")
     public ResponseEntity<Club> addMemberRequest(@PathVariable String clubId, @RequestBody Member member) {
         try {
             Club updated = clubService.addMemberRequest(clubId, member);
@@ -124,6 +129,7 @@ public class ClubController {
     }
 
     @DeleteMapping("/{clubId}/members/{userId}")
+    @PreAuthorize("hasAnyRole('PRESIDENT','RH','SECRETAIRE_GENERALE')")
     public ResponseEntity<Club> rejectMember(@PathVariable String clubId, @PathVariable String userId) {
         try {
             Club updated = clubService.rejectMember(clubId, userId);
@@ -134,6 +140,7 @@ public class ClubController {
     }
 
     @PutMapping("/{clubId}/members/{userId}/role")
+    @PreAuthorize("hasAnyRole('PRESIDENT','RH','SECRETAIRE_GENERALE')")
     public ResponseEntity<Club> changeMemberRole(@PathVariable String clubId,
                                                  @PathVariable String userId,
                                                  @RequestParam String role) {

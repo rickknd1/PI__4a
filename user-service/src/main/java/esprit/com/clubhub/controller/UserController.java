@@ -10,6 +10,7 @@ import esprit.com.clubhub.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -56,6 +57,7 @@ public class UserController {
 
     // GET /api/users/me
     @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<AuthResponse> getMe(HttpServletRequest request) {
         String userId = getUserIdFromRequest(request);
         if (userId == null) return ResponseEntity.status(401).build();
@@ -79,6 +81,7 @@ public class UserController {
 
     // PUT /api/users/{id}/photo
     @PutMapping("/{id}/photo")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> updatePhoto(
             @PathVariable String id,
             @RequestBody Map<String, String> body) {
@@ -89,6 +92,7 @@ public class UserController {
 
     // GET /api/users
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public List<User> getAll() {
         return userService.getAllUsers();
     }
@@ -103,6 +107,7 @@ public class UserController {
      * non gérés par RegisterRequest (active, profilePhoto vide, etc.).
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('PRESIDENT','RH')")
     public ResponseEntity<?> createByAdmin(@RequestBody Map<String, Object> body) {
         try {
             RegisterRequest req = new RegisterRequest();
@@ -134,12 +139,16 @@ public class UserController {
 
     // GET /api/users/{id}
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> getById(@PathVariable String id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     // PUT /api/users/{id}
+    // Admin (PRESIDENT/RH/SECRETAIRE_GENERALE) ou le user lui-meme.
+    // JwtAuthFilter pose authentication.details = userId.
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PRESIDENT','RH','SECRETAIRE_GENERALE') or #id == authentication.details")
     public ResponseEntity<User> update(@PathVariable String id,
                                        @RequestBody User updated) {
         return ResponseEntity.ok(userService.updateUser(id, updated));
@@ -147,6 +156,7 @@ public class UserController {
 
     // DELETE /api/users/{id}
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PRESIDENT','RH')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();

@@ -33,6 +33,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (token != null && jwtUtil.validateToken(token)) {
             String email = jwtUtil.extractEmail(token);
             String role  = jwtUtil.extractRole(token);
+            String userId = jwtUtil.extractUserId(token);
 
             UsernamePasswordAuthenticationToken auth =
                     new UsernamePasswordAuthenticationToken(
@@ -40,6 +41,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             null,
                             List.of(new SimpleGrantedAuthority("ROLE_" + role))
                     );
+            // Stocke userId dans details pour les @PreAuthorize "or #id == authentication.details"
+            // (UserController.update : admin OU le user lui-meme).
+            auth.setDetails(userId);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 

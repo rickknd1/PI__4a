@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { TreasuryApiService } from '../../services/treasury-api.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { AnomalyAlert } from '../../models/treasury.models';
 
 @Component({
@@ -84,14 +85,16 @@ import { AnomalyAlert } from '../../models/treasury.models';
   `,
 })
 export class AnomaliesComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   anomalies: AnomalyAlert[] = [];
   loading = true;
   error = '';
 
-  constructor(private api: TreasuryApiService) {}
+  constructor(private api: TreasuryApiService, private auth: AuthService) {}
 
   ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.api.getAnomalies(this.clubId).subscribe({
       next: (data) => { this.anomalies = data; this.loading = false; },
       error: () => { this.error = 'Impossible de charger les anomalies.'; this.loading = false; }

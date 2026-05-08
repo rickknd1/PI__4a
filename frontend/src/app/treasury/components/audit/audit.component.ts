@@ -3,6 +3,7 @@ import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { TreasuryApiService } from '../../services/treasury-api.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { AuditLog, MockUser } from '../../models/treasury.models';
 
 @Component({
@@ -12,7 +13,7 @@ import { AuditLog, MockUser } from '../../models/treasury.models';
   templateUrl: './audit.component.html',
 })
 export class AuditComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   allLogs: AuditLog[] = [];
   filtered: AuditLog[] = [];
   logs: AuditLog[] = [];
@@ -47,9 +48,11 @@ export class AuditComponent implements OnInit {
   actorList: { id: string; name: string; email: string }[] = [];
   entityTypes: string[] = [];
 
-  constructor(private api: TreasuryApiService, private http: HttpClient) {}
+  constructor(private api: TreasuryApiService, private http: HttpClient, private auth: AuthService) {}
 
   ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.loadMembers();
     this.api.getAuditLogs(this.clubId).subscribe({
       next: (data) => {

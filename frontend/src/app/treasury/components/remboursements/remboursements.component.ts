@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { TreasuryApiService } from '../../services/treasury-api.service';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { Payment, MockUser } from '../../models/treasury.models';
 import { forkJoin } from 'rxjs';
 
@@ -15,7 +15,7 @@ type ToastKind = 'success' | 'error' | 'info';
   templateUrl: './remboursements.component.html',
 })
 export class RemboursementsComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   allPaid: Payment[] = [];
   paid: Payment[] = [];
   refunded: Payment[] = [];
@@ -45,6 +45,8 @@ export class RemboursementsComponent implements OnInit {
               private auth: AuthService) {}
 
   ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.loadMembers();
     this.reload();
   }
@@ -119,7 +121,7 @@ export class RemboursementsComponent implements OnInit {
     this.processing = true;
     this.processedCount = 0;
 
-    const me = this.auth.current();
+    const me = this.auth.getCurrentUser();
     const actorId = me?.id || 'anonymous';
     const actorEmail = me?.email || 'unknown@clubhub.tn';
 

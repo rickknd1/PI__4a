@@ -26,18 +26,18 @@ interface NavLink {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
   template: `
-    <div class="min-h-screen bg-zinc-50">
+    <div class="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-brand-50/30">
       <!-- Top navbar -->
-      <nav class="border-b border-zinc-100 bg-white/80 backdrop-blur-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+      <nav class="border-b border-zinc-100 bg-white/85 backdrop-blur-xl sticky top-0 z-50 shadow-sm shadow-zinc-100/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <!-- Logo -->
-          <a routerLink="/home" class="flex items-center gap-3 shrink-0">
-            <div class="w-9 h-9 bg-brand-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">C</div>
-            <span class="font-semibold tracking-tight text-xl hidden sm:inline">ClubHub</span>
+          <a routerLink="/home" class="flex items-center gap-2.5 shrink-0 group">
+            <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30 transition group-hover:shadow-xl group-hover:shadow-brand-500/40">C</div>
+            <span class="font-semibold tracking-tight text-xl text-zinc-900">ClubHub</span>
           </a>
 
-          <!-- Desktop nav -->
-          <div class="hidden lg:flex items-center gap-1">
+          <!-- Desktop nav (md+) -->
+          <div class="hidden md:flex items-center gap-0.5">
             @for (link of navLinks; track link.path) {
               @if (!link.children) {
                 <a [routerLink]="link.path" routerLinkActive="text-brand-500 bg-brand-50"
@@ -96,9 +96,9 @@ interface NavLink {
               }
             </div>
 
-            <!-- Mobile burger -->
+            <!-- Mobile burger (visible < md) -->
             <button (click)="mobileOpen.set(!mobileOpen())"
-                    class="lg:hidden p-2 rounded-xl hover:bg-zinc-100 transition"
+                    class="md:hidden p-2 rounded-xl hover:bg-zinc-100 transition"
                     aria-label="Menu">
               <svg class="w-6 h-6 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 @if (!mobileOpen()) {
@@ -111,9 +111,9 @@ interface NavLink {
           </div>
         </div>
 
-        <!-- Mobile drawer -->
+        <!-- Mobile drawer (visible < md) -->
         @if (mobileOpen()) {
-          <div class="lg:hidden border-t border-zinc-100 bg-white max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <div class="md:hidden border-t border-zinc-100 bg-white max-h-[calc(100vh-4rem)] overflow-y-auto">
             <div class="px-4 py-3 space-y-1">
               @for (link of navLinks; track link.path) {
                 @if (!link.children) {

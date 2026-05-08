@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('PRESIDENT','TRESORIER','SECRETAIRE_GENERALE','RH','VICE_PRESIDENT')")
     public List<Order> getAllOrders() {
         try {
             return orderService.getAllOrders();
@@ -28,6 +30,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public Order getOrderById(@PathVariable String id) {
         try {
             return orderService.getOrderById(id);
@@ -40,6 +43,7 @@ public class OrderController {
     }
 
     @GetMapping("/member/{memberId}")
+    @PreAuthorize("isAuthenticated()")
     public List<Order> getOrdersByMember(@PathVariable String memberId) {
         try {
             return orderService.getOrdersByMember(memberId);
@@ -50,6 +54,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("isAuthenticated()")
     public Order createOrder(@Valid @RequestBody OrderRequest request) {
         try {
             return orderService.createOrder(request);
@@ -62,6 +67,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('PRESIDENT','TRESORIER','SECRETAIRE_GENERALE','RH','VICE_PRESIDENT')")
     public Order updateOrderStatus(@PathVariable String id,
                                    @RequestParam Order.OrderStatus status,
                                    HttpServletRequest request) {

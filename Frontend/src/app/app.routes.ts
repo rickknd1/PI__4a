@@ -214,13 +214,15 @@ export const routes: Routes = [
       },
 
       // -------- Élections --------
+      // CRUD reserve au bureau (PRESIDENT/RH/SecGen via ceoGuard).
+      // La liste + detail restent visibles a tous (vote / consultation).
       {
         path: 'elections',
         children: [
-          { path: '',         component: ElectionListComponent,   title: 'Élections' },
-          { path: 'create',   component: ElectionFormComponent,   title: 'Créer une élection' },
-          { path: ':id',      component: ElectionDetailComponent, title: 'Détail élection' },
-          { path: ':id/edit', component: ElectionFormComponent,   title: 'Modifier l\'élection' },
+          { path: '',         component: ElectionListComponent,                                   title: 'Élections' },
+          { path: 'create',   component: ElectionFormComponent,   canActivate: [ceoGuard],       title: 'Créer une élection' },
+          { path: ':id',      component: ElectionDetailComponent,                                 title: 'Détail élection' },
+          { path: ':id/edit', component: ElectionFormComponent,   canActivate: [ceoGuard],       title: 'Modifier l\'élection' },
         ],
       },
 

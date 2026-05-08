@@ -3,6 +3,7 @@ import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AuthService } from '../../../shared/services/auth.service';
 
 interface Preset {
   key: string;
@@ -19,7 +20,7 @@ interface Preset {
   templateUrl: './rapports.component.html',
 })
 export class RapportsComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   loading = false;
   error = '';
   success = '';
@@ -37,9 +38,12 @@ export class RapportsComponent implements OnInit {
 
   private http = inject(HttpClient);
   private sanitizer = inject(DomSanitizer);
+  private auth = inject(AuthService);
   private base = 'http://localhost:8084/api/v1/treasury';
 
   ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.buildPresets();
     // Charge automatiquement le mois en cours
     this.applyPreset(this.presets.find(p => p.key === 'this-month')!);

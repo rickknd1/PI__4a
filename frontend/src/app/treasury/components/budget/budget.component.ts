@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TreasuryApiService } from '../../services/treasury-api.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { Budget } from '../../models/treasury.models';
 
 @Component({
@@ -11,14 +12,14 @@ import { Budget } from '../../models/treasury.models';
   templateUrl: './budget.component.html',
 })
 export class BudgetComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   budgets: Budget[] = [];
   loading = true;
   error = '';
   showForm = false;
   form: FormGroup;
 
-  constructor(private api: TreasuryApiService, private fb: FormBuilder) {
+  constructor(private api: TreasuryApiService, private fb: FormBuilder, private auth: AuthService) {
     this.form = this.fb.group({
       label: ['', Validators.required],
       totalAmount: [null, [Validators.required, Validators.min(1)]],
@@ -27,7 +28,11 @@ export class BudgetComponent implements OnInit {
     });
   }
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
+    this.load();
+  }
 
   load() {
     this.loading = true;

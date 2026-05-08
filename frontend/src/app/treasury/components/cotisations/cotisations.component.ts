@@ -4,6 +4,9 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { TreasuryApiService } from '../../services/treasury-api.service';
+// Service auth LOCAL au module treasury (a `isTresorier()`, `current()`, etc.
+// utilises directement par le template). Le shared AuthService n'a pas
+// ces helpers — on garde le local pour ne pas casser l'UI.
 import { AuthService } from '../../services/auth.service';
 import { CotisationRule, Payment, MockUser } from '../../models/treasury.models';
 
@@ -14,7 +17,7 @@ import { CotisationRule, Payment, MockUser } from '../../models/treasury.models'
   templateUrl: './cotisations.component.html',
 })
 export class CotisationsComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   rules: CotisationRule[] = [];
   payments: Payment[] = [];
   loading = true;
@@ -75,6 +78,8 @@ export class CotisationsComponent implements OnInit {
   }
 
   ngOnInit() {
+    const u = this.auth.current();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.loadUsers();
     this.load();
   }

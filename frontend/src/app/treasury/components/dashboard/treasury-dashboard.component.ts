@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TreasuryApiService, LatePaymentPrediction } from '../../services/treasury-api.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { TreasuryDashboard, AnomalyAlert } from '../../models/treasury.models';
 
 @Component({
@@ -11,7 +12,7 @@ import { TreasuryDashboard, AnomalyAlert } from '../../models/treasury.models';
   templateUrl: './treasury-dashboard.component.html',
 })
 export class TreasuryDashboardComponent implements OnInit {
-  clubId = 1;
+  clubId: number | string = 1;
   dashboard: TreasuryDashboard | null = null;
   loading = true;
   error = '';
@@ -42,8 +43,11 @@ export class TreasuryDashboardComponent implements OnInit {
   ];
 
   private api = inject(TreasuryApiService);
+  private auth = inject(AuthService);
 
   ngOnInit() {
+    const u = this.auth.getCurrentUser();
+    this.clubId = (u?.clubId as any) ?? 1;
     this.api.getDashboard(this.clubId).subscribe({
       next: (data) => {
         this.dashboard = data;
