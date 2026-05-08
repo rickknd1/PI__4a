@@ -1,28 +1,23 @@
 <!--
-  Home (front-office) — design aligne avec la charte landing.
-  Palette : zinc + brand-500 (#465fff). Surfaces blanches arrondies (rounded-2xl/3xl),
-  ombres douces, hero gradient brand. Pas de dark mode (uniformite avec landing).
+  Home (front-office) — landing charte. EN locale.
 -->
 <section class="space-y-8">
 
-  <!-- ============================================================
-       HERO : Bienvenue + bouton Back-office (si bureau)
-       ============================================================ -->
+  <!-- HERO -->
   <header class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-950 p-8 md:p-12 shadow-xl shadow-brand-500/20">
-    <!-- Decorations geometriques en background -->
     <div class="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" aria-hidden="true"></div>
     <div class="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-white/5 blur-3xl" aria-hidden="true"></div>
 
     <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
       <div class="max-w-2xl">
         <p class="text-sm font-medium text-white/70">
-          Bonjour {{ user()?.firstName || 'a vous' }},
+          Hello {{ user()?.firstName || 'there' }},
         </p>
         <h1 class="mt-2 text-4xl font-semibold tracking-tighter text-white md:text-5xl">
-          Bienvenue sur ClubHub
+          Welcome to ClubHub
         </h1>
         <p class="mt-3 max-w-xl text-base text-white/80">
-          Vos prochains evenements, vos cotisations et votre actualite — au meme endroit.
+          Your upcoming events, dues and updates — all in one place.
         </p>
       </div>
 
@@ -31,9 +26,9 @@
           type="button"
           (click)="goToBackoffice()"
           class="inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-lg shadow-brand-900/20 transition hover:bg-zinc-50 hover:shadow-xl"
-          [attr.aria-label]="'Aller a ' + backofficeLabel()"
+          [attr.aria-label]="'Go to ' + backofficeLabel()"
         >
-          Back-office
+          Back Office
           <span class="hidden text-xs font-normal text-brand-500 sm:inline">
             {{ backofficeLabel() }}
           </span>
@@ -45,15 +40,12 @@
     </div>
   </header>
 
-  <!-- ============================================================
-       STATS : 3 cards
-       ============================================================ -->
+  <!-- STATS -->
   <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-    <!-- Evenements a venir -->
     <article class="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition hover:shadow-md">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-zinc-500">Evenements a venir</p>
+          <p class="text-sm font-medium text-zinc-500">Upcoming events</p>
           <p class="mt-2 text-4xl font-semibold tracking-tight text-zinc-900">
             {{ upcomingEvents().length }}
           </p>
@@ -66,11 +58,10 @@
       </div>
     </article>
 
-    <!-- Cotisations a payer -->
     <article class="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition hover:shadow-md">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-zinc-500">Cotisations a regler</p>
+          <p class="text-sm font-medium text-zinc-500">Dues to pay</p>
           <p class="mt-2 text-4xl font-semibold tracking-tight text-zinc-900">
             {{ payableCotisations().length }}
           </p>
@@ -83,11 +74,10 @@
       </div>
     </article>
 
-    <!-- Solde du -->
     <article class="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm transition hover:shadow-md">
       <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm font-medium text-zinc-500">Solde du</p>
+          <p class="text-sm font-medium text-zinc-500">Outstanding balance</p>
           <p class="mt-2 text-4xl font-semibold tracking-tight"
              [class.text-rose-600]="debtTotal() > 0"
              [class.text-emerald-600]="debtTotal() === 0">
@@ -108,21 +98,19 @@
     </article>
   </div>
 
-  <!-- ============================================================
-       ACCES RAPIDES (4 tiles)
-       ============================================================ -->
+  <!-- QUICK LINKS -->
   <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
     <a [routerLink]="['/scan-instructions']"
        class="group flex items-center gap-3 rounded-2xl border border-zinc-100 bg-white p-4 text-zinc-700 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
-       aria-label="Ouvrir le scanner QR">
+       aria-label="Open QR scanner">
       <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-500 transition group-hover:bg-brand-500 group-hover:text-white">
         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 4h2v2h-2v-2zm4-4h2v2h-2v-2zm-4 0h2v2h-2v-2zm4 4h2v2h-2v-2z" />
         </svg>
       </div>
       <div class="min-w-0">
-        <p class="truncate text-sm font-semibold text-zinc-900">Scanner QR</p>
-        <p class="truncate text-xs text-zinc-500">Validation rapide</p>
+        <p class="truncate text-sm font-semibold text-zinc-900">QR Scanner</p>
+        <p class="truncate text-xs text-zinc-500">Quick check-in</p>
       </div>
     </a>
 
@@ -134,8 +122,8 @@
         </svg>
       </div>
       <div class="min-w-0">
-        <p class="truncate text-sm font-semibold text-zinc-900">Evenements</p>
-        <p class="truncate text-xs text-zinc-500">Calendrier</p>
+        <p class="truncate text-sm font-semibold text-zinc-900">Events</p>
+        <p class="truncate text-xs text-zinc-500">Calendar</p>
       </div>
     </a>
 
@@ -160,23 +148,21 @@
         </svg>
       </div>
       <div class="min-w-0">
-        <p class="truncate text-sm font-semibold text-zinc-900">Mon profil</p>
-        <p class="truncate text-xs text-zinc-500">Mes infos</p>
+        <p class="truncate text-sm font-semibold text-zinc-900">My Profile</p>
+        <p class="truncate text-xs text-zinc-500">Settings</p>
       </div>
     </a>
   </div>
 
-  <!-- ============================================================
-       PROCHAINS EVENEMENTS
-       ============================================================ -->
+  <!-- UPCOMING EVENTS -->
   <section class="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
     <header class="mb-5 flex items-center justify-between">
       <div>
-        <h2 class="text-xl font-semibold tracking-tight text-zinc-900">Prochains evenements</h2>
-        <p class="text-sm text-zinc-500">Reservez vos places, ne manquez rien</p>
+        <h2 class="text-xl font-semibold tracking-tight text-zinc-900">Upcoming events</h2>
+        <p class="text-sm text-zinc-500">Reserve your spot, don't miss anything</p>
       </div>
       <a [routerLink]="['/events']" class="text-sm font-medium text-brand-500 hover:text-brand-600">
-        Voir tout →
+        See all →
       </a>
     </header>
 
@@ -186,7 +172,7 @@
       </div>
     } @else if (upcomingEvents().length === 0) {
       <div class="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center">
-        <p class="text-sm text-zinc-500">Aucun evenement a venir pour le moment.</p>
+        <p class="text-sm text-zinc-500">No upcoming events at the moment.</p>
       </div>
     } @else {
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -211,7 +197,7 @@
                 <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {{ ev.startDate | date: "EEE d MMM 'a' HH:mm" }}
+                {{ ev.startDate | date: "EEE d MMM 'at' HH:mm" }}
               </p>
               @if (ev.location?.name) {
                 <p class="mt-1 flex items-center gap-1.5 text-xs text-zinc-500">
@@ -224,7 +210,7 @@
 
               <button type="button" (click)="rsvp(ev)"
                       class="mt-4 inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
-                      [attr.aria-label]="'RSVP pour ' + ev.title">
+                      [attr.aria-label]="'RSVP to ' + ev.title">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
@@ -237,19 +223,17 @@
     }
   </section>
 
-  <!-- ============================================================
-       MES COTISATIONS
-       ============================================================ -->
+  <!-- MY DUES -->
   <section class="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
     <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold tracking-tight text-zinc-900">Mes cotisations</h2>
-        <p class="text-sm text-zinc-500">Suivez vos paiements et soldes a jour</p>
+        <h2 class="text-xl font-semibold tracking-tight text-zinc-900">My dues</h2>
+        <p class="text-sm text-zinc-500">Track your payments and outstanding balances</p>
       </div>
       @if (debtTotal() > 0) {
         <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700">
           <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
-          {{ debtTotal() | number: '1.2-2' }} TND a regler
+          {{ debtTotal() | number: '1.2-2' }} TND to pay
         </span>
       }
     </header>
@@ -260,17 +244,17 @@
       </div>
     } @else if (myPayments().length === 0) {
       <div class="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center">
-        <p class="text-sm text-zinc-500">Aucune cotisation enregistree.</p>
+        <p class="text-sm text-zinc-500">No dues recorded.</p>
       </div>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
           <thead class="border-b border-zinc-100 text-xs uppercase tracking-wider text-zinc-500">
             <tr>
-              <th scope="col" class="py-3 pr-4 font-semibold">Motif</th>
-              <th scope="col" class="py-3 pr-4 font-semibold">Montant</th>
-              <th scope="col" class="py-3 pr-4 font-semibold">Echeance</th>
-              <th scope="col" class="py-3 pr-4 font-semibold">Statut</th>
+              <th scope="col" class="py-3 pr-4 font-semibold">Description</th>
+              <th scope="col" class="py-3 pr-4 font-semibold">Amount</th>
+              <th scope="col" class="py-3 pr-4 font-semibold">Due date</th>
+              <th scope="col" class="py-3 pr-4 font-semibold">Status</th>
               <th scope="col" class="py-3 pr-0 font-semibold text-right">Action</th>
             </tr>
           </thead>
@@ -278,7 +262,7 @@
             @for (p of myPayments(); track p.id) {
               <tr class="text-zinc-700 transition hover:bg-zinc-50">
                 <td class="py-3 pr-4 font-medium text-zinc-900">
-                  {{ p.cotisationRuleName || 'Cotisation' }}
+                  {{ p.cotisationRuleName || 'Membership due' }}
                 </td>
                 <td class="py-3 pr-4 font-semibold">
                   {{ p.amount | number: '1.2-2' }} <span class="text-xs font-normal text-zinc-500">TND</span>
@@ -296,11 +280,11 @@
                   @if (p.status === 'PENDING' || p.status === 'LATE' || p.status === 'PENDING_CASH') {
                     <button type="button" (click)="payCotisation(p)"
                             class="inline-flex items-center gap-1.5 rounded-xl bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-600"
-                            [attr.aria-label]="'Payer ' + (p.cotisationRuleName || 'cotisation')">
+                            [attr.aria-label]="'Pay ' + (p.cotisationRuleName || 'due')">
                       <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      Payer
+                      Pay now
                     </button>
                   } @else {
                     <span class="text-xs text-zinc-300">—</span>
@@ -314,13 +298,11 @@
     }
   </section>
 
-  <!-- ============================================================
-       NOTIFICATIONS
-       ============================================================ -->
+  <!-- NOTIFICATIONS -->
   <section class="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
     <header class="mb-5">
-      <h2 class="text-xl font-semibold tracking-tight text-zinc-900">Mes notifications</h2>
-      <p class="text-sm text-zinc-500">Restez informe des dernieres actualites du club</p>
+      <h2 class="text-xl font-semibold tracking-tight text-zinc-900">My notifications</h2>
+      <p class="text-sm text-zinc-500">Stay informed about the latest club news</p>
     </header>
 
     @if (loadingNotifs()) {
@@ -334,7 +316,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <p class="text-sm text-zinc-600">Vous etes a jour, aucune notification.</p>
+        <p class="text-sm text-zinc-600">You're all caught up — no notifications.</p>
       </div>
     } @else {
       <ul class="divide-y divide-zinc-50">

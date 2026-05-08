@@ -31,10 +31,9 @@ interface NavLink {
       <!-- Top navbar -->
       <nav class="border-b border-zinc-100 bg-white/85 backdrop-blur-xl sticky top-0 z-50 shadow-sm shadow-zinc-100/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          <!-- Logo -->
-          <a routerLink="/home" class="flex items-center gap-2.5 shrink-0 group">
-            <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30 transition group-hover:shadow-xl group-hover:shadow-brand-500/40">C</div>
-            <span class="font-semibold tracking-tight text-xl text-zinc-900">ClubHub</span>
+          <!-- Logo (memes assets que la sidebar back-office) -->
+          <a routerLink="/home" class="flex items-center gap-2 shrink-0 group">
+            <img src="/images/logo/logo.png" alt="ClubHub" class="h-10 w-auto transition group-hover:scale-105" />
           </a>
 
           <!-- Desktop nav (md+) - 5 items max pour aerer -->
@@ -85,7 +84,7 @@ interface NavLink {
                 <div class="w-8 h-8 bg-gradient-to-br from-brand-500 to-brand-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                   {{ userInitials() }}
                 </div>
-                <span class="hidden md:inline text-sm font-medium text-zinc-700">{{ user()?.name || 'Membre' }}</span>
+                <span class="hidden md:inline text-sm font-medium text-zinc-700">{{ user()?.name || 'Member' }}</span>
                 <svg class="w-4 h-4 text-zinc-400 hidden md:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
               @if (profileOpen()) {
@@ -96,11 +95,11 @@ interface NavLink {
                   </div>
                   <a routerLink="/profile" (click)="profileOpen.set(false)"
                      class="block px-4 py-2 text-sm text-zinc-700 hover:bg-brand-50 hover:text-brand-500 transition">
-                    Mon profil
+                    My Profile
                   </a>
                   <button (click)="logout()"
                           class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
-                    Se déconnecter
+                    Sign Out
                   </button>
                 </div>
               }
@@ -172,25 +171,25 @@ export class MemberLayoutComponent implements OnInit {
    * Les autres options vont dans le dropdown "Plus".
    */
   navLinks: NavLink[] = [
-    { label: 'Accueil',     path: '/home',     icon: 'home' },
-    { label: 'Événements',  path: '/events',   icon: 'calendar' },
+    { label: 'Home',     path: '/home',     icon: 'home' },
+    { label: 'Events',   path: '/events',   icon: 'calendar' },
     {
-      label: 'Boutique', path: '/products', icon: 'shop',
+      label: 'Store', path: '/products', icon: 'shop',
       children: [
-        { label: 'Produits',  path: '/products', icon: '' },
-        { label: 'Billets',   path: '/tickets',  icon: '' },
-        { label: 'Panier',    path: '/cart',     icon: '' },
-        { label: 'Commandes', path: '/orders',   icon: '' },
+        { label: 'Products', path: '/products', icon: '' },
+        { label: 'Tickets',  path: '/tickets',  icon: '' },
+        { label: 'Cart',     path: '/cart',     icon: '' },
+        { label: 'Orders',   path: '/orders',   icon: '' },
       ],
     },
     { label: 'Messages', path: '/messaging', icon: 'chat' },
     {
-      label: 'Plus', path: '#', icon: 'more',
+      label: 'More', path: '#', icon: 'more',
       children: [
-        { label: 'Mes cotisations',     path: '/treasury/payer-cotisation', icon: '' },
-        { label: 'Mes RSVP',            path: '/rsvp',                       icon: '' },
-        { label: 'Canaux vocaux',       path: '/voice2/instant-voice',       icon: '' },
-        { label: 'Événements virtuels', path: '/ameni/events',               icon: '' },
+        { label: 'My Dues',         path: '/treasury/payer-cotisation', icon: '' },
+        { label: 'My RSVPs',        path: '/rsvp',                       icon: '' },
+        { label: 'Voice Channels',  path: '/voice2/instant-voice',       icon: '' },
+        { label: 'Virtual Events',  path: '/ameni/events',               icon: '' },
       ],
     },
   ];
