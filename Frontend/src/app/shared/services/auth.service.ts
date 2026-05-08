@@ -112,6 +112,12 @@ export class AuthService {
   private toStoredUser(res: AuthResponse): StoredUser {
     const firstName = res.firstName ?? '';
     const lastName  = res.lastName ?? '';
+    // Preserve le token JWT existant si la reponse n'en contient pas. Le
+    // /api/auth/me n'inclut pas le token (contrairement a /login) : sans ce
+    // fallback, getMe() ecraserait la session avec token=undefined et
+    // isLoggedIn() renverrait false -> authGuard kick a /signin pour tout
+    // user sans clubId qui passe par la branche getMe() de signin-form
+    // (TRESORIER, VP, RH, SecGen, COMMITTEE_MEMBER sans rattachement club).
     return {
       id: res.userId,
       userId: res.userId,
@@ -124,7 +130,7 @@ export class AuthService {
       profilePhoto: res.profilePhoto,
       clubId: res.clubId,
       clubName: res.clubName,
-      token: res.token
+      token: res.token || this.currentUserSignal()?.token || ''
     };
   }
 
