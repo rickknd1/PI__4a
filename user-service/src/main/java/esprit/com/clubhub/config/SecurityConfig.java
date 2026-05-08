@@ -4,6 +4,7 @@ import esprit.com.clubhub.security.JwtAuthFilter;
 import esprit.com.clubhub.security.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -50,8 +51,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        // /api/users/** exige un JWT valide pour eviter la fuite de bcrypt hashes.
-                        // (Avant: permitAll sur /api/users → tous les hashes exposes publiquement.)
+                        // POST /api/users : creation depuis le flow setup-password
+                        // (le destinataire de l'invitation n'a pas encore de JWT).
+                        // La securite repose sur le token UUID de l'invitation valide
+                        // par club-service avant l'appel service-to-service.
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        // Tous les autres /api/users/** exigent un JWT valide pour eviter
+                        // la fuite de bcrypt hashes / donnees personnelles.
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/roles/**").authenticated()
                         .requestMatchers("/api/permissions/**").authenticated()

@@ -39,7 +39,12 @@ public class SecurityConfig {
                         // setup-password (lien envoye par email avec token UUID).
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/clubs/public/**").permitAll()
+                        // Flow setup-password apres invitation : aucun JWT (le destinataire
+                        // n'est pas encore membre). La securite repose sur le token UUID
+                        // unique de l'invitation valide cote service.
+                        .requestMatchers("/api/invitations/validate/**").permitAll()
                         .requestMatchers("/api/invitations/setup-password/**").permitAll()
+                        .requestMatchers("/api/invitations/setup-password").permitAll()
                         .requestMatchers("/api/invitations/accept/**").permitAll()
                         .requestMatchers("/api/qr-tokens/scan/**").permitAll()
                         // Tout le reste exige un JWT valide. Les controllers appliquent

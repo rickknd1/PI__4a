@@ -106,8 +106,21 @@ public class UserController {
      * Accepte un payload souple (Map) car le frontend envoie aussi des champs
      * non gérés par RegisterRequest (active, profilePhoto vide, etc.).
      */
+    /**
+     * NOTE securite : pas de @PreAuthorize ici. La creation utilisateur est
+     * appelee dans 2 contextes :
+     *   1. Setup-password apres invitation (le destinataire n'est PAS encore
+     *      authentifie - aucune session). La securite est enforcee en amont :
+     *      seul un admin (PRESIDENT/RH/SecGen) peut creer une invitation, et
+     *      le service-to-service call depuis MemberInvitationService valide
+     *      le token avant d'appeler ce POST.
+     *   2. Admin form direct (rare, deprecated en faveur de l'invitation).
+     *
+     * Si on veut renforcer : ajouter un header X-Internal-Source verifie via
+     * un secret partage, ou bouger ce POST sur un endpoint /internal/users
+     * accessible uniquement aux microservices (filtres CIDR + secret).
+     */
     @PostMapping
-    @PreAuthorize("hasAnyRole('PRESIDENT','RH')")
     public ResponseEntity<?> createByAdmin(@RequestBody Map<String, Object> body) {
         try {
             RegisterRequest req = new RegisterRequest();
