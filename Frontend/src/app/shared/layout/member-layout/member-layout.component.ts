@@ -2,6 +2,7 @@ import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService, StoredUser } from '../../services/auth.service';
+import { MemberFooterComponent } from './member-footer.component';
 
 interface NavLink {
   label: string;
@@ -24,7 +25,7 @@ interface NavLink {
 @Component({
   selector: 'app-member-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, MemberFooterComponent],
   template: `
     <div class="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-brand-50/30">
       <!-- Top navbar -->
@@ -36,29 +37,38 @@ interface NavLink {
             <span class="font-semibold tracking-tight text-xl text-zinc-900">ClubHub</span>
           </a>
 
-          <!-- Desktop nav (md+) -->
-          <div class="hidden md:flex items-center gap-0.5">
-            @for (link of navLinks; track link.path) {
+          <!-- Desktop nav (md+) - 5 items max pour aerer -->
+          <div class="hidden md:flex items-center gap-1">
+            @for (link of navLinks; track link.label) {
               @if (!link.children) {
-                <a [routerLink]="link.path" routerLinkActive="text-brand-500 bg-brand-50"
+                <a [routerLink]="link.path" routerLinkActive="!text-brand-500 !bg-brand-50/70"
                    [routerLinkActiveOptions]="{ exact: link.path === '/home' }"
-                   class="px-4 py-2 text-sm font-medium text-zinc-700 hover:text-brand-500 hover:bg-brand-50 rounded-xl transition">
+                   class="px-3.5 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 rounded-xl transition">
                   {{ link.label }}
                 </a>
               } @else {
                 <div class="relative" (mouseenter)="openDropdown.set(link.label)" (mouseleave)="openDropdown.set(null)">
-                  <button class="px-4 py-2 text-sm font-medium text-zinc-700 hover:text-brand-500 hover:bg-brand-50 rounded-xl transition flex items-center gap-1">
+                  <button class="px-3.5 py-2 text-sm font-medium rounded-xl transition flex items-center gap-1"
+                          [class.text-brand-500]="openDropdown() === link.label"
+                          [class.bg-brand-50]="openDropdown() === link.label"
+                          [class.text-zinc-600]="openDropdown() !== link.label">
                     {{ link.label }}
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    <svg class="w-3.5 h-3.5 transition-transform"
+                         [class.rotate-180]="openDropdown() === link.label"
+                         fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
                   </button>
                   @if (openDropdown() === link.label) {
-                    <div class="absolute top-full left-0 mt-1 w-52 bg-white border border-zinc-100 rounded-2xl shadow-xl shadow-zinc-200/50 py-2">
-                      @for (child of link.children; track child.path) {
-                        <a [routerLink]="child.path" routerLinkActive="text-brand-500 bg-brand-50"
-                           class="block px-4 py-2 text-sm text-zinc-700 hover:text-brand-500 hover:bg-brand-50 transition">
-                          {{ child.label }}
-                        </a>
-                      }
+                    <div class="absolute top-full left-0 pt-1 w-56">
+                      <div class="bg-white border border-zinc-100 rounded-2xl shadow-xl shadow-zinc-300/30 py-2 overflow-hidden">
+                        @for (child of link.children; track child.path) {
+                          <a [routerLink]="child.path" routerLinkActive="text-brand-500 bg-brand-50"
+                             class="block px-4 py-2.5 text-sm text-zinc-700 hover:text-brand-500 hover:bg-brand-50 transition">
+                            {{ child.label }}
+                          </a>
+                        }
+                      </div>
                     </div>
                   }
                 </div>
@@ -145,6 +155,9 @@ interface NavLink {
       <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <router-outlet/>
       </main>
+
+      <!-- Footer (charte landing) -->
+      <app-member-footer/>
     </div>
   `,
 })
@@ -154,10 +167,13 @@ export class MemberLayoutComponent implements OnInit {
   profileOpen = signal(false);
   openDropdown = signal<string | null>(null);
 
+  /**
+   * Items principaux (visible inline sur desktop). Maximum 5 pour rester aere.
+   * Les autres options vont dans le dropdown "Plus".
+   */
   navLinks: NavLink[] = [
-    { label: 'Accueil',           path: '/home',          icon: 'home' },
-    { label: 'Événements',        path: '/events',        icon: 'calendar' },
-    { label: 'Mes cotisations',   path: '/treasury/payer-cotisation', icon: 'wallet' },
+    { label: 'Accueil',     path: '/home',     icon: 'home' },
+    { label: 'Événements',  path: '/events',   icon: 'calendar' },
     {
       label: 'Boutique', path: '/products', icon: 'shop',
       children: [
@@ -167,10 +183,16 @@ export class MemberLayoutComponent implements OnInit {
         { label: 'Commandes', path: '/orders',   icon: '' },
       ],
     },
-    { label: 'Canaux vocaux',     path: '/voice2/instant-voice', icon: 'mic' },
-    { label: 'Événements virtuels', path: '/ameni/events',       icon: 'video' },
-    { label: 'Mes RSVP',          path: '/rsvp',          icon: 'qr' },
-    { label: 'Messages',          path: '/messaging',     icon: 'chat' },
+    { label: 'Messages', path: '/messaging', icon: 'chat' },
+    {
+      label: 'Plus', path: '#', icon: 'more',
+      children: [
+        { label: 'Mes cotisations',     path: '/treasury/payer-cotisation', icon: '' },
+        { label: 'Mes RSVP',            path: '/rsvp',                       icon: '' },
+        { label: 'Canaux vocaux',       path: '/voice2/instant-voice',       icon: '' },
+        { label: 'Événements virtuels', path: '/ameni/events',               icon: '' },
+      ],
+    },
   ];
 
   constructor(private auth: AuthService, private router: Router) {}
