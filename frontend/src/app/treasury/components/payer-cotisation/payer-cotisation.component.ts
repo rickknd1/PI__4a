@@ -20,15 +20,15 @@ import { Payment, MockUser } from '../../models/treasury.models';
           </svg>
         </a>
         <div>
-          <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Payer ma cotisation</h2>
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Pay my due</h2>
           <p class="text-sm text-gray-500" *ngIf="user">{{ user.firstName }} {{ user.lastName }} - {{ user.email }}</p>
         </div>
       </div>
 
       <!-- Not logged in -->
       <div *ngIf="!user" class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-        <p class="text-yellow-700 font-medium">Connectez-vous d'abord</p>
-        <a routerLink="/treasury/login" class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Se connecter</a>
+        <p class="text-yellow-700 font-medium">Please sign in first</p>
+        <a routerLink="/treasury/login" class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Sign in</a>
       </div>
 
       <div *ngIf="loading" class="text-center py-12">
@@ -40,15 +40,15 @@ import { Payment, MockUser } from '../../models/treasury.models';
 
       <!-- ====== COTISATIONS EN RETARD / EN ATTENTE ====== -->
       <div *ngIf="!loading && user && unpaid.length > 0">
-        <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-3">Cotisations a regler</h3>
+        <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-3">Dues to pay</h3>
 
         <div *ngFor="let p of unpaid" class="bg-white dark:bg-gray-800 rounded-xl border p-5 mb-4">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <p class="font-medium text-gray-800 dark:text-white">Cotisation - Echeance {{ p.dueDate | date:'dd/MM/yyyy' }}</p>
+              <p class="font-medium text-gray-800 dark:text-white">Due - Deadline {{ p.dueDate | date:'dd/MM/yyyy' }}</p>
               <span class="px-2 py-0.5 rounded-full text-xs font-medium mt-1 inline-block"
                     [class]="p.status === 'LATE' ? 'bg-red-100 text-red-700' : p.status === 'PENDING_CASH' ? 'bg-amber-100 text-amber-700' : 'bg-yellow-100 text-yellow-700'">
-                {{ p.status === 'LATE' ? 'EN RETARD' : p.status === 'PENDING_CASH' ? 'ESPECES - EN ATTENTE TRESORIER' : 'EN ATTENTE' }}
+                {{ p.status === 'LATE' ? 'LATE' : p.status === 'PENDING_CASH' ? 'CASH - AWAITING TREASURER' : 'PENDING' }}
               </span>
             </div>
             <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ p.amount | number:'1.2-2' }} <span class="text-sm text-gray-400">TND</span></p>
@@ -56,21 +56,21 @@ import { Payment, MockUser } from '../../models/treasury.models';
 
           <!-- Choix mode de paiement (seulement si pas deja en cours et pas PENDING_CASH) -->
           <div *ngIf="activePayment !== p.id && p.status !== 'PENDING_CASH'">
-            <p class="text-sm text-gray-500 mb-3">Choisissez votre mode de reglement :</p>
+            <p class="text-sm text-gray-500 mb-3">Choose your payment method:</p>
             <div class="flex gap-3">
               <button (click)="selectMode(p, 'card')"
                       class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition text-sm flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                 </svg>
-                Carte bancaire
+                Credit Card
               </button>
               <button (click)="selectMode(p, 'cash')"
                       class="flex-1 py-3 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition text-sm flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                Especes
+                Cash
               </button>
             </div>
           </div>
@@ -78,33 +78,33 @@ import { Payment, MockUser } from '../../models/treasury.models';
           <!-- ===== MODE CARTE (Stripe) ===== -->
           <div *ngIf="activePayment === p.id && paymentMode === 'card'" class="mt-4 space-y-3">
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p class="text-sm text-blue-800 font-medium mb-1">Paiement par carte bancaire</p>
-              <p class="text-xs text-blue-600">Le paiement est securise via Stripe. Vous recevrez une confirmation + recu PDF par email.</p>
+              <p class="text-sm text-blue-800 font-medium mb-1">Credit card payment</p>
+              <p class="text-xs text-blue-600">Payment is secured via Stripe. You will receive a confirmation + PDF receipt by email.</p>
             </div>
 
             <button (click)="payByCard(p)" [disabled]="processing"
                     class="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition">
-              {{ processing ? 'Traitement en cours...' : 'Confirmer le paiement de ' + (p.amount | number:'1.2-2') + ' TND' }}
+              {{ processing ? 'Processing...' : 'Confirm payment of ' + (p.amount | number:'1.2-2') + ' TND' }}
             </button>
 
-            <button (click)="cancel()" class="w-full py-2 text-gray-500 text-sm hover:underline">Annuler</button>
+            <button (click)="cancel()" class="w-full py-2 text-gray-500 text-sm hover:underline">Cancel</button>
           </div>
 
           <!-- ===== MODE ESPECE ===== -->
           <div *ngIf="activePayment === p.id && paymentMode === 'cash'" class="mt-4 space-y-3">
             <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p class="text-sm text-amber-800 font-medium mb-1">Paiement en especes</p>
-              <p class="text-xs text-amber-700">Confirmez votre demande. Le tresorier validera le paiement quand vous lui remettrez le montant.</p>
+              <p class="text-sm text-amber-800 font-medium mb-1">Cash payment</p>
+              <p class="text-xs text-amber-700">Confirm your request. The treasurer will validate the payment once you hand over the amount.</p>
               <div class="mt-3 bg-white rounded-lg p-3 border border-amber-100">
-                <p class="text-xs text-gray-500">Montant a remettre</p>
+                <p class="text-xs text-gray-500">Amount to hand over</p>
                 <p class="text-xl font-bold text-gray-800">{{ p.amount | number:'1.2-2' }} TND</p>
               </div>
             </div>
             <button (click)="requestCash(p)" [disabled]="processing"
                     class="w-full py-3 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 disabled:opacity-50 transition">
-              {{ processing ? 'Envoi...' : 'Confirmer la demande especes' }}
+              {{ processing ? 'Sending...' : 'Confirm cash request' }}
             </button>
-            <button (click)="cancel()" class="w-full py-2 text-gray-500 text-sm hover:underline">Annuler</button>
+            <button (click)="cancel()" class="w-full py-2 text-gray-500 text-sm hover:underline">Cancel</button>
           </div>
         </div>
       </div>
@@ -114,20 +114,20 @@ import { Payment, MockUser } from '../../models/treasury.models';
         <svg class="w-12 h-12 text-green-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
-        <h3 class="font-semibold text-green-700">Vous etes a jour</h3>
-        <p class="text-sm text-green-600 mt-1">Toutes vos cotisations sont reglees.</p>
+        <h3 class="font-semibold text-green-700">You are up to date</h3>
+        <p class="text-sm text-green-600 mt-1">All your dues have been paid.</p>
       </div>
 
       <!-- ====== HISTORIQUE ====== -->
       <div *ngIf="!loading && user && paid.length > 0">
-        <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-3">Historique</h3>
+        <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-3">History</h3>
         <div class="bg-white dark:bg-gray-800 rounded-xl border overflow-hidden">
           <table class="w-full text-sm">
             <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paye le</th>
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recu</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid on</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Receipt</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -135,7 +135,7 @@ import { Payment, MockUser } from '../../models/treasury.models';
                 <td class="px-4 py-3 font-medium">{{ p.amount | number:'1.2-2' }} TND</td>
                 <td class="px-4 py-3 text-gray-500">{{ p.paidAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="px-4 py-3">
-                  <button (click)="downloadReceipt(p)" class="text-blue-600 hover:underline text-xs font-medium">Telecharger PDF</button>
+                  <button (click)="downloadReceipt(p)" class="text-blue-600 hover:underline text-xs font-medium">Download PDF</button>
                 </td>
               </tr>
             </tbody>
@@ -183,20 +183,20 @@ export class PayerCotisationComponent implements OnInit {
     const paymentId = params['paymentId'];
     if (sessionId && paymentId) {
       this.processing = true;
-      this.success = 'Paiement Stripe detecte, recuperation des informations...';
+      this.success = 'Stripe payment detected, retrieving information...';
       // First, resolve the Checkout Session to get the real PaymentIntent ID (pi_xxx)
       this.api.getStripeSession(1, sessionId).subscribe({
         next: (session) => {
           const stripeIntentId = session.paymentIntentId || sessionId;
-          this.success = 'Confirmation du paiement en cours...';
+          this.success = 'Confirming payment...';
           this.api.confirmPayment(1, paymentId, stripeIntentId, '', 'Club Test ClubHub').subscribe({
             next: () => {
-              this.success = 'Paiement confirme ! Un recu a ete envoye a ' + this.user!.email + '.';
+              this.success = 'Payment confirmed! A receipt has been sent to ' + this.user!.email + '.';
               this.processing = false;
               this.loadPayments();
             },
             error: () => {
-              this.success = 'Le paiement Stripe a ete effectue. Contactez le tresorier si le statut ne se met pas a jour.';
+              this.success = 'The Stripe payment was processed. Contact the treasurer if the status does not update.';
               this.processing = false;
               this.loadPayments();
             }
@@ -206,12 +206,12 @@ export class PayerCotisationComponent implements OnInit {
           // Fallback: try confirming with sessionId directly (old behavior)
           this.api.confirmPayment(1, paymentId, sessionId, '', 'Club Test ClubHub').subscribe({
             next: () => {
-              this.success = 'Paiement confirme ! Un recu a ete envoye a ' + this.user!.email + '.';
+              this.success = 'Payment confirmed! A receipt has been sent to ' + this.user!.email + '.';
               this.processing = false;
               this.loadPayments();
             },
             error: () => {
-              this.success = 'Le paiement Stripe a ete effectue. Contactez le tresorier si le statut ne se met pas a jour.';
+              this.success = 'The Stripe payment was processed. Contact the treasurer if the status does not update.';
               this.processing = false;
               this.loadPayments();
             }
@@ -220,7 +220,7 @@ export class PayerCotisationComponent implements OnInit {
       });
     }
     if (params['cancelled']) {
-      this.error = 'Paiement annule. Vous pouvez reessayer.';
+      this.error = 'Payment cancelled. You can try again.';
     }
   }
 
@@ -235,7 +235,7 @@ export class PayerCotisationComponent implements OnInit {
         this.paid = data.filter(p => p.status === 'PAID');
         this.loading = false;
       },
-      error: (e) => { this.error = 'Impossible de charger vos paiements. (user.id=' + this.user?.id + ', status=' + e?.status + ')'; this.loading = false; }
+      error: (e) => { this.error = 'Unable to load your payments. (user.id=' + this.user?.id + ', status=' + e?.status + ')'; this.loading = false; }
     });
   }
 
@@ -254,23 +254,23 @@ export class PayerCotisationComponent implements OnInit {
   payByCard(p: Payment) {
     this.processing = true;
     this.error = '';
-    this.success = 'Creation de la session de paiement...';
+    this.success = 'Creating payment session...';
     const memberName = this.user!.firstName + ' ' + this.user!.lastName;
 
     // Cree une Stripe Checkout Session et redirige vers le portail Stripe
     this.api.createCheckoutSession(1, p.id, memberName).subscribe({
       next: (session) => {
         if (session?.url) {
-          this.success = 'Redirection vers Stripe...';
+          this.success = 'Redirecting to Stripe...';
           // Redirection vers le portail Stripe Checkout
           window.location.assign(session.url);
         } else {
-          this.error = 'Pas d\'URL Stripe recu. Response: ' + JSON.stringify(session);
+          this.error = 'No Stripe URL received. Response: ' + JSON.stringify(session);
           this.processing = false;
         }
       },
       error: (err) => {
-        this.error = 'Erreur Stripe: ' + (err?.error?.message || err?.message || err?.status || JSON.stringify(err));
+        this.error = 'Stripe error: ' + (err?.error?.message || err?.message || err?.status || JSON.stringify(err));
         this.success = '';
         this.processing = false;
       }
@@ -282,14 +282,14 @@ export class PayerCotisationComponent implements OnInit {
     this.error = '';
     this.api.requestCashPayment(1, p.id).subscribe({
       next: () => {
-        this.success = 'Demande enregistree. Presentez-vous au tresorier avec ' + p.amount + ' TND. Il validera votre paiement.';
+        this.success = 'Request recorded. Present yourself to the treasurer with ' + p.amount + ' TND. They will validate your payment.';
         this.processing = false;
         this.activePayment = null;
         this.paymentMode = null;
         this.loadPayments();
       },
       error: () => {
-        this.error = 'Erreur lors de la demande. Reessayez.';
+        this.error = 'Error during request. Please try again.';
         this.processing = false;
       }
     });
@@ -302,7 +302,7 @@ export class PayerCotisationComponent implements OnInit {
         const a = document.createElement('a'); a.href = url; a.download = 'recu-' + p.id + '.pdf'; a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => { this.error = 'Erreur telechargement du recu.'; }
+      error: () => { this.error = 'Error downloading receipt.'; }
     });
   }
 }

@@ -25,19 +25,19 @@ interface Notif {
             </svg>
           </a>
           <div>
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Mes notifications</h2>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">My notifications</h2>
             <p class="text-sm text-gray-500" *ngIf="user">{{ user.firstName }} {{ user.lastName }}</p>
           </div>
         </div>
         <button *ngIf="notifications.length > 0" (click)="markAllRead()"
                 class="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition">
-          Tout marquer comme lu
+          Mark all as read
         </button>
       </div>
 
       <div *ngIf="!user" class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-        <p class="text-yellow-700 font-medium">Connectez-vous d'abord</p>
-        <a routerLink="/treasury/login" class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Se connecter</a>
+        <p class="text-yellow-700 font-medium">Please sign in first</p>
+        <a routerLink="/treasury/login" class="mt-3 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Sign in</a>
       </div>
 
       <div *ngIf="loading" class="text-center py-12">
@@ -45,7 +45,7 @@ interface Notif {
       </div>
 
       <div *ngIf="!loading && notifications.length === 0" class="bg-gray-50 rounded-xl border p-8 text-center">
-        <p class="text-gray-400">Aucune notification pour le moment.</p>
+        <p class="text-gray-400">No notifications yet.</p>
       </div>
 
       <div *ngIf="!loading" class="space-y-3">
@@ -57,7 +57,7 @@ interface Notif {
               <div class="flex items-center gap-2 mb-1">
                 <span [class]="typeClass(n.type)" class="px-2 py-0.5 rounded-full text-xs font-medium">{{ typeLabel(n.type) }}</span>
                 <span *ngIf="!n.read" class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span *ngIf="n.emailSent" class="text-xs text-gray-400">Email envoye</span>
+                <span *ngIf="n.emailSent" class="text-xs text-gray-400">Email sent</span>
               </div>
               <p class="font-medium text-gray-800 dark:text-white">{{ n.title }}</p>
               <p class="text-sm text-gray-500 mt-1">{{ n.message }}</p>
@@ -69,10 +69,10 @@ interface Notif {
 
       <!-- Pagination -->
       <div *ngIf="!loading && totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-        <span class="text-sm text-gray-500">Page {{page+1}} / {{totalPages}} ({{total}} elements)</span>
+        <span class="text-sm text-gray-500">Page {{page+1}} / {{totalPages}} ({{total}} items)</span>
         <div class="flex gap-2">
-          <button (click)="page=page-1" [disabled]="page===0" class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Precedent</button>
-          <button (click)="page=page+1" [disabled]="page>=totalPages-1" class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Suivant</button>
+          <button (click)="page=page-1" [disabled]="page===0" class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Previous</button>
+          <button (click)="page=page+1" [disabled]="page>=totalPages-1" class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-50 disabled:opacity-40 dark:border-gray-600 dark:hover:bg-gray-700">Next</button>
         </div>
       </div>
 
@@ -135,9 +135,9 @@ export class MesNotificationsComponent implements OnInit {
   }
   typeLabel(t: string): string {
     const m: Record<string, string> = {
-      PAYMENT_DUE: 'Cotisation', PAYMENT_CONFIRMED: 'Paiement', PAYMENT_LATE: 'Retard',
-      EXPENSE_SUBMITTED: 'Depense', EXPENSE_VALIDATED: 'Validation', EXPENSE_APPROVED: 'Approbation',
-      EXPENSE_REJECTED: 'Rejet', BUDGET_ALERT: 'Budget', INVOICE_GENERATED: 'Facture',
+      PAYMENT_DUE: 'Due', PAYMENT_CONFIRMED: 'Payment', PAYMENT_LATE: 'Late',
+      EXPENSE_SUBMITTED: 'Expense', EXPENSE_VALIDATED: 'Validation', EXPENSE_APPROVED: 'Approval',
+      EXPENSE_REJECTED: 'Rejected', BUDGET_ALERT: 'Budget', INVOICE_GENERATED: 'Invoice',
     };
     return m[t] ?? t;
   }

@@ -12,13 +12,13 @@ import { Payment, MockUser } from '../../models/treasury.models';
     <div class="p-6 space-y-6">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Mes Paiements</h2>
-          <p class="text-sm text-gray-500 mt-1" *ngIf="user">Connecte en tant que {{ user.firstName }} {{ user.lastName }} ({{ user.role }})</p>
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white">My Payments</h2>
+          <p class="text-sm text-gray-500 mt-1" *ngIf="user">Signed in as {{ user.firstName }} {{ user.lastName }} ({{ user.role }})</p>
         </div>
       </div>
 
       <div *ngIf="!user" class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-yellow-700">
-        Veuillez vous connecter d'abord via la page de selection utilisateur.
+        Please sign in first via the user selection page.
       </div>
 
       <div *ngIf="loading" class="text-center py-12">
@@ -30,19 +30,19 @@ import { Payment, MockUser } from '../../models/treasury.models';
       <!-- Stats rapides -->
       <div *ngIf="!loading && user" class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white dark:bg-gray-800 rounded-xl border p-4 text-center">
-          <p class="text-sm text-gray-500">Total du</p>
+          <p class="text-sm text-gray-500">Total due</p>
           <p class="text-xl font-bold text-gray-800 dark:text-white">{{ totalDue | number:'1.2-2' }} TND</p>
         </div>
         <div class="bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 p-4 text-center">
-          <p class="text-sm text-green-600">Paye</p>
+          <p class="text-sm text-green-600">Paid</p>
           <p class="text-xl font-bold text-green-700">{{ totalPaid | number:'1.2-2' }} TND</p>
         </div>
         <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 p-4 text-center">
-          <p class="text-sm text-yellow-600">En attente</p>
+          <p class="text-sm text-yellow-600">Pending</p>
           <p class="text-xl font-bold text-yellow-700">{{ totalPending | number:'1.2-2' }} TND</p>
         </div>
         <div class="bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 p-4 text-center">
-          <p class="text-sm text-red-600">En retard</p>
+          <p class="text-sm text-red-600">Late</p>
           <p class="text-xl font-bold text-red-700">{{ totalLate | number:'1.2-2' }} TND</p>
         </div>
       </div>
@@ -53,10 +53,10 @@ import { Payment, MockUser } from '../../models/treasury.models';
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Montant</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Echeance</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paye le</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due date</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid on</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
             </tr>
           </thead>
@@ -73,18 +73,18 @@ import { Payment, MockUser } from '../../models/treasury.models';
                 <button *ngIf="p.status === 'PENDING' || p.status === 'LATE'"
                         (click)="pay(p)" [disabled]="paying === p.id"
                         class="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 disabled:opacity-40 transition">
-                  {{ paying === p.id ? 'Traitement...' : 'Payer' }}
+                  {{ paying === p.id ? 'Processing...' : 'Pay' }}
                 </button>
                 <button *ngIf="p.status === 'PAID'"
                         (click)="downloadReceipt(p)"
                         class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition">
-                  Recu PDF
+                  PDF Receipt
                 </button>
-                <span *ngIf="p.status === 'EXEMPT'" class="text-xs text-gray-400">Exempte</span>
+                <span *ngIf="p.status === 'EXEMPT'" class="text-xs text-gray-400">Exempt</span>
               </td>
             </tr>
             <tr *ngIf="payments.length === 0">
-              <td colspan="6" class="px-4 py-8 text-center text-gray-400">Aucun paiement pour le moment.</td>
+              <td colspan="6" class="px-4 py-8 text-center text-gray-400">No payments yet.</td>
             </tr>
           </tbody>
         </table>
@@ -127,7 +127,7 @@ export class MembrePaiementComponent implements OnInit {
         this.computeStats();
         this.loading = false;
       },
-      error: () => { this.error = 'Impossible de charger les paiements.'; this.loading = false; }
+      error: () => { this.error = 'Unable to load payments.'; this.loading = false; }
     });
   }
 
@@ -152,14 +152,14 @@ export class MembrePaiementComponent implements OnInit {
         const headers: any = { 'Content-Type': 'application/json', 'X-Actor-Id': String(this.user!.id), 'X-Actor-Email': this.user!.email };
         this.api.confirmPayment(1, p.id, intent.paymentIntentId, this.user!.id, this.user!.email).subscribe({
           next: () => {
-            this.paymentMessage = 'Paiement #' + p.id + ' confirme ! Mode: ' + intent.mode + '. Un recu vous sera envoye par email.';
+            this.paymentMessage = 'Payment #' + p.id + ' confirmed! Mode: ' + intent.mode + '. A receipt will be sent to you by email.';
             this.paying = null;
             this.loadPayments();
           },
-          error: () => { this.paymentMessage = 'Paiement initie (intent: ' + intent.paymentIntentId + '). Confirmez via Stripe.'; this.paying = null; }
+          error: () => { this.paymentMessage = 'Payment initiated (intent: ' + intent.paymentIntentId + '). Confirm via Stripe.'; this.paying = null; }
         });
       },
-      error: () => { this.error = 'Erreur Stripe.'; this.paying = null; }
+      error: () => { this.error = 'Stripe error.'; this.paying = null; }
     });
   }
 
@@ -169,7 +169,7 @@ export class MembrePaiementComponent implements OnInit {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url; a.download = 'recu-' + p.id + '.pdf'; a.click();
       },
-      error: () => { this.error = 'Erreur telechargement recu.'; }
+      error: () => { this.error = 'Error downloading receipt.'; }
     });
   }
 
@@ -178,7 +178,7 @@ export class MembrePaiementComponent implements OnInit {
     return m[s] ?? 'bg-gray-100 text-gray-600';
   }
   statusLabel(s: string): string {
-    const m: Record<string, string> = { PAID: 'Paye', PENDING: 'En attente', LATE: 'En retard', REFUNDED: 'Rembourse', EXEMPT: 'Exempte' };
+    const m: Record<string, string> = { PAID: 'Paid', PENDING: 'Pending', LATE: 'Late', REFUNDED: 'Refunded', EXEMPT: 'Exempt' };
     return m[s] ?? s;
   }
 }
