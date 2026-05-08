@@ -10,9 +10,10 @@ import { AuthService } from '../../services/auth.service';
  * AppLayoutComponent (sidebar TailAdmin) pour le bureau, soit
  * MemberLayoutComponent (top navbar landing-style) pour les membres simples.
  *
- * Les rôles sans privilège (MEMBRE_SIMPLE + tout rôle custom hors bureau)
- * tombent sur le layout membre. Les rôles bureau (PRESIDENT, VP, TRESORIER,
- * SECRETAIRE_GENERALE, RH, COMMITTEE_MEMBER) gardent la sidebar admin.
+ * Bureau = membres du comité exécutif uniquement. COMMITTEE_MEMBER (membre
+ * d'un comité opérationnel) et MEMBRE_SIMPLE + rôles custom tombent sur le
+ * layout membre — c'est l'alignement avec la matrice RBAC de la sidebar
+ * (cf. BUREAU_ROLES dans app-sidebar.component.ts).
  */
 const BUREAU_ROLES = new Set([
   'PRESIDENT',
@@ -20,7 +21,6 @@ const BUREAU_ROLES = new Set([
   'TRESORIER',
   'SECRETAIRE_GENERALE',
   'RH',
-  'COMMITTEE_MEMBER',
 ]);
 
 @Component({
