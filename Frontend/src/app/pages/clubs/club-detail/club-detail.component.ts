@@ -772,6 +772,16 @@ export class ClubDetailComponent implements OnInit, OnDestroy {
     return this.club?.members.find(m => m.userId === memberId) || null;
   }
 
+  /**
+   * Role du membre DANS UN COMITE specifique. Source de verite: sg.memberRoles[userId].
+   * Un user peut etre RESPONSABLE d'un comite et MEMBRE_COMITE d'un autre.
+   * AVANT le template lisait m.subGroupRole (champ unique du Member) -> affichait
+   * "Responsable" partout meme si l'user n'etait pas responsable de tous les comites.
+   */
+  getCommitteeRole(sg: any, memberId: string): string {
+    return (sg?.memberRoles && sg.memberRoles[memberId]) || 'MEMBRE_COMITE';
+  }
+
   removeMemberFromSubGroup(subGroupId: string, userId: string): void {
     if (!this.club || !confirm('Retirer ce membre du sous-groupe ?')) return;
 

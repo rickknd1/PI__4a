@@ -91,10 +91,17 @@ public class UserController {
     }
 
     // GET /api/users
+    // Multi-tenant: retourne UNIQUEMENT les users du meme club que l'appelant.
+    // Sans ce filtre, un president d'un club pouvait voir/lister les users de
+    // tous les autres clubs (cross-tenant leak observe).
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public List<User> getAll() {
-        return userService.getAllUsers();
+    public List<User> getAll(HttpServletRequest request) {
+        String callerId = getUserIdFromRequest(request);
+        if (callerId == null) return List.of();
+        User caller = userService.findUserById(callerId).orElse(null);
+        if (caller == null || caller.getClubId() == null) return List.of();
+        return userService.getUsersByClub(caller.getClubId());
     }
 
     /**
@@ -151,10 +158,29 @@ public class UserController {
     }
 
     // GET /api/users/{id}
+    // Multi-tenant: l'appelant peut lire son propre user OU un user du meme club.
+    // Bloque l'acces cross-club (un president d'un club ne peut pas lire les
+    // details d'un user d'un autre club).
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<User> getById(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    public ResponseEntity<User> getById(@PathVariable String id, HttpServletRequest request) {
+        String callerId = getUserIdFromRequest(request);
+        if (callerId == null) return ResponseEntity.status(401).build();
+
+        User target = userService.findUserById(id).orElse(null);
+        if (target == null) return ResponseEntity.notFound().build();
+
+        // Soi-meme : toujours autorise
+        if (callerId.equals(target.getId())) return ResponseEntity.ok(target);
+
+        User caller = userService.findUserById(callerId).orElse(null);
+        if (caller == null || caller.getClubId() == null) {
+            return ResponseEntity.status(403).build();
+        }
+        if (!caller.getClubId().equals(target.getClubId())) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(target);
     }
 
     // PUT /api/users/{id}
@@ -258,12 +284,22 @@ public class UserController {
     }
 
     // PUT /api/users/{id}/club - Associer un club à un utilisateur
+    // Validation du format ObjectId pour eviter les clubId garbage ("1", "undefined").
     @PutMapping("/{id}/club")
-    public ResponseEntity<User> updateUserClub(
+    @PreAuthorize("hasAnyRole('PRESIDENT','RH','SECRETAIRE_GENERALE')")
+    public ResponseEntity<?> updateUserClub(
             @PathVariable String id,
             @RequestBody Map<String, String> body) {
+        String newClubId = body.get("clubId");
+        if (newClubId != null && !newClubId.isEmpty()
+                && !newClubId.matches("^[a-fA-F0-9]{24}$")) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error",
+                "clubId invalide: '" + newClubId + "'. Doit etre un ObjectId MongoDB (24 char hex)."
+            ));
+        }
         User user = userService.getUserById(id);
-        user.setClubId(body.get("clubId"));
+        user.setClubId(newClubId);
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 }

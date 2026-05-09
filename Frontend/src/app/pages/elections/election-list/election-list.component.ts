@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ElectionService } from '../../../shared/services/election.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { Election } from '../../../models/election.model';
 import { ElectionStatusPipe, ElectionStatusColorPipe } from '../../../shared/pipe/election-status.pipe';
 
@@ -16,16 +17,48 @@ export class ElectionListComponent implements OnInit {
   elections: Election[] = [];
   loading = true;
 
-  constructor(private electionService: ElectionService) {}
+  /** Visible aux roles privilegies pour creer/editer/supprimer une election. */
+  isAdmin = false;
+  /** True si l'utilisateur est un membre simple (filtres status appliques). */
+  isSimpleMember = false;
+  /** Statuts toujours caches aux MEMBRE_SIMPLE. */
+  private readonly HIDDEN_STATUSES_FOR_MEMBERS = ['CLOSED', 'CANCELLED'];
+
+  constructor(
+    private electionService: ElectionService,
+    private authService: AuthService,
+  ) {}
 
   ngOnInit(): void {
+    const role = (this.authService.getCurrentRole() ?? '').toUpperCase();
+    this.isSimpleMember = role === 'MEMBRE_SIMPLE' || role === '' || role === 'COMMITTEE_MEMBER';
+    this.isAdmin = ['PRESIDENT', 'VICE_PRESIDENT', 'SECRETAIRE_GENERALE', 'RH', 'TRESORIER'].includes(role);
+
     this.loadElections();
   }
 
   loadElections(): void {
-    this.electionService.getAllElections().subscribe({
+    // Multi-tenant: on ne charge QUE les elections du club de l'utilisateur.
+    // AVANT, getAllElections() retournait toutes les elections de toutes les
+    // tables — un membre du club A pouvait voir les elections du club B.
+    const clubId = this.authService.getCurrentClubId();
+
+    const source$ = clubId
+      ? this.electionService.getElectionsByClub(clubId)
+      : this.electionService.getAllElections();
+
+    source$.subscribe({
       next: (data) => {
-        this.elections = data;
+        let filtered = data || [];
+
+        // Pour les membres simples, on cache les elections terminees/annulees.
+        // Garde uniquement PLANNED et OPEN (les seules ou ils peuvent agir :
+        // candidater pour PLANNED, voter pour OPEN).
+        if (this.isSimpleMember) {
+          filtered = filtered.filter(e => !this.HIDDEN_STATUSES_FOR_MEMBERS.includes(e.status));
+        }
+
+        this.elections = filtered;
         this.loading = false;
       },
       error: (err: any) => {
@@ -48,7 +81,6 @@ export class ElectionListComponent implements OnInit {
 
   /**
    * @deprecated Utiliser le pipe `electionStatusColor` directement dans le template.
-   * Conservé pour compatibilité avec les anciens templates.
    */
   getStatusColor(status: string): string {
     switch(status) {
@@ -62,7 +94,6 @@ export class ElectionListComponent implements OnInit {
 
   /**
    * @deprecated Utiliser le pipe `electionStatus` directement dans le template.
-   * Conservé pour compatibilité.
    */
   getStatusText(status: string): string {
     switch(status) {

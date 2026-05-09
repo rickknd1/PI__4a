@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { RETURN_URL_KEY } from '../../../../guards/auth.guard';
 
 @Component({
   selector: 'app-signin-form',
@@ -41,22 +42,20 @@ export class SigninFormComponent {
         this.loading = false;
         console.log('✅ Login réussi:', response);
 
-        if (response.clubId) {
-          this.router.navigate(['/clubs', response.clubId]);
-        } else if (response.role === 'PRESIDENT') {
+        // Deep link preservation : si l'authGuard a memorise une URL avant de
+        // rediriger vers /signin (cas typique : QR code scan vers
+        // /elections/scan/:token), on y revient apres login. Sinon, /home par
+        // defaut (le PRESIDENT sans club va d'abord creer son club).
+        let returnUrl: string | null = null;
+        try { returnUrl = sessionStorage.getItem(RETURN_URL_KEY); } catch { /* noop */ }
+        try { sessionStorage.removeItem(RETURN_URL_KEY); } catch { /* noop */ }
+
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+        } else if (!response.clubId && response.role === 'PRESIDENT') {
           this.router.navigate(['/setup-club']);
         } else {
-          // Membre sans clubId dans la réponse — essayer via getMe()
-          this.authService.getMe().subscribe({
-            next: (me: any) => {
-              if (me.clubId) {
-                this.router.navigate(['/clubs', me.clubId]);
-              } else {
-                this.router.navigate(['/']);
-              }
-            },
-            error: () => this.router.navigate(['/'])
-          });
+          this.router.navigate(['/home']);
         }
       },
       error: (err: any) => {

@@ -230,6 +230,17 @@ export const routes: Routes = [
         ],
       },
 
+      // -------- Mon Comite (RESP_EVENTS et autres responsables) --------
+      // Page dediee aux responsables : liste les membres de LEUR comite avec
+      // actions ajouter/retirer. Le composant gere l'absence de comite (l'user
+      // n'est pas responsable -> message). Pas de guard supplementaire : l'access
+      // est filtre cote sidebar (visible uniquement quand isResponsable=true).
+      {
+        path: 'my-committee',
+        loadComponent: () => import('./pages/my-committee/my-committee.component').then(m => m.MyCommitteeComponent),
+        title: 'Mon Comité',
+      },
+
       // -------- Membres --------
       { path: 'users',   component: UserListComponent, canActivate: [ceoGuard], title: 'Membres' },
       { path: 'members', redirectTo: 'users', pathMatch: 'full' },

@@ -65,6 +65,8 @@ type NavItem = {
 type SidebarPermissions = {
   /** Affiche l'item "Mon Club" (vue de la fiche club). */
   canViewMyClub: boolean;
+  /** Affiche l'item "Mon Comité" (page dediee au responsable d'un comite). */
+  canViewMyCommittee: boolean;
   canViewCalendar: boolean;          // calendrier des événements
   canManageEvents: boolean;          // CRUD events (page "All events")
   canRsvpEvents: boolean;            // page RSVP (s'inscrire à un événement)
@@ -207,12 +209,12 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       name: 'Accueil',
       path: '/home',
     },
-    {
-      section: 'front',
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11 19.5H21M11 12H21M11 4.5H21M3 5.25C3 6.07843 3.67157 6.75 4.5 6.75C5.32843 6.75 6 6.07843 6 5.25C6 4.42157 5.32843 3.75 4.5 3.75C3.67157 3.75 3 4.42157 3 5.25ZM3 12C3 12.8284 3.67157 13.5 4.5 13.5C5.32843 13.5 6 12.8284 6 12C6 11.1716 5.32843 10.5 4.5 10.5C3.67157 10.5 3 11.1716 3 12ZM3 18.75C3 19.5784 3.67157 20.25 4.5 20.25C5.32843 20.25 6 19.5784 6 18.75C6 17.9216 5.32843 17.25 4.5 17.25C3.67157 17.25 3 17.9216 3 18.75Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      name: 'Événements',
-      path: '/events',
-    },
+    // L'item front "Evenements" -> /events a ete retire car il faisait double
+    // emploi : (a) /rsvp ("Mes RSVP" front-office) couvre deja le parcours
+    // membre simple (browse events + register + QR), (b) "All events" en
+    // back-office est l'entree CRUD pour les admins/responsables. Le double
+    // affichage embrouillait la nav. Si plus tard on veut un catalogue lecture
+    // seule cote front, prevoir une route dediee /events/browse.
     {
       // Trésorerie front-office : vue membre simple. Pointe vers la LISTE
       // des paiements (mes-paiements) — pas vers /treasury/espace-membre
@@ -280,6 +282,21 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M14 14h3v3h-3zM18 14h3v3h-3zM14 18h3v3h-3zM18 18h3v3h-3z" fill="currentColor"/></svg>`,
       name: 'Mes RSVP',
       path: '/rsvp',
+    },
+    {
+      // ----------------------------------------------------------------------
+      // Elections (FRONT-OFFICE) — accessible a TOUS les utilisateurs connectes.
+      // Necessaire car un user peut basculer de role (MEMBRE_SIMPLE -> RESPONSABLE
+      // de comite -> COMMITTEE_MEMBER) et changer de layout (member-layout ->
+      // app-sidebar). Sans cet item dans la sidebar back-office, il perdrait
+      // l'acces aux elections apres promotion. Le composant election-list.ts
+      // filtre cote front : MEMBRE_SIMPLE/COMMITTEE_MEMBER ne voient que les
+      // elections PLANNED/OPEN, les admins voient tout (status + actions CRUD).
+      // ----------------------------------------------------------------------
+      section: 'front',
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 7h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      name: 'Élections',
+      path: '/elections',
     },
     {
       // ----------------------------------------------------------------------
@@ -565,13 +582,18 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       return keywords.some(k => n.includes(k));
     };
 
-    // Comité "Events" (pilote events + tasks + borrowed items + lenders + QR)
-    const eventCommittees = subGroups.filter(sg => matchesAny(sg.name, ['event', 'evenement']));
-
-    const isRespEvents = eventCommittees.some(sg =>
+    // Responsable d'UN COMITE quelconque (peu importe le nom).
+    // AVANT, la detection cherchait /event|evenement/ dans le nom -> un
+    // responsable de "testcomite", "Pole Communication" etc n'avait AUCUN
+    // acces events alors que c'etait son role. Pour la demo on simplifie :
+    // tout responsable de comite a le scope event manager. A raffiner plus
+    // tard si on veut differencier "responsable events" vs "responsable comm"
+    // via un champ `type` sur SubGroup.
+    const isResponsableOfAnyCommittee = subGroups.some(sg =>
       sg.responsableId === userId || sg.memberRoles?.[userId] === 'RESPONSABLE'
     );
-    const isMemberOfEventCommittee = eventCommittees.some(sg =>
+    const isRespEvents = isResponsableOfAnyCommittee;
+    const isMemberOfEventCommittee = subGroups.some(sg =>
       sg.memberIds?.includes(userId) ||
       sg.memberRoles?.[userId] === 'MEMBRE_COMITE' ||
       sg.responsableId === userId
@@ -580,8 +602,14 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     const isPresident = role === 'PRESIDENT';
 
     return {
-      // General visibility
-      canViewMyClub:          isBureau || isRespEvents,
+      // Mon Club : reserve au PRESIDENT et VP. Les autres roles geres ont leur
+      // propre back-office dedie (PV pour SecGen, Members/Roles pour RH,
+      // Tresorerie pour Tresorier, page comite pour Resp Events) et n'ont
+      // pas a voir l'ensemble du club admin.
+      canViewMyClub:          isPresident || (role === 'VICE_PRESIDENT'),
+      // Mon Comite : tout responsable de comite voit cet item, vers la page
+      // dediee qui ne montre que SON comite (vs Mon Club qui expose tout).
+      canViewMyCommittee:     isResponsableOfAnyCommittee,
       canViewCalendar:        isRespEvents || isPresident || isRH,
 
       // All events (page CRUD admin) : responsable Events et President seulement
@@ -693,6 +721,18 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     const back: NavItem[] = [];
     if (p.canViewMyClub) back.push(monClubItem);
 
+    // Mon Comite : item dynamique (depend de l'etat responsable, calcule au
+    // runtime). Place juste apres Mon Club pour que les responsables le voient
+    // en premier dans le back-office.
+    if (p.canViewMyCommittee) {
+      back.push({
+        section: 'back',
+        icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M21 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        name: 'Mon Comité',
+        path: '/my-committee',
+      });
+    }
+
     for (const item of this.baseNavItems) {
       if (item.section !== 'back') continue;
       const filtered = this.filterItem(item, p);
@@ -737,9 +777,14 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     const isRH          = role === 'RH';
     const isSimple      = isSimpleMemberRole(role);
     const isRespEvents  = p.canManageEvents && !isTresorier; // dérivé de la matrice de permissions
+    const isResponsable = p.canViewMyCommittee;
 
-    // ---- MEMBRE_SIMPLE : ZERO back-office ----
-    if (isSimple) return null;
+    // ---- Membre sans aucune fonction admin ni responsabilite : ZERO back-office.
+    //     AVANT, on bloquait sur isSimple seul, mais un user "simple" peut etre
+    //     responsable d'un comite (la promotion n'a pas change son role global).
+    //     Sans cette nuance, le responsable ne voyait que "Mon Comite" en back
+    //     et perdait les items events qu'il devrait avoir (canManageEvents=true).
+    if (isSimple && !isResponsable) return null;
 
     // Le Secrétaire Général joue aussi le rôle de Community/Event Manager dans
     // ce club : il a la main sur tout ce qui touche aux événements (création,
@@ -765,17 +810,17 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       case 'Transcriptions':
         return canManageEventsLikeManager ? item : null;
 
-      // Instant Voice (talkie-walkie + canaux + audio reports) :
-      // tout le BUREAU peut creer/gerer des canaux et recevoir des reports.
-      // Le membre simple voit "My reports" pour signaler des audios.
+      // Instant Voice back-office reserve au PRESIDENT et VP (gestion des canaux
+      // + analytics audio). Tresorier/SecGen/RH n'ont plus besoin d'y acceder
+      // depuis le sidebar admin (perimetre fonctionnel restreint demande).
+      // Les canaux vocaux restent visibles en front-office pour tout le monde
+      // via "Canaux vocaux". Membre simple : "My reports" pour signaler.
       case 'Instant Voice': {
-        const isBureau = isPresident || isVP || isTresorier || isSecGen || isRH;
-        if (!isBureau && !isSimple) return null;
+        const canManageVoice = isPresident || isVP;
+        if (!canManageVoice && !isSimple) return null;
         const filteredSubs = (item.subItems ?? []).filter(s => {
-          // Canaux + audio reports = bureau
-          if (s.path === '/voice2/instant-voice') return isBureau || isSimple; // simple peut rejoindre
-          if (s.path === '/voice2/audio-reports') return isBureau;
-          // My reports = membre simple uniquement (bureau a "audio-reports" plus complet)
+          if (s.path === '/voice2/instant-voice') return canManageVoice || isSimple;
+          if (s.path === '/voice2/audio-reports') return canManageVoice;
           if (s.path === '/voice2/my-reports') return isSimple;
           return false;
         });
@@ -800,13 +845,16 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
         return subItems.length ? { ...item, subItems } : null;
       }
 
-      // Event Needs : TRESORIER (validation devis + Mark Paid) + event managers (création).
+      // Event Needs : TRESORIER (validation devis + Mark Paid) + event managers
+      // (creation), MAIS PAS le SecGen — il s'occupe des PV/Members/events
+      // calendrier, pas du materiel/devis. (Demande explicite utilisateur.)
       case 'Event Needs': {
-        if (!isTresorier && !canManageEventsLikeManager) return null;
+        const eventManagerNoSecGen = isPresident || isVP || isRespEvents;
+        if (!isTresorier && !eventManagerNoSecGen) return null;
         const subItems = (item.subItems ?? []).filter(sub => {
           switch (sub.name) {
-            case 'All needs':       return isTresorier || canManageEventsLikeManager;
-            case 'Lenders':         return canManageEventsLikeManager;
+            case 'All needs':       return isTresorier || eventManagerNoSecGen;
+            case 'Lenders':         return eventManagerNoSecGen;
             case 'Quotes (Devis)':  return isTresorier;
             default:                return false;
           }

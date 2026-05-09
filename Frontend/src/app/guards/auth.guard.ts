@@ -1,13 +1,24 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../shared/services/auth.service';
 import { CommitteeResponsableService } from '../shared/services/committee-responsable.service';
 
+/** Cle sessionStorage qui memorise l'URL tentee avant redirection /signin. */
+export const RETURN_URL_KEY = 'clubhub.returnUrl';
+
 /**
  * Bloque l'accès si l'utilisateur n'est pas connecté.
- * Redirige vers /signin.
+ * Redirige vers /signin en MEMORISANT l'URL tentee, pour que le signin
+ * puisse rediriger l'user vers cette URL apres login (deep link preservation).
+ *
+ * Cas d'usage critique : scan d'un QR code election (/elections/scan/:token).
+ * Sans cette preservation, l'user clique sur le QR -> redirige /signin ->
+ * login -> atterit sur /home et perd le contexte.
  */
-export const authGuard: CanActivateFn = () => {
+export const authGuard: CanActivateFn = (
+  _route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -15,14 +26,27 @@ export const authGuard: CanActivateFn = () => {
     return true;
   }
 
+  // Memorise l'URL tentee si elle n'est pas trivialement la home.
+  try {
+    const url = state?.url;
+    if (url && url !== '/' && url !== '/home' && url !== '/signin' && url !== '/signup') {
+      sessionStorage.setItem(RETURN_URL_KEY, url);
+    }
+  } catch { /* sessionStorage indisponible (mode incognito strict) — on tombe juste sur /home apres login */ }
+
   router.navigate(['/signin']);
   return false;
 };
 
 /**
  * Empêche un utilisateur déjà connecté d'accéder aux pages signin / signup.
- * - Si l'utilisateur a un club  → redirige vers /clubs/:id
- * - Sinon (signup ou signin sans club) → redirige vers /setup-club pour créer le club
+ * - Si l'utilisateur a un club               → redirige vers /home
+ * - PRESIDENT sans club                       → /setup-club (creation guidee)
+ * - Autre user sans club (cas exceptionnel)   → /home
+ *
+ * AVANT: redirigeait vers /clubs/:id meme pour les membres simples, qui
+ * tombaient sur la page back-office du club. Le /home expose deja un
+ * bouton "Mon back-office" pour les roles privilegies.
  */
 export const guestGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
@@ -30,10 +54,11 @@ export const guestGuard: CanActivateFn = () => {
 
   if (authService.isLoggedIn()) {
     const clubId = authService.getCurrentClubId();
-    if (clubId) {
-      router.navigate(['/clubs', clubId]);
-    } else {
+    const role = authService.getCurrentRole();
+    if (!clubId && role === 'PRESIDENT') {
       router.navigate(['/setup-club']);
+    } else {
+      router.navigate(['/home']);
     }
     return false;
   }

@@ -174,6 +174,10 @@ export class MemberLayoutComponent implements OnInit {
     { label: 'Home',     path: '/home',     icon: 'home' },
     // Membre simple : /rsvp (RSVP simplifie, pas la page admin /events).
     { label: 'Events',   path: '/rsvp',     icon: 'calendar' },
+    // Elections : la liste /elections est ouverte a tous les authentifies
+    // (pas de ceoGuard sur cette route, cf. app.routes.ts). Necessaire pour
+    // que les MEMBRE_SIMPLE puissent acceder a la page de vote apres scan QR.
+    { label: 'Elections', path: '/elections', icon: 'vote' },
     {
       label: 'Store', path: '/products', icon: 'shop',
       children: [

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { apiUrl } from '../../../../environments/environment';
 import { AuthService } from '../../../shared/services/auth.service';
+import { CommitteeResponsableService } from '../../../shared/services/committee-responsable.service';
 import { Voice2Channel, Voice2ChannelService } from '../../services/channel.service';
 import { Voice2VoiceSignalingService } from '../../services/voice-signaling.service';
 import { EMPTY } from 'rxjs';
@@ -102,6 +103,7 @@ export class Voice2InstantVoiceComponent implements OnInit, OnDestroy {
     public voiceService: Voice2VoiceSignalingService,
     private http: HttpClient,
     private ngZone: NgZone,
+    private respService: CommitteeResponsableService,
   ) {}
 
   ngOnInit(): void {
@@ -183,11 +185,28 @@ export class Voice2InstantVoiceComponent implements OnInit, OnDestroy {
   }
 
   canKick(member: AppUser): boolean {
-    if (this.isMembreSimple) return false;
     if (member.id === this.currentUserId) return false;
     if (member.role === 'PRESIDENT') return false;
-    if (this.isVoiceBureauRole(member.role)) return this.currentUserRole === 'PRESIDENT';
-    return true;
+
+    // Bureau exec : peut kick partout sauf au-dessus de soi.
+    if (this.isVoiceBureauRole(this.currentUserRole)) {
+      if (this.isVoiceBureauRole(member.role)) return this.currentUserRole === 'PRESIDENT';
+      return true;
+    }
+
+    // Responsable d'un comite : peut kick UNIQUEMENT dans le voice channel
+    // qui correspond a son propre comite (matching sur le nom). AVANT, le
+    // controle isMembreSimple bloquait tous les responsables (qui ont role
+    // global = MEMBRE_SIMPLE/COMMITTEE_MEMBER) -> ils ne pouvaient pas gerer
+    // leur propre channel.
+    const myCommittee = this.respService.getMySubGroupName();
+    if (myCommittee && this.selectedChannel?.name === myCommittee) {
+      // Pas de droit sur les autres membres bureau (President deja exclu).
+      if (this.isVoiceBureauRole(member.role)) return false;
+      return true;
+    }
+
+    return false;
   }
 
   loadChannels(): void {

@@ -54,11 +54,19 @@ public class AuthService {
         
         user.setProfilePhoto(request.getProfilePhoto());
         
-        // ✅ Stocker simplement l'ID du club (pas d'objet Club)
+        // ✅ Stocker l'ID du club avec validation de format.
+        // Garantit qu'on ne stocke pas "1", "undefined", "" ou autre garbage
+        // qui creerait un user orphelin (probleme reel observe en BDD).
         if (request.getClubId() != null && !request.getClubId().isEmpty()) {
+            if (!isValidObjectIdFormat(request.getClubId())) {
+                throw new RuntimeException(
+                    "clubId invalide: '" + request.getClubId()
+                    + "'. Doit etre un ObjectId MongoDB (24 caracteres hex)."
+                );
+            }
             user.setClubId(request.getClubId());
         }
-        
+
         user.setActive(true);
 
         User saved = userRepo.save(user);
@@ -102,5 +110,14 @@ public class AuthService {
     public User findUserByEmail(String email) {
         return userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable: " + email));
+    }
+
+    /**
+     * Valide qu'une string est un ObjectId MongoDB de format correct
+     * (24 caracteres hexadecimaux). Empeche les valeurs comme "1", "undefined",
+     * ou des UUIDs deguises de creer des users orphelins.
+     */
+    private static boolean isValidObjectIdFormat(String id) {
+        return id != null && id.matches("^[a-fA-F0-9]{24}$");
     }
 }
