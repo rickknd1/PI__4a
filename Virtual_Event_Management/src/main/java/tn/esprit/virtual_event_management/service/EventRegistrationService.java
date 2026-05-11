@@ -47,7 +47,7 @@ public class EventRegistrationService implements IEventRegistrationService{
         EventRegistration saved = repo.save(reg);
 
         try {
-            String url = "http://localhost:8081/api/users/" + userId;
+            String url = "http://user-service:8081/api/users/" + userId;
 
             HttpHeaders headers = new HttpHeaders();
             headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));

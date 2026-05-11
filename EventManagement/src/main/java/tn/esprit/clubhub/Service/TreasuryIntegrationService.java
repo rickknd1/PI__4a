@@ -40,9 +40,9 @@ public class TreasuryIntegrationService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Treasury service tourne sur 8085 (8082 = Voice service)
-    private static final String TREASURY_BASE = "http://localhost:8085/api/v1/treasury";
-    private static final String TREASURY_ML_RETRAIN = "http://localhost:8085/api/v1/demo/ml/retrain";
-    private static final String AUTH_LOGIN_URL = "http://localhost:8081/api/auth/login";
+    private static final String TREASURY_BASE = "http://treasury-service:8085/api/v1/treasury";
+    private static final String TREASURY_ML_RETRAIN = "http://treasury-service:8085/api/v1/demo/ml/retrain";
+    private static final String AUTH_LOGIN_URL = "http://user-service:8081/api/auth/login";
 
     // Comptes systeme pour effectuer validate (TRESORIER) et approve (PRESIDENT)
     private static final String TRESORIER_EMAIL = "rick.tresorier@clubhub.tn";

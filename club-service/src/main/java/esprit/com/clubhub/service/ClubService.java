@@ -36,8 +36,8 @@ public class ClubService {
     @Autowired
     private RestTemplate restTemplate;
     
-    private String userServiceUrl = "http://localhost:8081/api/users";  // ✅ Corrigé: ajout de /api
-    @Value("${voice.service.channels-url:http://localhost:8082/api/channels}")
+    private String userServiceUrl = "http://user-service:8081/api/users";  // ✅ Corrigé: ajout de /api
+    @Value("${voice.service.channels-url:http://voice-service:8082/api/channels}")
     private String voiceChannelsUrl;
     private static final Set<String> BUREAU_ROLES = Set.of(
             "BUREAU",

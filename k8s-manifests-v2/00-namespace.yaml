@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: clubhub
+  labels:
+    name: clubhub
+    purpose: production

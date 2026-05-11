@@ -22,7 +22,7 @@ public class PermissionService {
     @Autowired
     private RestTemplate restTemplate;
     
-    private String clubServiceUrl = "http://localhost:8083/api/clubs";
+    private String clubServiceUrl = "http://club-service:8083/api/clubs";
 
     public PermissionService(UserRepo userRepo, CustomRoleService customRoleService) {
         this.userRepo = userRepo;

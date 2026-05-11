@@ -1,0 +1,54 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: club-app
+  namespace: clubhub
+  labels: {app: club-app, tier: backend}
+spec:
+  selector: {app: club-app}
+  ports:
+    - {name: http, port: 8083, targetPort: 8083}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: club-app
+  namespace: clubhub
+  labels: {app: club-app, tier: backend}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: club-app}}
+  template:
+    metadata: {labels: {app: club-app, tier: backend}}
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - {key: kubernetes.io/hostname, operator: In, values: [k8s-worker-1]}
+      containers:
+        - name: app
+          image: docker.io/rickknd/clubhub-club:v1
+          imagePullPolicy: IfNotPresent
+          ports: [{containerPort: 8083, name: http}]
+          env:
+            - {name: SPRING_PROFILES_ACTIVE, valueFrom: {configMapKeyRef: {name: clubhub-config, key: SPRING_PROFILES_ACTIVE}}}
+            - {name: SPRING_DATA_MONGODB_HOST, value: "club-db"}
+            - {name: SPRING_DATA_MONGODB_PORT, value: "27017"}
+            - {name: SPRING_DATA_MONGODB_DATABASE, value: "ClubHub_Clubs"}
+            - {name: USER_SERVICE_URL, value: "http://user-app:8081"}
+            - {name: JWT_SECRET, valueFrom: {secretKeyRef: {name: clubhub-secrets, key: JWT_SECRET}}}
+            - {name: JAVA_OPTS, valueFrom: {configMapKeyRef: {name: clubhub-config, key: JAVA_OPTS}}}
+          resources:
+            requests: {memory: 256Mi, cpu: 100m}
+            limits: {memory: 768Mi, cpu: 1000m}
+          livenessProbe:
+            httpGet: {path: /actuator/health/liveness, port: 8083}
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          readinessProbe:
+            httpGet: {path: /actuator/health/readiness, port: 8083}
+            initialDelaySeconds: 30
+            periodSeconds: 10

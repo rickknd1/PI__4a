@@ -23,7 +23,7 @@ public class ModerationService {
     private final ChannelRepo channelRepo;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    private static final String MODERATION_URL = "http://localhost:8000/analyze";
+    private static final String MODERATION_URL = "http://ai-service:8090/analyze";
 
     public void moderateAsync(AudioMessage message) {
         CompletableFuture.runAsync(() -> doModerate(message));
