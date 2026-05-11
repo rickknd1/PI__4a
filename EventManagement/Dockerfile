@@ -1,10 +1,10 @@
-FROM docker.io/library/eclipse-temurin:17-jdk AS build
+# Multi-stage build : Maven image inclut mvn (pas besoin de mvnw/.mvn)
+FROM docker.io/library/maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
-COPY pom.xml mvnw ./
-COPY .mvn .mvn
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B || true
+COPY pom.xml .
+RUN mvn dependency:go-offline -B || true
 COPY src src
-RUN ./mvnw clean package -DskipTests -B
+RUN mvn clean package -DskipTests -B
 
 FROM docker.io/library/eclipse-temurin:17-jre
 WORKDIR /app
