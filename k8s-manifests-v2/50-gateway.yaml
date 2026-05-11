@@ -45,10 +45,12 @@ spec:
             requests: {memory: 256Mi, cpu: 100m}
             limits: {memory: 768Mi, cpu: 1000m}
           livenessProbe:
-            httpGet: {path: /actuator/health/liveness, port: 8084}
-            initialDelaySeconds: 60
-            periodSeconds: 15
+            tcpSocket: {port: 8084}
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            failureThreshold: 5
           readinessProbe:
-            httpGet: {path: /actuator/health/readiness, port: 8084}
+            tcpSocket: {port: 8084}
             initialDelaySeconds: 30
             periodSeconds: 10
+            failureThreshold: 5
