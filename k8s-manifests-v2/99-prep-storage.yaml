@@ -21,6 +21,10 @@ spec:
               mkdir -p /host/worker-storage/club-db
               mkdir -p /host/worker-storage/event-db
               mkdir -p /host/worker-storage/messaging-db
+              mkdir -p /host/worker-storage/voice-db
+              mkdir -p /host/worker-storage/treasury-db
+              mkdir -p /host/worker-storage/vem-db
+              mkdir -p /host/worker-storage/store-db
               chmod 777 -R /host/worker-storage
               ls -la /host/worker-storage/
               echo "Done."

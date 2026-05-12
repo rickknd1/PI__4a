@@ -1,10 +1,8 @@
-FROM docker.io/library/eclipse-temurin:17-jdk AS build
+FROM docker.io/library/gradle:8.5-jdk17 AS build
 WORKDIR /app
-COPY build.gradle settings.gradle gradlew ./
-COPY gradle gradle
-RUN chmod +x gradlew && ./gradlew --no-daemon dependencies || true
+COPY build.gradle settings.gradle ./
 COPY src src
-RUN ./gradlew --no-daemon clean bootJar -x test
+RUN gradle --no-daemon clean bootJar -x test
 
 FROM docker.io/library/eclipse-temurin:17-jre
 WORKDIR /app
