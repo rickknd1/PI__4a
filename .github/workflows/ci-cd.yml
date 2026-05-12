@@ -43,11 +43,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {service: Gateway,         java: 17}
-          - {service: user-service,    java: 17}
-          - {service: club-service,    java: 17}
-          - {service: EventManagement, java: 17}
-          - {service: Messaging,       java: 17}
+          - {service: Gateway,                   java: 17}
+          - {service: user-service,              java: 17}
+          - {service: club-service,              java: 17}
+          - {service: EventManagement,           java: 17}
+          - {service: Messaging,                 java: 17}
+          - {service: Back/InstantVoiceManagment, java: 17}
+          - {service: Virtual_Event_Management,  java: 17}
+          - {service: treasury-service,          java: 21}
     steps:
       - uses: actions/checkout@v4
       - name: Setup JDK ${{ matrix.java }}
@@ -81,11 +84,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {service: Gateway,         image_tag: clubhub-gateway}
-          - {service: user-service,    image_tag: clubhub-user}
-          - {service: club-service,    image_tag: clubhub-club}
-          - {service: EventManagement, image_tag: clubhub-event}
-          - {service: Messaging,       image_tag: clubhub-messaging}
+          - {service: Gateway,                   image_tag: clubhub-gateway}
+          - {service: user-service,              image_tag: clubhub-user}
+          - {service: club-service,              image_tag: clubhub-club}
+          - {service: EventManagement,           image_tag: clubhub-event}
+          - {service: Messaging,                 image_tag: clubhub-messaging}
+          - {service: Back/InstantVoiceManagment, image_tag: clubhub-voice}
+          - {service: treasury-service,          image_tag: clubhub-treasury}
+          - {service: Virtual_Event_Management,  image_tag: clubhub-vem}
+          - {service: cstore,                    image_tag: clubhub-store}
+          - {service: ai-service,                image_tag: clubhub-ai}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -147,21 +155,35 @@ jobs:
           # Mettre a jour les tags d'image avec le sha si besoin (optionnel)
           # sed -i "s|:v1|:${{ github.sha }}|g" $MANIFESTS/*.yaml
 
+          # Strategie : on applique TOUS les manifests dans l'ordre.
+          # Les services voice/treasury/vem/store/ai ont replicas:0 (down par
+          # design car capacite RAM cluster limitee) - les DB et workloads
+          # actifs (user/club/event/messaging/gateway/frontend) tournent.
+
           kubectl apply -f $MANIFESTS/00-namespace.yaml
           kubectl apply -f $MANIFESTS/01-configmap.yaml
           kubectl apply -f $MANIFESTS/02-secrets.yaml
           kubectl apply -f $MANIFESTS/71-rbac.yaml
           kubectl apply -f $MANIFESTS/99-prep-storage.yaml
-          for svc in 10-user-db 20-club-db 30-event-db 40-messaging-db; do
+
+          # DB stateful (existantes UP + nouvelles a 0)
+          for svc in 10-user-db 20-club-db 30-event-db 40-messaging-db \
+                     42-voice-db 44-treasury-db 46-vem-db 48-store-db; do
             kubectl apply -f $MANIFESTS/$svc.yaml
           done
-          # Wait DB pods
+
+          # Wait DBs running (uniquement les replicas:1)
           for svc in user-db club-db event-db messaging-db; do
             kubectl wait --for=condition=Ready pod -l app=$svc -n clubhub --timeout=180s || true
           done
-          for svc in 11-user-app 21-club-app 31-event-app 41-messaging-app 50-gateway 51-frontend; do
+
+          # App workloads (UP + DOWN par config replicas)
+          for svc in 11-user-app 21-club-app 31-event-app 41-messaging-app \
+                     43-voice-app 45-treasury-app 47-vem-app 49-store-app 52-ai-app \
+                     50-gateway 51-frontend; do
             kubectl apply -f $MANIFESTS/$svc.yaml
           done
+
           kubectl apply -f $MANIFESTS/60-ingress.yaml
           kubectl apply -f $MANIFESTS/80-hpa.yaml
           kubectl apply -f $MANIFESTS/70-networkpolicy.yaml
