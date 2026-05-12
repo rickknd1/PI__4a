@@ -49,8 +49,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Allow both direct browser access and gateway-proxied requests
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:8080"));
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://*.trycloudflare.com",
+                "https://*.ngrok-free.app",
+                "https://*.ngrok.io"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
