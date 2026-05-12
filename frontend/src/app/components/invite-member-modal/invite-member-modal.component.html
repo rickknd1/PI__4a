@@ -1,0 +1,103 @@
+<div class="modal-overlay" *ngIf="show" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📧 Inviter un nouveau membre</h2>
+      <button class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="info-text">
+        Le nouveau membre recevra un email avec un lien pour créer son mot de passe.
+      </p>
+
+      <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">Prénom *</label>
+            <input
+              type="text"
+              id="firstName"
+              formControlName="firstName"
+              class="form-control"
+              placeholder="Jean">
+            <small *ngIf="inviteForm.get('firstName')?.hasError('required') && inviteForm.get('firstName')?.touched"
+                   class="error-text">
+              Le prénom est obligatoire
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Nom *</label>
+            <input
+              type="text"
+              id="lastName"
+              formControlName="lastName"
+              class="form-control"
+              placeholder="Dupont">
+            <small *ngIf="inviteForm.get('lastName')?.hasError('required') && inviteForm.get('lastName')?.touched"
+                   class="error-text">
+              Le nom est obligatoire
+            </small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            class="form-control"
+            placeholder="jean.dupont@example.com">
+          <small *ngIf="inviteForm.get('email')?.hasError('required') && inviteForm.get('email')?.touched"
+                 class="error-text">
+            L'email est obligatoire
+          </small>
+          <small *ngIf="inviteForm.get('email')?.hasError('email') && inviteForm.get('email')?.touched"
+                 class="error-text">
+            Email invalide
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="role">Rôle *</label>
+          <select
+            id="role"
+            formControlName="role"
+            class="form-control">
+            <option *ngFor="let role of allRoles" [value]="role.value">
+              {{ role.label }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="message"
+             class="alert"
+             [class.alert-success]="messageType === 'success'"
+             [class.alert-danger]="messageType === 'error'">
+          {{ message }}
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeModal()"
+            [disabled]="loading">
+            Annuler
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!inviteForm.valid || loading">
+            <span *ngIf="!loading">📧 Envoyer l'invitation</span>
+            <span *ngIf="loading">
+              <span class="spinner"></span>
+              Envoi en cours...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<!-- src/index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ClubHub</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Stubs Node.js natifs pour @xenova/transformers : force le backend WASM en navigateur -->
+  <script type="importmap">
+  {
+    "imports": {
+      "onnxruntime-node": "/onnxruntime-stub.js",
+      "sharp": "/onnxruntime-stub.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <app-root></app-root>
+  <!-- Jitsi (salle Ameni / meeting-room) -->
+  <script src="https://meet.jit.si/external_api.js"></script>
+</body>
+</html>

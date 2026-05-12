@@ -1,0 +1,65 @@
+<div class="pv-page">
+  <header class="page-header">
+    <div>
+      <h1>📄 Procès-Verbaux</h1>
+      <p class="subtitle">
+        Rédigez et archivez les PV de vos événements terminés.
+        L'IA transforme vos réponses (français, anglais, arabe ou tunisien)
+        en un PV professionnel téléchargeable en PDF.
+      </p>
+    </div>
+    <div class="header-actions">
+      <span class="badge" *ngIf="pendingCount > 0">
+        🔔 {{ pendingCount }} événement(s) en attente
+      </span>
+      <button class="btn-primary" (click)="startWizard()" *ngIf="!wizardVisible">
+        ✨ Nouveau PV
+      </button>
+    </div>
+  </header>
+
+  <!-- ────────────────────────── Wizard panel ────────────────────────── -->
+  <section *ngIf="wizardVisible" class="section">
+    <app-pv-wizard
+      [preselectedEvent]="wizardOpenWith"
+      (completed)="onWizardCompleted()"
+      (cancelled)="onWizardCancelled()">
+    </app-pv-wizard>
+  </section>
+
+  <!-- ────────────────────────── History ────────────────────────── -->
+  <section *ngIf="!wizardVisible" class="section">
+    <h2>📚 Historique des PV</h2>
+
+    <div *ngIf="loadingHistory" class="muted">Chargement de l'historique…</div>
+    <div *ngIf="!loadingHistory && history.length === 0" class="empty">
+      Aucun PV n'a encore été rédigé. Cliquez sur « Nouveau PV » pour commencer.
+    </div>
+
+    <div *ngFor="let pv of history" class="pv-card">
+      <div class="pv-summary" (click)="toggleExpand(pv.id)">
+        <div class="pv-info">
+          <div class="pv-title">{{ pv.eventTitle }}</div>
+          <div class="pv-meta">
+            <span>📅 {{ pv.eventDate || (pv.createdAt | date:'dd/MM/yyyy') }}</span>
+            <span>✍️ {{ pv.secretaryName || 'Secrétaire' }}</span>
+            <span>🕒 Rédigé le {{ pv.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+        <div class="pv-actions">
+          <button class="btn-action download" (click)="download(pv); $event.stopPropagation()">
+            📥 PDF
+          </button>
+          <button class="btn-action delete" (click)="remove(pv); $event.stopPropagation()">
+            🗑️
+          </button>
+          <span class="chevron" [class.open]="expandedId === pv.id">▾</span>
+        </div>
+      </div>
+
+      <div class="pv-body" *ngIf="expandedId === pv.id">
+        <pre>{{ pv.generatedContent }}</pre>
+      </div>
+    </div>
+  </section>
+</div>

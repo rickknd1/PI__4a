@@ -1,0 +1,103 @@
+<div class="question-root">
+
+    <!-- Header -->
+    <header class="question-header">
+        <div class="question-progress-card">
+            <span class="progress-label">Question</span>
+            <div class="progress-number">
+                <span class="progress-current">{{ getQuestionNumber() }}</span>
+                <span class="progress-total">/ {{ getTotalQuestions() || '?' }}</span>
+            </div>
+        </div>
+
+        <div class="players-ready-card">
+            <div class="players-ready-text">
+                <p class="players-ready-label">Players Ready</p>
+                <p class="players-ready-count">
+                    {{ answeredCount }}<span class="players-ready-sep">/</span>{{ totalPlayers }}
+                </p>
+            </div>
+            <div class="live-dot-wrapper">
+                <span class="live-dot-ping"></span>
+                <span class="live-dot-core"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Timer bar -->
+    <div class="timer-track">
+        <div class="timer-bar"
+             [class.timer-green]="getTimerPercentage() > 50"
+             [class.timer-amber]="getTimerPercentage() <= 50 && getTimerPercentage() > 25"
+             [class.timer-red]="getTimerPercentage() <= 25"
+             [style.width.%]="getTimerPercentage()">
+        </div>
+    </div>
+
+    <!-- Question -->
+    <main class="question-main">
+        <div class="question-body">
+            <div class="question-eyebrow">
+                <span class="eyebrow-dot"></span>
+                <span class="eyebrow-text">Current Question</span>
+                <span class="eyebrow-dot"></span>
+            </div>
+            <h1 class="question-text">{{ getQuestionText() }}</h1>
+            <p class="question-hint" [class.hidden]="hasAnswered">
+                Pick the best answer before time runs out
+            </p>
+        </div>
+    </main>
+
+    <!-- Answer grid + actions -->
+    <footer class="question-footer">
+        <div class="answer-grid">
+            <button *ngFor="let option of getOptions(); let i = index"
+                    (click)="selectAnswer(option)"
+                    [disabled]="hasAnswered || isSubmitting"
+                    [class.selected]="selectedAnswer === option"
+                    [class.answered]="hasAnswered && selectedAnswer !== option"
+                    [class]="'answer-btn answer-btn--' + i"
+                    [style.animation-delay]="(i * 70) + 'ms'">
+
+                <div class="answer-letter" [class.selected]="selectedAnswer === option">
+                    {{ answerLetters[i] }}
+                </div>
+
+                <span class="answer-text">{{ option }}</span>
+
+                <div class="answer-check" *ngIf="selectedAnswer === option">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+            </button>
+        </div>
+
+        <div class="action-row">
+            <button class="lock-btn"
+                    (click)="confirmAnswer()"
+                    *ngIf="selectedAnswer && !hasAnswered"
+                    [disabled]="isSubmitting">
+                <span *ngIf="!isSubmitting" class="lock-btn-content">
+                    <span>LOCK IT IN</span>
+                    <span class="lock-arrow">→</span>
+                </span>
+                <span *ngIf="isSubmitting" class="lock-btn-content">
+                    <svg class="spinner" viewBox="0 0 24 24">
+                        <circle class="spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                        <path class="spinner-fill" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>PROCESSING...</span>
+                </span>
+            </button>
+
+            <div class="waiting-state" *ngIf="hasAnswered">
+                <svg class="waiting-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>WAITING FOR OTHERS</span>
+            </div>
+        </div>
+    </footer>
+</div>

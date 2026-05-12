@@ -1,0 +1,72 @@
+<div class="p-6">
+
+  <!-- HEADER -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">🎤 Transcriptions</h1>
+
+    <input type="file" hidden #fileInput accept="audio/*"
+           (change)="onFileSelected($event)" />
+
+    <button (click)="fileInput.click()"
+            class="bg-blue-600 text-white px-4 py-2 rounded">
+      Upload Audio
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="text-center py-10">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+    <p class="mt-2 text-gray-600">Chargement...</p>
+  </div>
+
+  <!-- RECORDS LIST -->
+  <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let r of records" class="bg-white shadow p-4 rounded">
+      <div class="font-semibold text-lg mb-2">Record #{{ r.id }}</div>
+      <p class="text-sm text-gray-500 mb-4">{{ r.createdAt | date:'medium' }}</p>
+
+      <div class="flex gap-2 mb-3 flex-wrap">
+        <button (click)="play(r)" class="bg-gray-200 px-3 py-1 rounded">
+          ▶️ Play
+        </button>
+
+        <!-- Only show PDF if transcription exists -->
+        <button *ngIf="r.transcript" (click)="downloadPdf(r.id)" class="bg-green-600 text-white px-3 py-1 rounded">
+          📄 PDF
+        </button>
+
+        <button (click)="delete(r.id)" class="bg-red-500 text-white px-3 py-1 rounded">
+          🗑 Supprimer
+        </button>
+      </div>
+
+      <!-- Transcription Text -->
+      <div *ngIf="r.transcript" class="mt-4 p-3 bg-gray-50 rounded border text-sm">
+        <div class="font-bold mb-1">Transcription :</div>
+        <p class="whitespace-pre-wrap">{{ r.transcript }}</p>
+        <button (click)="viewTranscript(r)" class="mt-2 text-blue-600 text-xs underline">
+          View Full Detail
+        </button>
+      </div>
+
+      <!-- Warning if no transcription -->
+      <div *ngIf="!r.transcript" class="mt-4 p-3 bg-amber-50 rounded border text-sm text-amber-700">
+        ⚠️ Pas de transcription disponible
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETAIL (Keep the logic but simpler style) -->
+  <div *ngIf="selectedRecord" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto p-6 relative">
+      <button class="absolute top-4 right-4 text-gray-500" (click)="closeTranscript()">✕</button>
+      <h2 class="text-xl font-bold mb-4">Transcription Detail</h2>
+      <p class="whitespace-pre-wrap text-gray-700">{{ selectedRecord.transcript }}</p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button class="px-4 py-2 bg-gray-200 rounded" (click)="closeTranscript()">Fermer</button>
+        <button class="px-4 py-2 bg-blue-600 text-white rounded" (click)="copyTranscript()">Copier</button>
+      </div>
+    </div>
+  </div>
+
+</div>

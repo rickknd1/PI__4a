@@ -1,0 +1,139 @@
+<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800">
+  <h2 class="text-xl font-semibold text-gray-800 mb-6">
+    {{ isEditMode ? 'Modifier le Club' : 'Créer un Club' }}
+  </h2>
+
+  <form [formGroup]="clubForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <!-- Nom du club -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Nom du club <span class="text-red-500">*</span>
+      </label>
+      <input type="text" formControlName="name"
+             class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none">
+      <p *ngIf="clubForm.get('name')?.invalid && clubForm.get('name')?.touched" 
+         class="text-red-500 text-sm mt-1">
+        Le nom est requis (minimum 3 caractères)
+      </p>
+    </div>
+
+    <!-- Catégorie -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Catégorie <span class="text-red-500">*</span>
+      </label>
+      <select formControlName="category"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none">
+        <option value="">Sélectionner</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Description <span class="text-red-500">*</span>
+      </label>
+      <textarea formControlName="description" rows="4"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none">
+      </textarea>
+    </div>
+
+    <!-- Logo URL -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Logo URL
+      </label>
+      <input type="text" formControlName="logoUrl"
+             class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
+             placeholder="https://example.com/logo.png">
+    </div>
+
+    <!-- Couleur principale -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Couleur principale
+      </label>
+      <div class="flex items-center gap-3">
+        <input type="color" formControlName="colorPalette"
+               class="w-12 h-10 rounded border border-gray-300 cursor-pointer">
+        <input type="text" formControlName="colorPalette"
+               class="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none"
+               placeholder="#3B82F6">
+      </div>
+    </div>
+
+    <!-- Visibilité -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Visibilité</label>
+      <div class="flex space-x-4">
+        <label class="flex items-center">
+          <input type="radio" formControlName="visibility" value="PUBLIC" class="mr-2">
+          <span>Public</span>
+        </label>
+        <label class="flex items-center">
+          <input type="radio" formControlName="visibility" value="PRIVATE" class="mr-2">
+          <span>Privé</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ✅ NOUVEAU: Mode d'appartenance aux comités -->
+    <div class="border-t border-gray-200 pt-6">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        📋 Règle d'appartenance aux comités
+      </label>
+      <p class="text-sm text-gray-500 mb-4">
+        Définissez si un membre peut appartenir à plusieurs comités ou à un seul comité à la fois.
+      </p>
+      
+      <div class="space-y-3">
+        <label *ngFor="let mode of membershipModes" 
+               class="flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all"
+               [class.border-blue-500]="clubForm.get('committeeMembershipMode')?.value === mode.value"
+               [class.bg-blue-50]="clubForm.get('committeeMembershipMode')?.value === mode.value"
+               [class.border-gray-200]="clubForm.get('committeeMembershipMode')?.value !== mode.value">
+          <input type="radio" 
+                 formControlName="committeeMembershipMode" 
+                 [value]="mode.value" 
+                 class="mt-1 mr-3">
+          <div class="flex-1">
+            <div class="font-medium text-gray-800">{{ mode.label }}</div>
+            <div class="text-sm text-gray-600 mt-1">{{ mode.description }}</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Info supplémentaire -->
+      <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex items-start">
+          <span class="text-blue-600 mr-2">ℹ️</span>
+          <div class="text-sm text-blue-800">
+            <strong>Note:</strong> Cette règle peut être modifiée à tout moment dans les paramètres du club.
+            <div class="mt-2">
+              <strong>Plusieurs comités:</strong> Idéal pour les grands clubs avec des membres polyvalents.<br>
+              <strong>Un seul comité:</strong> Idéal pour les petits clubs avec une spécialisation stricte.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boutons -->
+    <div class="flex justify-end space-x-3">
+      <button type="button" routerLink="/clubs"
+              class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+        Annuler
+      </button>
+      <div class="flex flex-col items-end">
+        <button type="submit" [disabled]="loading || clubForm.invalid"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ loading ? 'Chargement...' : (isEditMode ? 'Mettre à jour' : 'Créer') }}
+        </button>
+        <p *ngIf="clubForm.invalid && !loading" class="text-xs text-gray-500 mt-1">
+          Renseigne <span *ngIf="clubForm.get('name')?.invalid">un nom (≥ 3 caractères)</span><span *ngIf="clubForm.get('name')?.invalid && (clubForm.get('description')?.invalid || clubForm.get('category')?.invalid)">, </span><span *ngIf="clubForm.get('description')?.invalid">une description (≥ 10 caractères)</span><span *ngIf="clubForm.get('description')?.invalid && clubForm.get('category')?.invalid">, </span><span *ngIf="clubForm.get('category')?.invalid">une catégorie</span> pour activer le bouton.
+        </p>
+      </div>
+    </div>
+  </form>
+</div>

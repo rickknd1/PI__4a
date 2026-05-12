@@ -1,0 +1,316 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>My <em>Tasks</em></h1>
+      <p>Tasks assigned to you across all events</p>
+    </div>
+    <div class="header-stat">
+      <div class="big">{{ tasks.length }}</div>
+      <div class="label">Total tasks</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-cell">
+      <div class="sc-label">Total</div>
+      <div class="sc-val brand">{{ tasks.length }}</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sc-label">Done</div>
+      <div class="sc-val emerald">{{ getColumnTasks('done').length }}</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sc-label">Completion</div>
+      <div class="sc-val amber">{{ completionPct }}%</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sc-label">Overdue</div>
+      <div class="sc-val" [style.color]="overdueTasks.length ? 'var(--rose)' : 'var(--ink)'">{{ overdueTasks.length }}</div>
+    </div>
+  </div>
+
+  <div class="tasks-content-panel mb-5">
+    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div class="h-full rounded-full transition-all duration-500" style="background: var(--emerald);" [style.width.%]="completionPct"></div>
+    </div>
+  </div>
+
+  @if (overdueTasks.length > 0) {
+    <div class="error-banner mb-5" style="background: var(--rose-soft); border-color: rgba(192,54,79,0.2);">
+      {{ overdueTasks.length }} task{{ overdueTasks.length > 1 ? 's' : '' }} overdue —
+      {{ overdueTasks.slice(0,2).map(t => t.title).join(', ') }}{{ overdueTasks.length > 2 ? '...' : '' }}
+    </div>
+  }
+
+  @if (loading) {
+    <div class="loading-wrap"><div class="spinner"></div></div>
+  }
+
+  @if (!loading && notLoggedIn) {
+    <div class="tasks-content-panel flex flex-col items-center justify-center py-16 text-center">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center mb-4"
+           style="background: var(--brand-soft); color: var(--brand-mid);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="text-base font-semibold mb-1" style="color: var(--ink);">You are not signed in</h2>
+      <p class="text-sm max-w-sm" style="color: var(--ink-3);">
+        Please sign in to see the tasks assigned to you.
+      </p>
+    </div>
+  }
+
+  @if (!loading && !notLoggedIn && tasks.length === 0) {
+    <div class="tasks-content-panel flex flex-col items-center justify-center py-16 text-center">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center mb-4"
+           style="background: var(--brand-soft); color: var(--brand-mid);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
+                stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 class="text-base font-semibold mb-1" style="color: var(--ink);">Aucune tâche assignée</h2>
+      <p class="text-sm max-w-sm" style="color: var(--ink-3);">
+        You're all caught up! No task is currently assigned to you across your events.
+      </p>
+    </div>
+  }
+
+  @if (!loading && !notLoggedIn && tasks.length > 0) {
+    <div class="tasks-content-panel">
+      <div class="grid grid-cols-3 gap-4" cdkDropListGroup>
+        @for (col of columns; track col.id) {
+          <div class="flex flex-col rounded-2xl border overflow-hidden" style="background: var(--surface); border-color: var(--border);">
+
+            <div class="flex items-center justify-between px-4 py-3 border-b" style="border-color: var(--border);">
+              <span class="flex items-center gap-2 text-sm font-medium" style="color: var(--ink-2);">
+                <span class="w-2 h-2 rounded-full flex-shrink-0" [class]="col.dotClass"></span>
+                {{ col.label }}
+              </span>
+              <span class="text-xs rounded-full px-2 py-0.5" style="background: var(--card); border: 1px solid var(--border); color: var(--ink-3);">
+                {{ getColumnTasks(col.id).length }}
+              </span>
+            </div>
+
+            <div
+              cdkDropList
+              [id]="col.id"
+              [cdkDropListData]="getColumnTasks(col.id)"
+              [cdkDropListConnectedTo]="columns.map(c => c.id)"
+              (cdkDropListDropped)="drop($event, col.id)"
+              class="flex-1 flex flex-col gap-2 p-3 min-h-[220px] transition-colors">
+
+              @for (task of getColumnTasks(col.id); track task.id) {
+                <div
+                  cdkDrag
+                  class="rounded-xl border p-3 cursor-grab active:cursor-grabbing transition-all select-none"
+                  style="background: var(--card); border-color: var(--border);">
+
+                  <div cdkDragHandle class="flex items-center gap-1 mb-2 cursor-grab">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="text-gray-300">
+                      <circle cx="8" cy="6" r="1.5" fill="currentColor"/>
+                      <circle cx="8" cy="12" r="1.5" fill="currentColor"/>
+                      <circle cx="8" cy="18" r="1.5" fill="currentColor"/>
+                      <circle cx="16" cy="6" r="1.5" fill="currentColor"/>
+                      <circle cx="16" cy="12" r="1.5" fill="currentColor"/>
+                      <circle cx="16" cy="18" r="1.5" fill="currentColor"/>
+                    </svg>
+                    <span class="text-xs px-2 py-0.5 rounded-full font-medium" [class]="getPriorityClass(task.priority)">
+                      {{ task.priority }}
+                    </span>
+                  </div>
+
+                  <p class="text-sm font-medium leading-snug" style="color: var(--ink);"
+                     [class.line-through]="task.status === 'done'"
+                     [class.opacity-50]="task.status === 'done'">
+                    {{ task.title }}
+                  </p>
+
+                  @if (task.description) {
+                    <p class="text-xs mt-1 line-clamp-2" style="color: var(--ink-3);">{{ task.description }}</p>
+                  }
+
+                  <div class="flex items-center gap-2 mt-2 flex-wrap">
+                    @if (task.assignedTo) {
+                      <span class="text-xs flex items-center gap-1" style="color: var(--ink-3);">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                          <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        Assigned to: {{ task.assigneeName || task.assignedTo }}
+                      </span>
+                    }
+                    @if (task.dueDate) {
+                      <span class="text-xs flex items-center gap-1" [class]="getDueDateClass(task)">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                          <path d="M8 2v3M16 2v3M3.5 9.09h17M21 8.5V17c0 3-1.5 5-5 5H8c-3.5 0-5-2-5-5V8.5c0-3 1.5-5 5-5h8c3.5 0 5 2 5 5z" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                        {{ getDueDateLabel(task) }}
+                      </span>
+                    }
+                    @if (task.assigneeAvatar) {
+                      <div class="ml-auto w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-medium"
+                           style="background: var(--brand-soft); color: var(--brand-mid);">
+                        {{ task.assigneeAvatar }}
+                      </div>
+                    }
+                  </div>
+
+                  @if (getSmartTip(task); as tip) {
+                    <div class="mt-2 text-xs rounded-lg px-2.5 py-1.5 flex items-center gap-1.5" style="background: var(--brand-soft); color: var(--brand-mid);">
+                      {{ tip }}
+                    </div>
+                  }
+
+                  @if (task.status === 'done' && task.completionOutcome) {
+                    <div class="mt-2 rounded-lg px-2.5 py-1.5 text-xs flex flex-col gap-0.5"
+                         [style.background]="task.completionOutcome === 'success' ? 'rgba(16,185,129,0.08)' : (task.completionOutcome === 'partial' ? 'rgba(245,158,11,0.08)' : 'rgba(239,68,68,0.08)')"
+                         [style.color]="task.completionOutcome === 'success' ? '#047857' : (task.completionOutcome === 'partial' ? '#92400E' : '#991B1B')">
+                      <span style="font-weight:600;">
+                        @switch (task.completionOutcome) {
+                          @case ('success') { ✓ Success }
+                          @case ('partial') { ◐ Partial }
+                          @case ('skipped') { ⊘ Skipped }
+                        }
+                      </span>
+                      @if (task.completionNote) { <span class="opacity-80">{{ task.completionNote }}</span> }
+                      @if (task.completionReason) { <span class="opacity-70 italic">“{{ task.completionReason }}”</span> }
+                    </div>
+                  }
+
+                  <div *cdkDragPlaceholder class="h-16 rounded-xl border-2 border-dashed" style="border-color: var(--border-mid); background: var(--surface);"></div>
+                </div>
+              }
+
+              @if (getColumnTasks(col.id).length === 0) {
+                <div class="flex-1 flex items-center justify-center py-6 text-xs" style="color: var(--ink-4);">
+                  Drop tasks here
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Smart Complete Task Modal (my-tasks) ─────────────────────────────── -->
+  @if (showCompleteModal && completingTask) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between px-6 pt-6 pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+              <span>✅</span> Complete task
+            </h3>
+            <p class="text-xs text-gray-400 mt-0.5 truncate max-w-[340px]" [title]="completingTask.title">
+              {{ completingTask.title }}
+            </p>
+            @if (completingTask.assigneeName || completingTask.dueDate) {
+              <p class="text-xs text-gray-500 mt-1">
+                {{ completingTask.assigneeName || 'Unassigned' }}
+                @if (completingTask.dueDate) {
+                  <span> · {{ getDueDateLabel(completingTask) }}</span>
+                }
+              </p>
+            }
+          </div>
+          <button (click)="closeCompleteModal()" class="text-gray-400 hover:text-gray-600">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="px-6 py-5 space-y-4">
+
+          @if (isTaskOverdue(completingTask)) {
+            <div class="flex items-start gap-2 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-3 py-2">
+              <span>⚠️</span>
+              <span>
+                This task was due on <strong>{{ completingTask.dueDate | date:'mediumDate' }}</strong>.
+                Please add a short reason below so the team has context.
+              </span>
+            </div>
+          }
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">Outcome <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" (click)="completeOutcome = 'success'"
+                class="rounded-lg border px-2 py-2 text-xs font-medium"
+                [class.border-green-500]="completeOutcome === 'success'" [class.bg-green-50]="completeOutcome === 'success'" [class.text-green-700]="completeOutcome === 'success'"
+                [class.border-gray-200]="completeOutcome !== 'success'" [class.text-gray-500]="completeOutcome !== 'success'">
+                ✓ Success
+              </button>
+              <button type="button" (click)="completeOutcome = 'partial'"
+                class="rounded-lg border px-2 py-2 text-xs font-medium"
+                [class.border-amber-500]="completeOutcome === 'partial'" [class.bg-amber-50]="completeOutcome === 'partial'" [class.text-amber-700]="completeOutcome === 'partial'"
+                [class.border-gray-200]="completeOutcome !== 'partial'" [class.text-gray-500]="completeOutcome !== 'partial'">
+                ◐ Partial
+              </button>
+              <button type="button" (click)="completeOutcome = 'skipped'"
+                class="rounded-lg border px-2 py-2 text-xs font-medium"
+                [class.border-rose-500]="completeOutcome === 'skipped'" [class.bg-rose-50]="completeOutcome === 'skipped'" [class.text-rose-700]="completeOutcome === 'skipped'"
+                [class.border-gray-200]="completeOutcome !== 'skipped'" [class.text-gray-500]="completeOutcome !== 'skipped'">
+                ⊘ Skipped
+              </button>
+            </div>
+            @if (completeOutcomeError) { <p class="mt-1 text-xs text-red-500">{{ completeOutcomeError }}</p> }
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1.5">What was accomplished? <span class="text-red-500">*</span></label>
+            <p class="text-[10px] text-gray-400 mb-1.5">Quick insert</p>
+            <div class="flex flex-wrap gap-1.5 mb-2">
+              @for (chip of completeNoteChips; track chip) {
+                <button type="button" (click)="appendCompleteNoteChip(chip)"
+                  class="text-[10px] px-2 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:border-brand-400 hover:text-brand-700">
+                  + {{ chip }}
+                </button>
+              }
+            </div>
+            <textarea [(ngModel)]="completeNote" rows="3"
+              placeholder="e.g. Confirmed menu & head-count, signed quote attached"
+              [class.border-red-400]="completeNoteError"
+              class="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm resize-none focus:outline-none"></textarea>
+            @if (completeNoteError) { <p class="mt-1 text-xs text-red-500">{{ completeNoteError }}</p> }
+          </div>
+
+          @if (completeOutcome !== 'success' || isTaskOverdue(completingTask)) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                @if (completeOutcome === 'success') { Reason for the delay <span class="text-red-500">*</span> }
+                @else if (completeOutcome === 'partial') { What's left / blocker <span class="text-red-500">*</span> }
+                @else { Why was this skipped? <span class="text-red-500">*</span> }
+              </label>
+              <input type="text" [(ngModel)]="completeReason"
+                [class.border-red-400]="completeReasonError"
+                class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm focus:outline-none" />
+              @if (completeReasonError) { <p class="mt-1 text-xs text-red-500">{{ completeReasonError }}</p> }
+            </div>
+          }
+
+          @if (completeError) {
+            <div class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{{ completeError }}</div>
+          }
+        </div>
+
+        <div class="flex gap-3 px-6 pb-6 justify-end">
+          <button (click)="closeCompleteModal()" [disabled]="completeSaving"
+            class="px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+            Cancel
+          </button>
+          <button (click)="submitComplete()" [disabled]="completeSaving"
+            class="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-60">
+            {{ completeSaving ? 'Saving…' : 'Mark as done' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+</div>

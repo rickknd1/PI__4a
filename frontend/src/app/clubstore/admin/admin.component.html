@@ -1,0 +1,241 @@
+<div class="p-6 bg-gradient-to-br from-brand-50 to-white min-h-screen">
+  <div *ngIf="!isAdmin" class="max-w-md mx-auto bg-red-50 border border-red-200 text-red-800 rounded-xl p-6 text-center">
+    <h2 class="font-bold text-lg">Accès refusé</h2>
+    <p class="text-sm mt-2">Cette section est réservée aux membres du bureau (Président, Trésorier, Secrétaire, Comité).</p>
+  </div>
+
+  <div *ngIf="isAdmin">
+    <h1 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-blue-600 inline-block mb-6">
+      Administration
+    </h1>
+
+    <div class="flex gap-2 mb-6 border-b border-gray-200">
+      <button (click)="switchTab('products')"
+              [class]="activeTab === 'products' ? 'bg-brand-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              class="px-6 py-2 rounded-t-lg font-medium transition">
+        Produits
+      </button>
+      <button (click)="switchTab('orders')"
+              [class]="activeTab === 'orders' ? 'bg-brand-500 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              class="px-6 py-2 rounded-t-lg font-medium transition">
+        Commandes
+      </button>
+    </div>
+
+    <!-- TAB PRODUITS -->
+    <div *ngIf="activeTab === 'products'">
+      <div class="mb-8 p-5 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-lg text-white">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="text-4xl">🤖</div>
+            <div>
+              <h3 class="text-xl font-bold">Import intelligent par IA</h3>
+              <p class="text-sm opacity-90">Gagnez du temps ! Importez un PDF (catalogue, flyer) et l'IA remplit automatiquement le formulaire.</p>
+            </div>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3 items-center">
+            <label class="cursor-pointer bg-white/20 backdrop-blur-sm hover:bg-white/30 transition px-4 py-2 rounded-lg flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+              <span>Sélectionner un PDF</span>
+              <input type="file" (change)="onFileSelected($event)" accept=".pdf" class="hidden">
+            </label>
+            <button (click)="importFromPdf()" [disabled]="!selectedFile || importingPdf"
+                    class="bg-white text-purple-700 hover:bg-gray-100 font-bold px-5 py-2 rounded-lg shadow-md transition disabled:opacity-50 flex items-center gap-2">
+              <svg *ngIf="!importingPdf" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              <div *ngIf="importingPdf" class="animate-spin rounded-full h-5 w-5 border-2 border-purple-700 border-t-transparent"></div>
+              {{ importingPdf ? 'Extraction en cours...' : '✨ Extraire et remplir' }}
+            </button>
+          </div>
+        </div>
+        <div *ngIf="selectedFile && !importingPdf" class="mt-3 text-xs text-white/80 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Fichier prêt : {{ selectedFile.name }}</span>
+        </div>
+      </div>
+
+      <div class="mb-8 p-6 bg-white rounded-2xl shadow-md border border-gray-100">
+        <h2 class="text-xl font-bold text-gray-800 mb-5 flex items-center gap-2">
+          <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          Nouveau produit
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+            <input type="text" [(ngModel)]="newProduct.name" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prix (DT) *</label>
+            <input type="number" [(ngModel)]="newProduct.price" step="0.01" min="0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+            <select [(ngModel)]="newProduct.productType" (change)="onProductTypeChange()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+              <option value="JERSEY">Maillot</option>
+              <option value="TSHIRT">T-Shirt</option>
+              <option value="HAT">Casquette</option>
+              <option value="SCARF">Écharpe</option>
+              <option value="ACCESSORY">Accessoire</option>
+              <option value="EVENT_TICKET">Billet Événement</option>
+              <option value="CERTIFICATE">Certificat</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
+            <input type="number" [(ngModel)]="newProduct.stockQuantity" min="0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea [(ngModel)]="newProduct.description" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500"></textarea>
+          </div>
+
+          <div *ngIf="['TSHIRT','JERSEY','HAT','SCARF','ACCESSORY'].includes(newProduct.productType)" class="md:col-span-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Taille</label>
+                <select [(ngModel)]="size" class="w-full p-2 border border-gray-300 rounded-lg">
+                  <option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
+                <input type="text" [(ngModel)]="color" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Ex: Rouge">
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="newProduct.productType === 'EVENT_TICKET'" class="md:col-span-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nom de l'événement *</label>
+                <input type="text" [(ngModel)]="eventName" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Ex: Match PSG vs OM">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input type="datetime-local" [(ngModel)]="eventDate" class="w-full p-2 border border-gray-300 rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Lieu</label>
+                <input type="text" [(ngModel)]="venue" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Stade">
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="newProduct.productType === 'CERTIFICATE'" class="md:col-span-2">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Durée (mois)</label>
+                <select [(ngModel)]="membershipDurationMonths" class="w-full p-2 border border-gray-300 rounded-lg">
+                  <option [value]="1">1</option><option [value]="3">3</option><option [value]="6">6</option><option [value]="12">12</option><option [value]="24">24</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Niveau</label>
+                <select [(ngModel)]="membershipLevel" class="w-full p-2 border border-gray-300 rounded-lg">
+                  <option>BRONZE</option><option>SILVER</option><option>GOLD</option><option>PLATINUM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+            <div class="flex gap-2 mb-2">
+              <button type="button" (click)="imageInputMethod='url'" [class]="imageInputMethod==='url' ? 'bg-brand-500 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded text-sm transition">URL</button>
+              <button type="button" (click)="imageInputMethod='file'" [class]="imageInputMethod==='file' ? 'bg-brand-500 text-white' : 'bg-gray-200 text-gray-700'" class="px-3 py-1 rounded text-sm transition">Fichier</button>
+            </div>
+            <div *ngIf="imageInputMethod==='url'">
+              <input type="text" [(ngModel)]="newProduct.imageUrl" (ngModelChange)="onImageUrlChange($event)" placeholder="https://..." class="w-full p-2 border border-gray-300 rounded-lg">
+            </div>
+            <div *ngIf="imageInputMethod==='file'">
+              <input type="file" (change)="onImageSelected($event)" accept="image/*" class="w-full p-2 border border-gray-300 rounded-lg">
+            </div>
+            <div *ngIf="imagePreview" class="mt-2 flex items-center gap-2">
+              <img [src]="imagePreview" class="w-16 h-16 object-cover rounded border">
+              <button (click)="clearImage()" class="text-red-500 text-sm hover:underline">Supprimer</button>
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" [(ngModel)]="newProduct.isAvailable"> Disponible
+            </label>
+          </div>
+        </div>
+        <div class="flex gap-3 mt-6">
+          <button (click)="createProduct()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow transition">Créer</button>
+          <button (click)="resetForm()" class="bg-gray-500 hover:bg-gray-600 text-white px-5 py-2 rounded-lg shadow transition">Réinitialiser</button>
+        </div>
+      </div>
+
+      <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        Produits existants
+      </h2>
+      <div *ngIf="loadingProducts" class="text-center py-8">Chargement...</div>
+      <div *ngFor="let p of products" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-3 flex flex-col sm:flex-row gap-4 items-start sm:items-center transition hover:shadow-md">
+        <img [src]="p.imageUrl || 'https://placehold.co/60x60/f0f0f0/969696?text=No+Img'" class="w-16 h-16 object-cover rounded-lg">
+        <div class="flex-1">
+          <div class="font-bold text-gray-800">{{ p.name }}</div>
+          <div class="text-sm text-gray-500">{{ getProductTypeLabel(p.productType) }}</div>
+          <div class="text-sm">💰 {{ p.price }} DT | 📦 Stock: {{ p.stockQuantity }}</div>
+        </div>
+        <div class="flex gap-2">
+          <button (click)="startEdit(p)" class="bg-brand-500 hover:bg-brand-600 text-white px-3 py-1.5 rounded-lg text-sm transition">Modifier</button>
+          <button (click)="deleteProduct(p.id)" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm transition">Supprimer</button>
+        </div>
+      </div>
+
+      <div *ngIf="editingProduct" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">Modifier le produit</h2>
+          <div class="space-y-3">
+            <input type="text" [(ngModel)]="editingProduct.name" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Nom">
+            <input type="number" [(ngModel)]="editingProduct.price" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Prix">
+            <input type="number" [(ngModel)]="editingProduct.stockQuantity" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Stock">
+            <textarea [(ngModel)]="editingProduct.description" class="w-full p-2 border border-gray-300 rounded-lg" rows="2" placeholder="Description"></textarea>
+          </div>
+          <div class="flex justify-end gap-2 mt-5">
+            <button (click)="cancelEdit()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition">Annuler</button>
+            <button (click)="updateProduct()" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg transition">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB COMMANDES -->
+    <div *ngIf="activeTab === 'orders'">
+      <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+        Commandes
+      </h2>
+      <div *ngIf="loadingOrders" class="text-center py-8">Chargement...</div>
+      <div *ngFor="let order of orders" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4 transition hover:shadow-md">
+        <div class="flex flex-wrap justify-between items-start gap-2">
+          <div>
+            <span class="font-mono font-bold text-gray-800">#{{ order.orderNumber || order.id?.slice(-8) }}</span>
+            <span [class]="'ml-3 px-2 py-0.5 rounded-full text-xs font-medium ' + getStatusClass(order.status)">{{ order.status }}</span>
+          </div>
+          <div class="font-bold text-gray-900">{{ order.totalAmount }} DT</div>
+        </div>
+        <div class="text-sm text-gray-500 mt-1">{{ order.orderDate | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div class="mt-2 text-sm"><span class="font-medium">Adresse :</span> {{ order.shippingAddress }}</div>
+        <div class="text-sm"><span class="font-medium">Paiement :</span> {{ order.paymentMethod }}</div>
+        <div class="mt-3 pt-2 border-t border-gray-100">
+          <span class="font-medium text-sm">Articles :</span>
+          <div *ngFor="let item of order.items" class="text-sm text-gray-600 ml-2">• {{ item.productName }} x {{ item.quantity }} = {{ item.price * item.quantity }} DT</div>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <label class="text-sm font-medium">Changer statut :</label>
+          <select [(ngModel)]="selectedStatus[order.id!]" class="p-1.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500">
+            <option value="PENDING">En attente</option>
+            <option value="CONFIRMED">Confirmée</option>
+            <option value="SHIPPED">Expédiée</option>
+            <option value="DELIVERED">Livrée</option>
+            <option value="CANCELLED">Annulée</option>
+          </select>
+          <button (click)="updateOrderStatus(order.id!, selectedStatus[order.id!])" class="bg-brand-500 hover:bg-brand-600 text-white px-3 py-1.5 rounded-lg text-sm transition">Mettre à jour</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

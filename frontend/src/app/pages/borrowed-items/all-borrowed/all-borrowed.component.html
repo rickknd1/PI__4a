@@ -1,0 +1,1424 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+
+  :host {
+    --brand:        #2A2570;
+    --brand-mid:    #4C46B8;
+    --brand-soft:   #EEEDF9;
+    --brand-glow:   rgba(42,37,112,0.10);
+    --emerald:      #0D9E6A;
+    --emerald-soft: #E3F5EE;
+    --amber:        #D97706;
+    --amber-soft:   #FEF3C7;
+    --rose:         #C0364F;
+    --rose-soft:    #FCEAED;
+    --sky:          #0369A1;
+    --sky-soft:     #E0F2FE;
+    --teal:         #0F766E;
+    --teal-soft:    #CCFBF1;
+    --ink:          #0F0E1A;
+    --ink-2:        #2E2C42;
+    --ink-3:        #6B6880;
+    --ink-4:        #A8A6BC;
+    --surface:      #F9F8FD;
+    --card:         #FFFFFF;
+    --border:       rgba(42,37,112,0.09);
+    --border-mid:   rgba(42,37,112,0.16);
+    --radius:       14px;
+    --radius-sm:    9px;
+    --shadow:       0 1px 6px rgba(42,37,112,0.07), 0 1px 2px rgba(0,0,0,0.03);
+    --shadow-hover: 0 6px 28px rgba(42,37,112,0.13), 0 2px 8px rgba(0,0,0,0.05);
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 2.5rem; padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 1rem;
+  }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 2.5rem; font-weight: 400; color: var(--ink); letter-spacing: -0.03em; line-height: 1; margin: 0; }
+  .page-header h1 em { font-style: italic; color: var(--brand-mid); }
+  .page-header p { font-size: 0.84rem; color: var(--ink-3); margin-top: 6px; font-weight: 300; }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* ── Stats ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.85rem; margin-bottom: 1.75rem; }
+  .stat-cell { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem 1.1rem; }
+  .sc-label { font-size: 0.62rem; font-weight: 500; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 4px; }
+  .sc-val { font-family: 'DM Serif Display', serif; font-size: 1.9rem; line-height: 1; color: var(--ink); }
+  .sc-val.brand { color: var(--brand-mid); }
+  .sc-val.emerald { color: var(--emerald); }
+  .sc-val.amber { color: var(--amber); }
+  .sc-val.rose { color: var(--rose); }
+
+  /* ── Alerts ── */
+  .alert-row { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem; }
+  .alert-box {
+    display: flex; align-items: center; gap: 1rem;
+    border-radius: var(--radius-sm); padding: 0.8rem 1rem;
+    border-left: 3px solid;
+  }
+  .alert-box.amber { background: var(--amber-soft); border-color: var(--amber); }
+  .alert-box.sky { background: var(--sky-soft); border-color: var(--sky); }
+  .alert-text { flex: 1; }
+  .alert-text strong { font-size: 0.8rem; font-weight: 600; display: block; color: var(--ink-2); }
+  .alert-text span { font-size: 0.72rem; color: var(--ink-3); }
+  .alert-action {
+    font-size: 0.72rem; font-weight: 500; background: none; border: 1px solid currentColor;
+    border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    white-space: nowrap; transition: background 0.15s;
+  }
+  .alert-action.amber { color: #854F0B; }
+  .alert-action.amber:hover { background: #FDE68A; }
+  .alert-action.sky { color: var(--sky); }
+  .alert-action.sky:hover { background: #BAE6FD; }
+
+  /* ── Tabs ── */
+  .tabs-wrap { display: flex; gap: 0; margin-bottom: 1.75rem; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    display: flex; align-items: center; gap: 7px; padding: 9px 18px;
+    border: none; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; color: var(--ink-4); background: none;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; letter-spacing: 0.02em;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--brand-mid); border-bottom-color: var(--brand-mid); }
+  .tab-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 4px; border-radius: 20px;
+    font-size: 0.62rem; font-weight: 600;
+  }
+  .tab-badge.neutral { background: var(--surface); color: var(--ink-3); border: 1px solid var(--border-mid); }
+  .tab-badge.amber-b { background: var(--amber-soft); color: #854F0B; }
+  .tab-badge.emerald-b { background: var(--emerald-soft); color: #086047; }
+  .tab-badge.active-b { background: var(--brand-mid); color: #fff; }
+
+  /* ── Grid ── */
+  .items-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.2rem; }
+
+  /* ── Item Card ── */
+  .item-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .item-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+  .item-card.overdue-card { border-color: rgba(192,54,79,0.3); }
+  .item-card.returned-card { border-color: rgba(13,158,106,0.25); }
+
+  /* ── Card Head ── */
+  .card-head {
+    padding: 1.35rem 1.4rem 1.1rem; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-mid) 55%, #7B73D4 100%);
+  }
+  .card-head.head-emerald { background: linear-gradient(135deg, #064E3B 0%, var(--emerald) 100%); }
+  .card-head.head-rose    { background: linear-gradient(135deg, #881337 0%, var(--rose) 100%); }
+  .card-head.head-amber   { background: linear-gradient(135deg, #78350F 0%, var(--amber) 100%); }
+  .card-head::before {
+    content: ''; position: absolute; top: -50px; right: -50px;
+    width: 180px; height: 180px; background: rgba(255,255,255,0.05); border-radius: 50%;
+  }
+  .head-row { display: flex; align-items: flex-start; justify-content: space-between; position: relative; z-index: 1; }
+  .head-left { display: flex; align-items: flex-start; gap: 11px; }
+  .cat-icon {
+    width: 38px; height: 38px; border-radius: 9px; background: rgba(255,255,255,0.14);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0;
+  }
+  .item-name { font-family: 'DM Serif Display', serif; font-size: 1.05rem; font-weight: 400; color: #fff; margin: 0; line-height: 1.2; }
+  .item-sub { font-size: 0.72rem; color: rgba(255,255,255,0.62); margin-top: 2px; font-weight: 300; }
+  .head-badges { display: flex; gap: 5px; align-items: center; flex-shrink: 0; margin-left: 8px; flex-wrap: wrap; }
+  .hbadge {
+    padding: 2px 9px; border-radius: 20px; font-size: 0.62rem; font-weight: 500;
+    letter-spacing: 0.04em; border: 1px solid rgba(255,255,255,0.22);
+    color: #fff; background: rgba(255,255,255,0.13);
+  }
+  .hbadge.overdue { background: rgba(192,54,79,0.3); border-color: rgba(192,54,79,0.5); }
+  .hbadge.success { background: rgba(13,158,106,0.3); border-color: rgba(13,158,106,0.5); }
+
+  /* Pipeline */
+  .pipeline {
+    display: flex; align-items: stretch; background: rgba(0,0,0,0.18);
+    border-radius: 7px; overflow: hidden; margin-top: 0.85rem; position: relative; z-index: 1;
+  }
+  .pip-step {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 7px 4px; font-size: 0.6rem; font-weight: 500; color: rgba(255,255,255,0.45);
+    text-align: center; gap: 3px; position: relative;
+  }
+  .pip-step::after {
+    content: '>'; position: absolute; right: -3px; top: 50%;
+    transform: translateY(-50%); font-size: 0.9rem; color: rgba(255,255,255,0.2); z-index: 1;
+  }
+  .pip-step:last-child::after { display: none; }
+  .pip-step.done { background: rgba(13,158,106,0.25); color: #6EE7C0; }
+  .pip-step.active { background: rgba(255,255,255,0.18); color: #fff; }
+  .pip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.6; }
+  .pip-step.active .pip-dot { opacity: 1; animation: pulseDot 1.5s ease infinite; }
+  @keyframes pulseDot { 0%,100%{transform:scale(1)} 50%{transform:scale(1.7)} }
+
+  /* ── Card Body ── */
+  .card-body { padding: 1rem 1.1rem; }
+  .supplier-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.85rem; }
+  .supplier-block { flex: 1; }
+  .s-label { font-size: 0.6rem; font-weight: 500; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .s-val { font-size: 0.83rem; font-weight: 500; color: var(--ink); }
+  .s-phone { font-size: 0.72rem; color: var(--ink-3); margin-top: 2px; }
+  .icon-actions { display: flex; gap: 4px; flex-shrink: 0; margin-left: 8px; }
+  .icon-btn-sm {
+    width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border-mid);
+    background: var(--surface); color: var(--ink-3); cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .icon-btn-sm:hover { background: var(--brand-soft); color: var(--brand-mid); border-color: var(--brand-soft); }
+  .icon-btn-sm svg { width: 12px; height: 12px; }
+
+  /* Data cells */
+  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.85rem; }
+  .d-cell { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.55rem 0.7rem; }
+  .d-cell.full { grid-column: 1/-1; }
+  .d-cell.emerald { background: var(--emerald-soft); border-color: rgba(13,158,106,0.18); }
+  .d-cell.amber { background: var(--amber-soft); border-color: rgba(217,119,6,0.18); }
+  .d-cell.brand { background: var(--brand-soft); border-color: rgba(76,70,184,0.15); }
+  .d-cell.rose { background: var(--rose-soft); border-color: rgba(192,54,79,0.18); }
+  .d-cell.sky { background: var(--sky-soft); border-color: rgba(3,105,161,0.15); }
+  .dc-label { font-size: 0.58rem; font-weight: 500; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .dc-val { font-size: 0.8rem; font-weight: 400; color: var(--ink); line-height: 1.3; }
+  .dc-val.emerald { color: #086047; font-weight: 500; }
+  .dc-val.amber { color: #78350F; font-weight: 500; }
+  .dc-val.brand { color: var(--brand-mid); font-weight: 500; }
+  .dc-val.rose { color: #881337; font-weight: 500; }
+  .dc-val.sky { color: var(--sky); font-weight: 500; }
+
+  /* Devis chips in list view */
+  .devis-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .devis-chip {
+    display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+    border-radius: 20px; font-size: 0.7rem; font-weight: 500;
+    border: 1px solid var(--border-mid); background: var(--surface); color: var(--ink-2);
+  }
+  .devis-chip.best { border-color: rgba(13,158,106,0.35); background: var(--emerald-soft); color: #086047; }
+  .devis-chip.validated { border-color: rgba(13,158,106,0.5); background: var(--emerald-soft); color: #086047; font-weight: 600; }
+  .devis-chip.rejected { opacity: 0.45; text-decoration: line-through; }
+  .devis-chip-amount { font-weight: 600; }
+
+  /* Quotes section */
+  .quotes-section {
+    background: var(--brand-soft); border: 1px solid rgba(76,70,184,0.14);
+    border-radius: var(--radius-sm); padding: 0.8rem 0.9rem; margin-bottom: 0.75rem;
+  }
+  .quotes-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.55rem; }
+  .quotes-title { font-size: 0.65rem; font-weight: 600; color: var(--brand-mid); text-transform: uppercase; letter-spacing: 0.08em; }
+  .add-quote-btn {
+    font-size: 0.68rem; font-weight: 500; color: var(--brand-mid); background: none;
+    border: 1px dashed rgba(76,70,184,0.35); border-radius: 6px; padding: 3px 9px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .add-quote-btn:hover { background: rgba(76,70,184,0.08); border-style: solid; }
+  .quote-row {
+    display: flex; align-items: center; gap: 7px; background: var(--card);
+    border: 1px solid rgba(76,70,184,0.1); border-radius: 7px; padding: 6px 9px; margin-bottom: 4px;
+  }
+  .quote-row:last-child { margin-bottom: 0; }
+  .quote-row.validated { border-color: rgba(13,158,106,0.3); background: var(--emerald-soft); }
+  .quote-row.rejected { opacity: 0.42; }
+  .q-num {
+    font-size: 0.62rem; font-weight: 600; background: var(--brand-soft); color: var(--brand-mid);
+    padding: 2px 6px; border-radius: 5px; flex-shrink: 0;
+  }
+  .q-num.v { background: var(--emerald-soft); color: #086047; }
+  .q-supplier { flex: 1; font-size: 0.76rem; font-weight: 500; }
+  .q-amount { font-size: 0.76rem; font-weight: 600; color: var(--ink-2); }
+  .q-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .q-dot.pending { background: var(--amber); }
+  .q-dot.validated { background: var(--emerald); }
+  .q-dot.rejected { background: var(--rose); }
+  .quotes-validated-banner {
+    display: flex; align-items: center; gap: 6px; background: var(--emerald-soft);
+    border: 1px solid rgba(13,158,106,0.2); border-radius: 7px; padding: 6px 9px;
+    font-size: 0.72rem; color: #086047; font-weight: 500; margin-top: 5px;
+  }
+  .quotes-pending-banner {
+    display: flex; align-items: center; gap: 6px; background: var(--amber-soft);
+    border: 1px solid rgba(217,119,6,0.18); border-radius: 7px; padding: 6px 9px;
+    font-size: 0.72rem; color: #78350F; margin-top: 5px;
+  }
+
+  /* Payment banner */
+  .payment-banner {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+    border-radius: var(--radius-sm); margin-bottom: 0.65rem; font-size: 0.75rem; font-weight: 500;
+  }
+  .payment-banner.paid { background: var(--emerald-soft); color: #086047; border: 1px solid rgba(13,158,106,0.18); }
+  .payment-banner.unpaid { background: var(--rose-soft); color: #881337; border: 1px solid rgba(192,54,79,0.15); }
+  .mark-paid-btn {
+    margin-left: auto; font-size: 0.68rem; font-weight: 600; color: var(--emerald);
+    background: none; border: 1px solid rgba(13,158,106,0.25); border-radius: 5px;
+    padding: 2px 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 0.03em;
+  }
+  .mark-paid-btn:hover { background: var(--emerald-soft); }
+
+  /* Actions */
+  .divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+  .actions-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 6px 13px; border-radius: 8px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.38; cursor: not-allowed; }
+  .btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .btn-primary { background: var(--brand); color: #fff; flex: 1; }
+  .btn-primary:hover:not(:disabled) { opacity: 0.85; }
+  .btn-emerald { background: var(--emerald); color: #fff; flex: 1; }
+  .btn-emerald:hover:not(:disabled) { opacity: 0.88; }
+  .btn-ghost { background: var(--surface); color: var(--ink-2); border: 1px solid var(--border-mid); }
+  .btn-ghost:hover { background: var(--brand-soft); color: var(--brand-mid); }
+  .btn-rose { background: var(--rose-soft); color: #881337; border: 1px solid rgba(192,54,79,0.15); }
+  .btn-rose:hover { background: #F7D0D7; }
+  .btn-amber { background: var(--amber-soft); color: #78350F; border: 1px solid rgba(217,119,6,0.18); }
+  .btn-amber:hover { background: #FDE68A; }
+  .btn-brand { background: var(--brand-soft); color: var(--brand-mid); border: 1px solid rgba(76,70,184,0.18); flex: 1; }
+  .btn-brand:hover { background: #DDD9F7; }
+  .btn-icon { padding: 6px 8px; flex: 0 !important; }
+
+  /* Empty / skeleton */
+  .empty-state {
+    background: var(--card); border: 1.5px dashed var(--border-mid);
+    border-radius: var(--radius); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center;
+  }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 0.85rem; opacity: 0.35; }
+  .empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: var(--ink); margin-bottom: 5px; }
+  .empty-state p { font-size: 0.82rem; color: var(--ink-3); max-width: 280px; line-height: 1.65; font-weight: 300; }
+  .skeleton-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.2rem; }
+  .skeleton-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .skel-head { height: 90px; background: linear-gradient(135deg,#E8E7F4,#D5D2F0); }
+  .skel-body { padding: 1rem 1.1rem; }
+  .skel-line { height: 10px; background: var(--border); border-radius: 5px; margin-bottom: 8px; animation: shimmer 1.4s ease infinite; }
+  .skel-line.w60 { width: 60%; } .skel-line.w80 { width: 80%; }
+  @keyframes shimmer { 0%,100%{opacity:0.3}50%{opacity:0.75} }
+
+  /* ══════ MODALS ══════ */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(15,14,26,0.55);
+    backdrop-filter: blur(6px); display: flex; align-items: center;
+    justify-content: center; z-index: 1000; padding: 1rem;
+  }
+  .modal {
+    background: var(--card); border-radius: var(--radius); width: 100%; max-width: 460px;
+    overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.2); animation: modalIn 0.2s ease;
+  }
+  .modal.modal-lg { max-width: 600px; }
+  .modal.modal-xl { max-width: 760px; }
+  .modal.modal-xxl { max-width: 920px; }
+  .modal.modal-scroll { max-height: 90vh; overflow-y: auto; }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .modal-head {
+    padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between;
+    position: sticky; top: 0; background: var(--card); z-index: 2;
+  }
+  .modal-head.dark { background: var(--brand); border-color: transparent; }
+  .modal-head.dark .modal-title { color: #fff; }
+  .modal-head.dark .modal-subtitle { color: rgba(255,255,255,0.55); }
+  .modal-title { font-family: 'DM Serif Display', serif; font-size: 1.2rem; font-weight: 400; color: var(--ink); margin: 0; }
+  .modal-subtitle { font-size: 0.73rem; color: var(--ink-3); margin-top: 2px; }
+  .modal-body { padding: 1.35rem; }
+  .close-btn {
+    width: 28px; height: 28px; border-radius: 6px; border: none;
+    background: rgba(255,255,255,0.15); color: #fff; font-size: 0.9rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .close-btn.light { background: var(--surface); color: var(--ink-3); }
+  .close-btn:hover { background: rgba(255,255,255,0.25); }
+  .close-btn.light:hover { background: var(--brand-soft); }
+
+  /* Form */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .form-field { display: flex; flex-direction: column; gap: 4px; }
+  .form-field.full { grid-column: 1/-1; }
+  .field-label { font-size: 0.63rem; font-weight: 500; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.07em; }
+  .field-input, .field-select, .field-textarea {
+    padding: 0.5rem 0.75rem; border: 1px solid var(--border-mid); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--ink); font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%; box-sizing: border-box;
+  }
+  .field-input:focus, .field-select:focus, .field-textarea:focus {
+    border-color: var(--brand-mid); box-shadow: 0 0 0 3px var(--brand-glow);
+  }
+  .field-input.err, .field-select.err { border-color: var(--rose); }
+  .field-error { font-size: 0.67rem; color: var(--rose); font-weight: 500; }
+  .field-textarea { resize: vertical; min-height: 58px; }
+
+  /* Section head */
+  .sect-head {
+    font-size: 0.65rem; font-weight: 600; color: var(--ink-3); text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 0.65rem; padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Event picker */
+  .event-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px; margin-bottom: 0.85rem; }
+  .event-card {
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem;
+    cursor: pointer; transition: all 0.15s; background: var(--card);
+  }
+  .event-card:hover { border-color: var(--brand-mid); background: var(--surface); }
+  .event-card.selected { border-color: var(--brand-mid); background: var(--brand-soft); }
+  .event-card-name { font-size: 0.8rem; font-weight: 500; color: var(--ink); }
+  .event-card-sub { font-size: 0.7rem; color: var(--ink-3); margin-top: 1px; }
+
+  /* Step bar */
+  .step-bar { display: flex; gap: 0; margin-bottom: 1.4rem; }
+  .step-item { flex: 1; text-align: center; position: relative; }
+  .step-item::after { content: ''; position: absolute; top: 13px; left: 50%; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+  .step-item:last-child::after { display: none; }
+  .step-circle {
+    width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border-mid);
+    background: var(--card); display: flex; align-items: center; justify-content: center;
+    font-size: 0.68rem; font-weight: 600; color: var(--ink-4);
+    margin: 0 auto 4px; position: relative; z-index: 1; transition: all 0.2s;
+  }
+  .step-circle.active { border-color: var(--brand-mid); background: var(--brand-mid); color: #fff; }
+  .step-circle.done { border-color: var(--emerald); background: var(--emerald); color: #fff; }
+  .step-label { font-size: 0.6rem; color: var(--ink-4); font-weight: 500; letter-spacing: 0.04em; }
+  .step-item.active .step-label { color: var(--brand-mid); }
+  .step-item.done .step-label { color: var(--emerald); }
+
+  /* Error/success banners */
+  .error-banner { background: var(--rose-soft); border: 1px solid rgba(192,54,79,0.18); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.79rem; color: #881337; margin-bottom: 0.9rem; }
+  .success-banner { background: var(--emerald-soft); border: 1px solid rgba(13,158,106,0.18); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.79rem; color: #086047; margin-bottom: 0.9rem; }
+  .divider-sm { height: 1px; background: var(--border); margin: 0.75rem 0; }
+
+  /* Info box */
+  .info-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.65rem 0.85rem;
+    font-size: 0.77rem; color: var(--ink-3); display: flex; align-items: flex-start;
+    gap: 7px; margin-bottom: 1rem; line-height: 1.55;
+  }
+
+  /* Buttons modal */
+  .modal-actions { display: flex; gap: 8px; margin-top: 1.3rem; }
+  .btn-modal {
+    flex: 1; padding: 0.62rem; border-radius: 9px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn-modal:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-modal-cancel { background: var(--surface); border: 1px solid var(--border-mid); color: var(--ink-2); }
+  .btn-modal-cancel:hover { background: var(--brand-soft); }
+  .btn-modal-primary { background: var(--brand); color: #fff; }
+  .btn-modal-primary:hover:not(:disabled) { opacity: 0.85; }
+  .btn-modal-emerald { background: var(--emerald); color: #fff; }
+  .btn-modal-emerald:hover:not(:disabled) { opacity: 0.88; }
+  .btn-modal-delete { background: var(--rose); color: #fff; }
+  .btn-modal-delete:hover { opacity: 0.88; }
+  .del-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--rose-soft); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+  .del-icon svg { width: 21px; height: 21px; stroke: var(--rose); fill: none; }
+  .modal-confirm-title { font-family: 'DM Serif Display', serif; font-size: 1.15rem; font-weight: 400; text-align: center; color: var(--ink); margin-bottom: 6px; }
+  .modal-confirm-sub { font-size: 0.81rem; text-align: center; color: var(--ink-3); line-height: 1.65; font-weight: 300; }
+
+  /* Devis cards grid */
+  .devis-cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+  .devis-card {
+    border: 2px solid var(--border-mid); border-radius: var(--radius); overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s; background: var(--card);
+  }
+  .devis-card.filled { border-color: var(--emerald); box-shadow: 0 0 0 1px var(--emerald-soft); }
+  .devis-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.65rem 0.85rem;
+  }
+  .devis-card-head.filled-head { background: var(--emerald-soft); }
+  .devis-card-head.empty-head { background: var(--surface); }
+  .devis-num-badge {
+    font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 7px;
+    background: var(--brand); color: #fff;
+  }
+  .devis-card-body { padding: 0.75rem 0.85rem; }
+  .devis-card-body .form-field { margin-bottom: 0.45rem; }
+
+  /* Comparison table */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .compare-table th {
+    text-align: left; padding: 6px 10px; font-weight: 600; font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3);
+    border-bottom: 2px solid var(--border);
+  }
+  .compare-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .compare-table tr.best-row td { color: var(--emerald); font-weight: 600; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes toastSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  .event-budget-panel {
+    margin: 0 0 1rem;
+    padding: 1rem 1.15rem;
+    background: linear-gradient(135deg, rgba(76,70,184,0.06), rgba(13,158,106,0.05));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .ebp-title { font-weight: 700; font-size: 0.88rem; color: var(--ink-2); margin-bottom: 0.25rem; }
+  .ebp-hint { font-size: 0.72rem; color: var(--ink-3); margin: 0 0 0.65rem; line-height: 1.35; }
+  .ebp-events { display: flex; flex-direction: column; gap: 0.55rem; }
+  .ebp-event-card {
+    padding: 0.55rem 0.75rem; border-radius: var(--radius-sm);
+    background: var(--card); border: 1px solid var(--border); font-size: 0.76rem;
+  }
+  .ebp-event-head { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; }
+  .ebp-ev { font-weight: 600; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ebp-tnd { font-weight: 700; color: var(--brand-mid); flex-shrink: 0; }
+  .ebp-prov { display: block; font-size: 0.65rem; color: var(--amber); margin-bottom: 0.3rem; }
+  .ebp-split {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; font-size: 0.7rem; color: var(--ink-3);
+  }
+  .line-estimate-block { margin-top: 0.5rem; }
+  .line-estimate-row {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;
+    padding: 0.45rem 0.65rem;
+    background: rgba(76,70,184,0.06); border-radius: var(--radius-sm); font-size: 0.76rem;
+  }
+  .line-estimate-row .le-label { display: block; color: var(--ink-3); font-weight: 600; }
+  .line-estimate-row .le-prov { display: block; font-size: 0.62rem; color: var(--amber); margin-top: 2px; }
+  .line-estimate-row .le-amt { font-weight: 700; color: var(--ink-2); flex-shrink: 0; }
+  .line-estimate-split {
+    display: flex; flex-wrap: wrap; gap: 0.4rem 0.75rem; margin-top: 0.35rem; padding: 0 0.65rem 0.35rem;
+    font-size: 0.65rem; color: var(--ink-3);
+  }
+
+  @media (max-width: 768px) {
+    .stats-row, .items-grid, .skeleton-grid { grid-template-columns: 1fr; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .form-grid, .event-grid { grid-template-columns: 1fr; }
+    .devis-cards-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- ══════════════════════════ TOAST ══════════════════════════ -->
+<div *ngIf="toastVisible"
+     style="position:fixed; top:20px; right:20px; z-index:10000; min-width:320px; max-width:480px;
+            padding:12px 18px; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.15);
+            display:flex; align-items:center; gap:10px; font-size:0.82rem; font-weight:500;
+            animation:toastSlideIn 0.3s ease-out; cursor:pointer;"
+     [style.background]="toastType === 'success' ? '#E3F5EE' : '#FCEAED'"
+     [style.border]="toastType === 'success' ? '1px solid rgba(13,158,106,0.3)' : '1px solid rgba(192,54,79,0.3)'"
+     [style.color]="toastType === 'success' ? '#064E3B' : '#881337'"
+     (click)="toastVisible = false">
+  <span style="font-size:1.1rem;">{{ toastType === 'success' ? '&#9989;' : '&#10060;' }}</span>
+  <span style="flex:1;">{{ toastMessage }}</span>
+  <span style="font-size:0.7rem; opacity:0.5; cursor:pointer;" (click)="toastVisible=false">&times;</span>
+</div>
+
+<!-- ══════════════════════════════ PAGE ══════════════════════════════ -->
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Needs &amp; <em>quotes</em></h1>
+      <p>One need = one request with up to three supplier quotes to compare.</p>
+    </div>
+    <div class="header-actions">
+      <!-- Le Trésorier ne peut PAS créer de nouveau besoin (lecture +
+           validation / rejet de devis + Mark Paid uniquement). -->
+      <button (click)="exportAllNeedsPdf()" class="btn btn-modal-cancel" style="flex:0; display:flex; align-items:center; gap:6px; font-size:0.75rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export All Needs
+      </button>
+      <button *ngIf="canEditNeeds" (click)="openNeedModal()" class="btn btn-primary" style="flex:0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;"><path d="M12 5v14M5 12h14"/></svg>
+        New need
+      </button>
+      <span *ngIf="isTreasurer"
+            style="font-size:0.72rem;color:var(--ink-3);font-style:italic;display:flex;align-items:center;gap:6px;background:var(--brand-soft);border:1px dashed var(--border-mid);padding:6px 12px;border-radius:8px;">
+        🔒 Read-only · validate quotes &amp; mark paid only
+      </span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-cell">
+      <div class="sc-label">Total</div>
+      <div class="sc-val">{{ stats.totalItems }}</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sc-label">Active</div>
+      <div class="sc-val amber">{{ stats.activeItems }}</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sc-label">Overdue</div>
+      <div class="sc-val" [class]="stats.overdueItems > 0 ? 'rose' : 'emerald'">{{ stats.overdueItems }}</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sc-label">Quotes pending</div>
+      <div class="sc-val brand">{{ pendingDevisCount }}</div>
+    </div>
+  </div>
+
+  <!-- Same per-event totals as All events → Budget (supplier + staff + location) -->
+  <div *ngIf="borrowedTotalsByEvent.length" class="event-budget-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+      <div class="ebp-title">Planned spend by event</div>
+      <input [(ngModel)]="eventFilterTerm" 
+             placeholder="Filter event..." 
+             style="font-size:0.7rem; padding:4px 8px; border-radius:6px; border:1px solid var(--border-mid); width:180px;">
+    </div>
+    <p class="ebp-hint">Treasurer-validated quote (or estimate) + staff + venue per need — same totals as All events.</p>
+    <div class="ebp-events">
+      <div *ngFor="let row of filteredBorrowedTotals" class="ebp-event-card">
+        <div class="ebp-event-head">
+          <span class="ebp-ev">{{ row.eventName }}</span>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="ebp-tnd">{{ row.total | number:'1.0-3' }} TND</span>
+            <button (click)="downloadEventPdf(row)" 
+                    title="Download summary"
+                    style="background:none; border:1px solid var(--border-mid); border-radius:5px; padding:2px 6px; cursor:pointer; color:var(--ink-3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px; height:12px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <span *ngIf="row.hasProvisional" class="ebp-prov">Includes estimates (validation pending)</span>
+        <div class="ebp-split">
+          <span title="Supplier">Quote {{ row.supplierSum | number:'1.0-3' }}</span>
+          <span title="Staff">Staff {{ row.staffSum | number:'1.0-3' }}</span>
+          <span title="Venue">Place {{ row.locationSum | number:'1.0-3' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  <div class="alert-row">
+    <div *ngIf="overdueItems.length > 0" class="alert-box amber">
+      <div class="alert-text">
+        <strong>{{ overdueItems.length }} overdue need(s)</strong>
+        <span>{{ overdueItems.slice(0,3).map(i => i.itemName).join(', ') }}{{ overdueItems.length > 3 ? '...' : '' }}</span>
+      </div>
+      <button class="alert-action amber" (click)="activeTab='approved'">View &rarr;</button>
+    </div>
+    <div *ngIf="pendingDevisCount > 0" class="alert-box sky">
+      <div class="alert-text">
+        <strong>{{ pendingDevisCount }} need(s) with quotes awaiting treasurer validation</strong>
+        <span>The treasurer must validate one quote before approval.</span>
+      </div>
+      <button class="alert-action sky" (click)="activeTab='waiting'">Manage &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-wrap">
+    <button class="tab-btn" [class.active]="activeTab==='waiting'" (click)="activeTab='waiting'">
+      Pending
+      <span *ngIf="waitingItems.length" class="tab-badge" [class]="activeTab==='waiting'?'active-b':'amber-b'">{{ waitingItems.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab==='approved'" (click)="activeTab='approved'">
+      Active
+      <span *ngIf="approvedItems.length" class="tab-badge" [class]="activeTab==='approved'?'active-b':'emerald-b'">{{ approvedItems.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab==='returned'" (click)="activeTab='returned'">
+      Returned
+      <span *ngIf="returnedItems.length" class="tab-badge" [class]="activeTab==='returned'?'active-b':'neutral'">{{ returnedItems.length }}</span>
+    </button>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="loading" class="skeleton-grid">
+    <div *ngFor="let _ of [1,2,3,4]" class="skeleton-card">
+      <div class="skel-head"></div>
+      <div class="skel-body">
+        <div class="skel-line w80"></div><div class="skel-line w60"></div><div class="skel-line w80"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ WAITING ══ -->
+  <div *ngIf="!loading && activeTab==='waiting'">
+    <div *ngIf="waitingItems.length===0" class="empty-state">
+      <div class="empty-icon">&#128640;</div>
+      <h3>No pending needs</h3>
+      <p *ngIf="canEditNeeds">Create a new need with up to three supplier quotes to get started.</p>
+      <p *ngIf="!canEditNeeds">No quote is awaiting your validation right now.</p>
+      <button *ngIf="canEditNeeds" (click)="openNeedModal()" class="btn btn-primary" style="margin-top:1.1rem;flex:0;">+ New need</button>
+    </div>
+    <div class="items-grid">
+      <div *ngFor="let item of waitingItems" class="item-card">
+        <div class="card-head" [class]="hasValidatedDevis(item.id)?'head-emerald':getItemDevis(item.id).length>0?'':'head-amber'">
+          <div class="head-row">
+            <div class="head-left">
+              <div class="cat-icon">{{ getCategoryIcon(item.category) }}</div>
+              <div>
+                <h3 class="item-name">{{ item.itemName }}</h3>
+                <p class="item-sub">{{ getCategoryLabel(item.category) }} &middot; {{ getEventName(item.eventId) }}</p>
+              </div>
+            </div>
+            <div class="head-badges">
+              <span *ngIf="hasValidatedDevis(item.id)" class="hbadge success">Quote validated</span>
+              <span *ngIf="getItemDevis(item.id).length>0&&!hasValidatedDevis(item.id)" class="hbadge">{{ getItemDevis(item.id).length }} quotes</span>
+              <span class="hbadge">Pending</span>
+            </div>
+          </div>
+          <div class="pipeline">
+            <div class="pip-step active"><div class="pip-dot"></div>Request</div>
+            <div class="pip-step" [class.done]="getItemDevis(item.id).length>=1"><div class="pip-dot"></div>Quote 1</div>
+            <div class="pip-step" [class.done]="getItemDevis(item.id).length>=2"><div class="pip-dot"></div>Quote 2</div>
+            <div class="pip-step" [class.done]="getItemDevis(item.id).length>=3"><div class="pip-dot"></div>Quote 3</div>
+            <div class="pip-step" [class.done]="hasValidatedDevis(item.id)"><div class="pip-dot"></div>Validated</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- 3 devis as chips -->
+          <div class="devis-chips">
+            <span *ngFor="let dv of getItemDevis(item.id); let i=index"
+                  class="devis-chip"
+                  [class.best]="dv.amount === getMinAmount(item.id) && dv.status !== 'rejected'"
+                  [class.validated]="dv.status==='validated'"
+                  [class.rejected]="dv.status==='rejected'">
+              D{{ i+1 }} {{ dv.supplierName }}
+              <span class="devis-chip-amount">{{ dv.amount | number:'1.0-3' }} TND</span>
+            </span>
+            <span *ngIf="getItemDevis(item.id).length === 0" style="font-size:0.72rem;color:var(--ink-4);font-style:italic;">No quotes on file</span>
+          </div>
+
+          <ng-container *ngIf="getItemBudgetBreakdown(item) as b">
+            <div *ngIf="b.total > 0" class="line-estimate-block">
+              <div class="line-estimate-row">
+                <div>
+                  <span class="le-label">Planned cost</span>
+                  <span *ngIf="b.mode === 'provisional'" class="le-prov">Estimate · awaiting treasurer validation</span>
+                </div>
+                <span class="le-amt">{{ b.total | number:'1.0-3' }} TND</span>
+              </div>
+              <div class="line-estimate-split">
+                <span>Quote {{ b.supplierQuote | number:'1.0-3' }}</span>
+                <span>Staff {{ b.staff | number:'1.0-3' }}</span>
+                <span>Venue {{ b.location | number:'1.0-3' }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <div *ngIf="item.notes" class="d-cell full" style="margin-bottom:0.75rem;">
+            <div class="dc-label">Description</div>
+            <div class="dc-val" style="font-size:0.75rem;">{{ item.notes }}</div>
+          </div>
+
+          <!-- Validated banner -->
+          <div *ngIf="hasValidatedDevis(item.id)" class="quotes-validated-banner" style="margin-bottom:0.65rem;">
+            Validated quote: {{ getValidatedDevis(item.id)?.supplierName }} &mdash; {{ getValidatedDevis(item.id)?.amount | number:'1.0-3' }} TND
+          </div>
+          <div *ngIf="getItemDevis(item.id).length > 0 && !hasValidatedDevis(item.id)" class="quotes-pending-banner" style="margin-bottom:0.65rem;">
+            Awaiting treasurer validation
+            <button (click)="openDevisManageModal(item)" style="margin-left:auto;font-size:0.69rem;font-weight:600;color:var(--brand-mid);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;">Manage &rarr;</button>
+          </div>
+
+          <div class="divider"></div>
+          <div class="actions-row">
+            <!-- Approve / Reject / Edit / Delete : workflow Responsable Events.
+                 Le Trésorier ne dispose que du bouton "Quotes" pour aller
+                 valider / rejeter / consulter les devis. -->
+            <button *ngIf="isTreasurer" (click)="approveItem(item)"
+                    [disabled]="getItemDevis(item.id).length > 0 && !hasValidatedDevis(item.id)"
+                    class="btn btn-primary">
+              Approve
+            </button>
+            <button (click)="openDevisManageModal(item)" class="btn btn-brand">
+              {{ isTreasurer ? 'Validate quotes' : 'Quotes' }}
+            </button>
+            <button *ngIf="isTreasurer" (click)="rejectItem(item)" class="btn btn-rose">Reject</button>
+            <button *ngIf="canEditNeeds" (click)="openEditItemModal(item)" class="btn btn-ghost btn-icon" title="Edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button *ngIf="canEditNeeds" (click)="openDeleteConfirm(item)" class="btn btn-ghost btn-icon" title="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m5 0V4h4v2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ACTIVE ══ -->
+  <div *ngIf="!loading && activeTab==='approved'">
+    <div *ngIf="approvedItems.length===0" class="empty-state">
+      <div class="empty-icon">&#128203;</div><h3>No active needs</h3><p>Approved needs will appear here.</p>
+    </div>
+    <div class="items-grid">
+      <div *ngFor="let item of approvedItems" class="item-card" [class.overdue-card]="isOverdue(item)">
+        <div class="card-head" [class]="isOverdue(item) ? 'head-rose' : item.status==='returned' ? 'head-emerald' : ''">
+          <div class="head-row">
+            <div class="head-left">
+              <div class="cat-icon">{{ getCategoryIcon(item.category) }}</div>
+              <div>
+                <h3 class="item-name">{{ item.itemName }}</h3>
+                <p class="item-sub">{{ getCategoryLabel(item.category) }} &middot; {{ getEventName(item.eventId) }}</p>
+              </div>
+            </div>
+            <div class="head-badges">
+              <span *ngIf="isOverdue(item)" class="hbadge overdue">{{ daysOverdue(item) }}d overdue</span>
+              <span class="hbadge">{{ getStatusText(item.status) }}</span>
+            </div>
+          </div>
+          <div class="pipeline">
+            <div class="pip-step" [class.done]="isPipelineDone('approved',item.status)" [class.active]="item.status==='approved'"><div class="pip-dot"></div>Approved</div>
+            <div class="pip-step" [class.done]="isPipelineDone('picked_up',item.status)" [class.active]="item.status==='picked_up'"><div class="pip-dot"></div>Picked up</div>
+            <div class="pip-step" [class.done]="isPipelineDone('in_use',item.status)" [class.active]="item.status==='in_use'"><div class="pip-dot"></div>In use</div>
+            <div class="pip-step"><div class="pip-dot"></div>Returned</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Devis chips -->
+          <div class="devis-chips">
+            <span *ngFor="let dv of getItemDevis(item.id); let i=index"
+                  class="devis-chip"
+                  [class.validated]="dv.status==='validated'"
+                  [class.rejected]="dv.status==='rejected'">
+              D{{ i+1 }} {{ dv.supplierName }}
+              <span class="devis-chip-amount">{{ dv.amount | number:'1.0-3' }} TND</span>
+            </span>
+          </div>
+
+          <ng-container *ngIf="getItemBudgetBreakdown(item) as b">
+            <div *ngIf="b.total > 0" class="line-estimate-block">
+              <div class="line-estimate-row">
+                <div>
+                  <span class="le-label">Planned cost</span>
+                  <span *ngIf="b.mode === 'provisional'" class="le-prov">Estimate · awaiting treasurer validation</span>
+                </div>
+                <span class="le-amt">{{ b.total | number:'1.0-3' }} TND</span>
+              </div>
+              <div class="line-estimate-split">
+                <span>Quote {{ b.supplierQuote | number:'1.0-3' }}</span>
+                <span>Staff {{ b.staff | number:'1.0-3' }}</span>
+                <span>Venue {{ b.location | number:'1.0-3' }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <div class="data-grid">
+            <div class="d-cell">
+              <div class="dc-label">Borrowed on</div>
+              <div class="dc-val">{{ item.borrowedDate | date:'d MMM y' }}</div>
+            </div>
+            <div class="d-cell" [class]="isOverdue(item) ? 'rose' : ''">
+              <div class="dc-label" style="display:flex;justify-content:space-between;">
+                Expected return
+                <button *ngIf="canEditNeeds" (click)="openEditDateModal(item)" style="background:none;border:none;cursor:pointer;color:var(--brand-mid);font-size:0.6rem;font-family:'DM Sans',sans-serif;font-weight:600;padding:0;">EDIT</button>
+              </div>
+              <div class="dc-val" [class]="isOverdue(item)?'rose':''">{{ formatDateTime(item.expectedReturnDate) }}</div>
+              <div *ngIf="isOverdue(item)" style="font-size:0.62rem;color:var(--rose);margin-top:1px;">{{ daysOverdue(item) }} day(s) overdue</div>
+            </div>
+            <div *ngIf="getValidatedDevis(item.id)" class="d-cell brand">
+              <div class="dc-label">Validated quote</div>
+              <div class="dc-val brand" style="font-size:0.72rem;">{{ getValidatedDevis(item.id)?.supplierName }} &mdash; {{ getValidatedDevis(item.id)?.amount | number:'1.0-3' }} TND</div>
+            </div>
+          </div>
+
+            <!-- "Mark paid" reste accessible au Trésorier — c'est l'une des
+                 trois actions autorisées sur cette page. -->
+            <button *ngIf="!item.isPaid && isTreasurer" (click)="togglePayment(item)" class="mark-paid-btn">Mark paid</button>
+          </div>
+          <div class="divider"></div>
+          <div class="actions-row">
+            <!-- Workflow logistique (pickup / in use / return / reminder /
+                 delete) : Responsable Events seulement. -->
+            <button *ngIf="canEditNeeds && item.status==='approved'" (click)="markPickedUp(item)" class="btn btn-primary">&rarr; Picked up</button>
+            <button *ngIf="canEditNeeds && item.status==='picked_up'" (click)="markInUse(item)" class="btn btn-primary">&rarr; In use</button>
+            <button *ngIf="canEditNeeds && (item.status==='in_use'||item.status==='picked_up')" (click)="openReturnModal(item)" class="btn btn-emerald">Return</button>
+            <button *ngIf="isTreasuryValidated(item)" (click)="downloadNeedPdf(item)" class="btn btn-ghost">Need PDF</button>
+            <button *ngIf="canEditNeeds" (click)="sendReminder(item)" class="btn btn-amber">Reminder</button>
+            <button *ngIf="canEditNeeds" (click)="openDeleteConfirm(item)" class="btn btn-ghost btn-icon" title="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m5 0V4h4v2"/></svg>
+            </button>
+            <!-- Trésorier : raccourci pour aller (re)valider un devis si nécessaire. -->
+            <button *ngIf="isTreasurer && getItemDevis(item.id).length > 0"
+                    (click)="openDevisManageModal(item)"
+                    class="btn btn-brand">
+              Validate quotes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RETURNED ══ -->
+  <div *ngIf="!loading && activeTab==='returned'">
+    <div *ngIf="returnedItems.length===0" class="empty-state">
+      <div class="empty-icon">&#128230;</div><h3>No returned needs</h3><p>Returned needs will appear here.</p>
+    </div>
+    <div class="items-grid">
+      <div *ngFor="let item of returnedItems" class="item-card returned-card">
+        <div class="card-head head-emerald">
+          <div class="head-row">
+            <div class="head-left">
+              <div class="cat-icon">{{ getCategoryIcon(item.category) }}</div>
+              <div><h3 class="item-name">{{ item.itemName }}</h3><p class="item-sub">{{ getEventName(item.eventId) }}</p></div>
+            </div>
+            <div class="head-badges"><span class="hbadge success">Returned</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="devis-chips">
+            <span *ngFor="let dv of getItemDevis(item.id); let i=index"
+                  class="devis-chip"
+                  [class.validated]="dv.status==='validated'"
+                  [class.rejected]="dv.status==='rejected'">
+              D{{ i+1 }} {{ dv.supplierName }} <span class="devis-chip-amount">{{ dv.amount | number:'1.0-3' }} TND</span>
+            </span>
+          </div>
+          <ng-container *ngIf="getItemBudgetBreakdown(item) as b">
+            <div *ngIf="b.total > 0" class="line-estimate-block">
+              <div class="line-estimate-row">
+                <div>
+                  <span class="le-label">Planned cost</span>
+                  <span *ngIf="b.mode === 'provisional'" class="le-prov">Estimate · awaiting treasurer validation</span>
+                </div>
+                <span class="le-amt">{{ b.total | number:'1.0-3' }} TND</span>
+              </div>
+              <div class="line-estimate-split">
+                <span>Quote {{ b.supplierQuote | number:'1.0-3' }}</span>
+                <span>Staff {{ b.staff | number:'1.0-3' }}</span>
+                <span>Venue {{ b.location | number:'1.0-3' }}</span>
+              </div>
+            </div>
+          </ng-container>
+          <div class="data-grid">
+            <div class="d-cell emerald"><div class="dc-label">Returned on</div><div class="dc-val emerald">{{ formatDateTime(item.actualReturnDate || '') }}</div></div>
+            <div class="d-cell" [class]="item.isPaid ? 'emerald' : 'rose'"><div class="dc-label">Payment</div><div class="dc-val" [class]="item.isPaid ? 'emerald' : 'rose'">{{ item.isPaid ? 'Paid' : 'Unpaid' }}</div></div>
+            <div *ngIf="getValidatedDevis(item.id)" class="d-cell brand"><div class="dc-label">Quote used</div><div class="dc-val brand" style="font-size:0.72rem;">{{ getValidatedDevis(item.id)?.supplierName }}</div></div>
+          </div>
+          <div class="actions-row"><button *ngIf="canEditNeeds" (click)="openDeleteConfirm(item)" class="btn btn-rose">Delete</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- ═══════════════════════ MODALS ═══════════════════════ -->
+
+<!-- DELETE -->
+<div *ngIf="showDeleteConfirmModal && itemToDelete" class="modal-overlay" (click)="closeDeleteConfirm()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-body">
+      <div class="del-icon"><svg stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+      <div class="modal-confirm-title">Delete this need?</div>
+      <p class="modal-confirm-sub">Permanently delete "<strong>{{ itemToDelete.itemName }}</strong>"? This cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" (click)="closeDeleteConfirm()">Cancel</button>
+        <button class="btn-modal btn-modal-delete" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RETURN -->
+<div *ngIf="showReturnModal && returnItem" class="modal-overlay" (click)="closeReturnModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head dark"><div><div class="modal-title">Confirm return</div><div class="modal-subtitle">{{ returnItem.itemName }}</div></div><button class="close-btn" (click)="closeReturnModal()">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="payment-banner" [class]="returnItem.isPaid?'paid':'unpaid'" style="margin-bottom:0.85rem;">{{ returnItem.isPaid ? 'Payment confirmed' : 'Payment not confirmed' }}</div>
+      <div *ngIf="!returnItem.isPaid && isTreasurer" style="display:flex;gap:6px;margin-bottom:0.85rem;">
+        <button (click)="returnItem.isPaid=true" class="btn btn-emerald" style="font-size:0.78rem;">Mark paid</button>
+        <button class="btn btn-ghost" style="font-size:0.78rem;flex:0;" (click)="confirmReturn()">Skip</button>
+      </div>
+      <div class="form-field" style="margin-bottom:0.7rem;"><label class="field-label">Return date &amp; time</label><input type="datetime-local" [(ngModel)]="returnDateTime" class="field-input"></div>
+      <div class="form-field"><label class="field-label">Notes</label><textarea [(ngModel)]="returnNotes" class="field-textarea" placeholder="Condition, remarks…"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" (click)="closeReturnModal()">Cancel</button>
+        <button class="btn-modal btn-modal-emerald" (click)="confirmReturn()">Confirm return</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ITEM -->
+<div *ngIf="showEditItemModal && editItemData" class="modal-overlay" (click)="closeEditItemModal()">
+  <div class="modal modal-lg modal-scroll" (click)="$event.stopPropagation()">
+    <div class="modal-head dark"><div><div class="modal-title">Edit need</div><div class="modal-subtitle">{{ editItemData.itemName }}</div></div><button class="close-btn" (click)="closeEditItemModal()">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="margin-bottom:1rem;">
+        <div class="form-field full"><label class="field-label">Title *</label><input [(ngModel)]="editItemData.itemName" class="field-input"></div>
+        <div class="form-field"><label class="field-label">Category</label>
+          <select [(ngModel)]="editItemData.category" class="field-select">
+            <option value="location_salle">Venue / hall</option>
+            <option value="materiel">Equipment / material</option>
+            <option value="autre">Other</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="field-label">Expected return</label><input type="datetime-local" [(ngModel)]="editItemData.expectedReturnDate" class="field-input"></div>
+        <div class="form-field full"><label class="field-label">Description</label><textarea [(ngModel)]="editItemData.notes" class="field-textarea"></textarea></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" (click)="closeEditItemModal()">Cancel</button>
+        <button class="btn-modal btn-modal-primary" (click)="saveFullItemEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT LENDER -->
+<div *ngIf="showEditLenderModal && editingItem" class="modal-overlay" (click)="showEditLenderModal=false">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-head dark"><div><div class="modal-title">Edit supplier</div><div class="modal-subtitle">{{ editingItem.itemName }}</div></div><button class="close-btn" (click)="showEditLenderModal=false">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field full"><label class="field-label">Name *</label><input [(ngModel)]="editLenderData.lenderName" class="field-input"></div>
+        <div class="form-field"><label class="field-label">Phone</label><input [(ngModel)]="editLenderData.lenderPhone" class="field-input"></div>
+        <div class="form-field"><label class="field-label">Email</label><input [(ngModel)]="editLenderData.lenderEmail" type="email" class="field-input"></div>
+        <div class="form-field full"><label class="field-label">Type</label><select [(ngModel)]="editLenderData.lenderType" class="field-select"><option value="individual">Individual</option><option value="company">Company</option><option value="organization">Organization</option></select></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" (click)="showEditLenderModal=false">Cancel</button>
+        <button class="btn-modal btn-modal-primary" (click)="saveLenderInfo()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT DATE -->
+<div *ngIf="showEditDateModal && editDateItem" class="modal-overlay" (click)="showEditDateModal=false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head dark"><div><div class="modal-title">Edit return date</div><div class="modal-subtitle">{{ editDateItem.itemName }}</div></div><button class="close-btn" (click)="showEditDateModal=false">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="field-label">Date</label><input type="date" [(ngModel)]="editDateData.expectedReturnDate" [min]="getTodayDate()" class="field-input"></div>
+        <div class="form-field"><label class="field-label">Time</label><input type="time" [(ngModel)]="editDateData.expectedReturnTime" class="field-input"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" (click)="showEditDateModal=false">Cancel</button>
+        <button class="btn-modal btn-modal-primary" (click)="saveReturnDate()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEVIS MANAGE -->
+<div *ngIf="showDevisManageModal && devisManageItem" class="modal-overlay" (click)="closeDevisManageModal()">
+  <div class="modal modal-lg modal-scroll" (click)="$event.stopPropagation()">
+    <div class="modal-head dark"><div><div class="modal-title">Quote management</div><div class="modal-subtitle">{{ devisManageItem.itemName }} &mdash; max 3 quotes</div></div><button class="close-btn" (click)="closeDevisManageModal()">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="info-box">Only the <strong>treasurer</strong> can validate a quote. Once validated, that supplier becomes the vendor.</div>
+
+      <!-- Comparison panel -->
+      <div *ngIf="getItemDevis(devisManageItem.id).length >= 2" style="background:var(--amber-soft);border:1px solid rgba(217,119,6,0.18);border-radius:var(--radius-sm);padding:0.75rem 0.9rem;margin-bottom:0.9rem;">
+        <div style="font-size:0.62rem;font-weight:600;color:#78350F;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px;">Comparison</div>
+        <div *ngFor="let dv of getItemDevis(devisManageItem.id); let i=index" style="display:flex;justify-content:space-between;font-size:0.76rem;padding:3px 0;" [style.color]="dv.amount===getMinAmount(devisManageItem.id)?'var(--emerald)':'var(--ink-2)'">
+          <span>D{{ i+1 }} &mdash; {{ dv.supplierName }}</span>
+          <span style="font-weight:600;">{{ dv.amount | number:'1.0-3' }} TND <span *ngIf="dv.amount===getMinAmount(devisManageItem.id)">&#9733;</span></span>
+        </div>
+        <div style="border-top:1px solid rgba(217,119,6,0.2);margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-size:0.7rem;font-weight:600;color:#78350F;">
+          <span>Max savings</span>
+          <span>{{ (getMaxAmount(devisManageItem.id) - getMinAmount(devisManageItem.id)) | number:'1.0-3' }} TND</span>
+        </div>
+      </div>
+
+      <!-- Existing quotes -->
+      <div *ngIf="getItemDevis(devisManageItem.id).length > 0">
+        <div class="sect-head">Quotes received ({{ getItemDevis(devisManageItem.id).length }}/3)</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:1rem;">
+          <div *ngFor="let dv of getItemDevis(devisManageItem.id); let i=index" style="border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">
+            <div (click)="toggleDevisExpand(dv)" style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 0.9rem;cursor:pointer;" [style.background]="dv.status==='validated'?'var(--emerald-soft)':dv.status==='rejected'?'var(--surface)':'var(--card)'">
+              <div style="display:flex;align-items:center;gap:7px;">
+                <span style="font-size:0.63rem;font-weight:600;padding:2px 7px;border-radius:5px;" [style.background]="dv.status==='validated'?'var(--emerald-soft)':'var(--brand-soft)'" [style.color]="dv.status==='validated'?'#086047':'var(--brand-mid)'">D{{ i+1 }}</span>
+                <span style="font-size:0.82rem;font-weight:500;">{{ dv.supplierName }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;">
+                <span style="font-weight:600;font-size:0.82rem;">{{ dv.amount | number:'1.0-3' }} TND</span>
+                <span *ngIf="dv.status==='validated'" style="font-size:0.66rem;color:#086047;font-weight:600;">VALIDATED</span>
+                <span *ngIf="dv.status==='rejected'" style="font-size:0.66rem;color:var(--rose);font-weight:600;">REJECTED</span>
+                <span *ngIf="dv.status==='pending'" style="font-size:0.66rem;color:var(--amber);font-weight:600;">PENDING</span>
+              </div>
+            </div>
+            <div *ngIf="dv.expanded" style="padding:0.8rem 0.9rem;border-top:1px solid var(--border);background:var(--card);">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:0.7rem;">
+                <div *ngIf="dv.contactName" class="d-cell"><div class="dc-label">Contact</div><div class="dc-val">{{ dv.contactName }}</div></div>
+                <div *ngIf="dv.contactPhone" class="d-cell"><div class="dc-label">Phone</div><div class="dc-val">{{ dv.contactPhone }}</div></div>
+                <div *ngIf="dv.validUntil" class="d-cell"><div class="dc-label">Valid until</div><div class="dc-val">{{ dv.validUntil | date:'d MMM y' }}</div></div>
+              </div>
+              <div *ngIf="dv.deliveryIncluded" style="font-size:0.73rem;color:var(--emerald);margin-bottom:0.5rem;">Delivery included</div>
+              <div *ngIf="dv.notes" style="font-size:0.75rem;color:var(--ink-2);background:var(--surface);border-radius:7px;padding:7px;margin-bottom:0.65rem;">{{ dv.notes }}</div>
+              <div *ngIf="dv.status !== 'validated' && isTreasurer" style="display:flex;gap:6px;">
+                <button (click)="openValidateDevisModal(devisManageItem, dv)" class="btn btn-emerald" style="font-size:0.76rem;">Validate</button>
+                <button (click)="rejectDevis(dv, devisManageItem.id)" class="btn btn-rose" style="font-size:0.76rem;">Reject</button>
+              </div>
+              <div *ngIf="dv.status !== 'validated' && !isTreasurer" style="font-size:0.74rem;color:var(--ink-2);font-style:italic;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px dashed var(--border);border-radius:7px;padding:6px 9px;">
+                <span>🔒</span>
+                <span>Awaiting treasurer approval — only the treasurer can validate or reject this quote.</span>
+              </div>
+              <div *ngIf="dv.status==='validated'" style="color:#086047;font-size:0.78rem;font-weight:500;">This quote was validated by the treasurer.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add quote — Responsable Events seulement. -->
+      <div *ngIf="canEditNeeds && !hasValidatedDevis(devisManageItem.id)">
+        <div class="sect-head">Add a quote ({{ getItemDevis(devisManageItem.id).length }} current)</div>
+        <div class="form-grid" style="margin-bottom:0.7rem;">
+          <div class="form-field full"><label class="field-label">Supplier *</label><input [(ngModel)]="newSingleDevis.supplierName" class="field-input" placeholder="Supplier name"></div>
+          <div class="form-field"><label class="field-label">Amount (TND) *</label><input type="number" [(ngModel)]="newSingleDevis.amount" min="0" step="0.001" class="field-input" placeholder="0.000"></div>
+          <div class="form-field"><label class="field-label">Valid until</label><input type="date" [(ngModel)]="newSingleDevis.validUntil" [min]="getTodayDate()" class="field-input"></div>
+          <div class="form-field"><label class="field-label">Contact</label><input [(ngModel)]="newSingleDevis.contactName" class="field-input"></div>
+          <div class="form-field"><label class="field-label">Phone</label><input [(ngModel)]="newSingleDevis.contactPhone" class="field-input"></div>
+          <div class="form-field"><label class="field-label">Delivery included</label><select [(ngModel)]="newSingleDevis.deliveryIncluded" class="field-select"><option [ngValue]="false">No</option><option [ngValue]="true">Yes</option></select></div>
+          <div class="form-field full"><label class="field-label">Notes</label><textarea [(ngModel)]="newSingleDevis.notes" class="field-textarea" rows="2" placeholder="Terms…"></textarea></div>
+        </div>
+        <button (click)="addSingleDevis()" class="btn-modal btn-modal-primary" [disabled]="!newSingleDevis.supplierName || !newSingleDevis.amount">Add quote</button>
+      </div>
+      <div *ngIf="hasValidatedDevis(devisManageItem.id)" class="success-banner">A quote has been validated. The supplier selection is finalized.</div>
+    </div>
+  </div>
+</div>
+
+<!-- VALIDATE QUOTE -->
+<div *ngIf="showValidateModal && devisToValidate" class="modal-overlay" (click)="showValidateModal=false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head dark"><div><div class="modal-title">Validate quote</div><div class="modal-subtitle">{{ devisToValidate.supplierName }} &mdash; {{ devisToValidate.amount | number:'1.0-3' }} TND</div></div><button class="close-btn" (click)="showValidateModal=false">&#10005;</button></div>
+    <div class="modal-body">
+      <div class="info-box">Validating this quote selects this supplier and records the expense for treasury.</div>
+      <div class="form-field" style="margin-bottom:1.25rem;">
+        <label class="field-label">Validation note (optional)</label>
+        <textarea [(ngModel)]="validationNote" class="field-textarea" rows="3" placeholder="Reason for choice, conditions…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal btn-modal-cancel" (click)="showValidateModal=false">Cancel</button>
+        <button class="btn-modal btn-modal-emerald" (click)="confirmValidateDevis()">Confirm validation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ NEW NEED MODAL — 3 STEPS ════════════════════ -->
+<div *ngIf="showNeedModal" class="modal-overlay" (click)="closeNeedModal()">
+  <div class="modal modal-xxl modal-scroll" (click)="$event.stopPropagation()">
+    <div class="modal-head dark">
+      <div>
+        <div class="modal-title">
+          <span *ngIf="needStep==='info'">New need</span>
+          <span *ngIf="needStep==='devis'">3 supplier quotes</span>
+          <span *ngIf="needStep==='confirm'">Review &amp; submit</span>
+        </div>
+        <div class="modal-subtitle">
+          <span *ngIf="needStep==='info'">Step 1 &mdash; Category and description</span>
+          <span *ngIf="needStep==='devis'">Step 2 &mdash; Enter three different supplier quotes</span>
+          <span *ngIf="needStep==='confirm'">Step 3 &mdash; Compare and submit your request</span>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeNeedModal()">&#10005;</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Step bar -->
+      <div class="step-bar">
+        <div class="step-item" [class.active]="needStep==='info'" [class.done]="needStep!=='info'">
+          <div class="step-circle" [class.active]="needStep==='info'" [class.done]="needStep!=='info'">{{ needStep!=='info'?'&#10003;':'1' }}</div>
+          <div class="step-label">Need</div>
+        </div>
+        <div class="step-item" [class.active]="needStep==='devis'" [class.done]="needStep==='confirm'">
+          <div class="step-circle" [class.active]="needStep==='devis'" [class.done]="needStep==='confirm'">{{ needStep==='confirm'?'&#10003;':'2' }}</div>
+          <div class="step-label">3 quotes</div>
+        </div>
+        <div class="step-item" [class.active]="needStep==='confirm'">
+          <div class="step-circle" [class.active]="needStep==='confirm'">3</div>
+          <div class="step-label">Submit</div>
+        </div>
+      </div>
+
+      <!-- ── STEP 1: INFO ── -->
+      <div *ngIf="needStep==='info'">
+        <div class="sect-head">Need category</div>
+        <div class="form-grid" style="margin-bottom:1rem;">
+          <div class="form-field">
+            <label class="field-label">Category *</label>
+            <select [(ngModel)]="needForm.category" class="field-select">
+              <option value="location_salle">Venue / hall</option>
+              <option value="materiel">Equipment / material</option>
+              <option value="autre">Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Need title *</label>
+            <input [(ngModel)]="needForm.title" class="field-input" [class.err]="fieldError('title')" placeholder="e.g. Conference room rental">
+            <span *ngIf="fieldError('title')" class="field-error">{{ fieldError('title') }}</span>
+          </div>
+          <div class="form-field full">
+            <label class="field-label">Description (optional)</label>
+            <textarea [(ngModel)]="needForm.description" class="field-textarea" rows="2" placeholder="Details, constraints…"></textarea>
+          </div>
+        </div>
+
+        <div class="sect-head">Event *<span *ngIf="needForm.eventId" style="color:var(--emerald);font-size:0.62rem;margin-left:7px;font-weight:500;">Selected</span></div>
+        <div class="form-field full" style="margin-bottom:0.5rem;">
+          <label class="field-label">Search</label>
+          <input [(ngModel)]="eventSearchTerm" class="field-input" placeholder="Event name or location…">
+        </div>
+        <div class="event-grid" style="margin-bottom:0.5rem;">
+          <div *ngFor="let ev of filteredEvents" class="event-card" [class.selected]="needForm.eventId===ev.id" (click)="onEventPicked(ev.id)">
+            <div class="event-card-name">{{ ev.name }}</div>
+            <div *ngIf="ev.date" class="event-card-sub">{{ ev.date | date:'d MMM y' }}</div>
+            <div *ngIf="ev.location" class="event-card-sub">{{ ev.location }}</div>
+          </div>
+        </div>
+        <span *ngIf="fieldError('eventId')" class="field-error">{{ fieldError('eventId') }}</span>
+
+        <div class="sect-head" style="margin-top:1.25rem;">Staff &amp; service budgets <span style="font-weight:400;font-size:0.72rem;color:var(--ink-3);">(optional — no supplier quote)</span></div>
+        <p style="font-size:0.74rem;color:var(--ink-3);margin-bottom:0.65rem;">When you select an event, names and roles are copied from the event staff on the calendar. Add or edit per-person budgets here; they count toward this need’s combined estimate.</p>
+        <div *ngIf="needForm.staffBudgetLines.length" class="flex flex-col gap-2 mb-2">
+          <div *ngFor="let sl of needForm.staffBudgetLines; let si = index"
+               class="flex items-center gap-2 rounded-xl px-3 py-2"
+               style="background:var(--brand-soft);">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:0.78rem;font-weight:600;color:var(--brand);">{{ sl.name }}</div>
+              <div style="font-size:0.7rem;color:var(--ink-3);">{{ sl.role }}</div>
+            </div>
+            <label style="font-size:0.7rem;color:var(--ink-3);">Budget</label>
+            <input type="number" min="0" step="0.001"
+                   [ngModel]="sl.budget"
+                   (ngModelChange)="updateNeedStaffBudget(si, $event)"
+                   class="field-input" style="width:110px;" placeholder="0">
+            <span style="font-size:0.72rem;color:var(--ink-3);">TND</span>
+            <button type="button" (click)="removeNeedStaffLine(si)"
+                    style="border:none;background:none;cursor:pointer;color:var(--rose);font-size:1.1rem;line-height:1;">×</button>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-bottom:0.4rem;">
+          <div class="form-field">
+            <label class="field-label">Name</label>
+            <input [(ngModel)]="newNeedStaffName" class="field-input" placeholder="e.g. Jane Doe">
+          </div>
+          <div class="form-field">
+            <label class="field-label">Role</label>
+            <input [(ngModel)]="newNeedStaffRole" class="field-input" list="needStaffRoleHints"
+                   placeholder="Suggestion ou saisie libre">
+            <datalist id="needStaffRoleHints">
+              @for (r of staffRoleHints; track r) {
+                <option [value]="r"></option>
+              }
+            </datalist>
+          </div>
+          <div class="form-field">
+            <label class="field-label">Budget (TND)</label>
+            <input type="number" min="0" step="0.001" [(ngModel)]="newNeedStaffBudget" class="field-input" placeholder="0">
+          </div>
+          <div class="form-field" style="display:flex;align-items:flex-end;">
+            <button type="button" class="btn btn-primary" style="width:100%;" (click)="addNeedStaffLine()">Add staff line</button>
+          </div>
+        </div>
+        <p *ngIf="newNeedStaffError" style="color:var(--rose);font-size:0.72rem;margin-bottom:0.5rem;">{{ newNeedStaffError }}</p>
+        <p *ngIf="getNeedStaffBudgetTotal() > 0" style="font-size:0.78rem;font-weight:600;color:var(--ink-2);margin-bottom:0.5rem;">
+          Staff / services subtotal: {{ getNeedStaffBudgetTotal() | number:'1.0-3' }} TND
+        </p>
+
+        <div class="modal-actions">
+          <button class="btn-modal btn-modal-cancel" (click)="closeNeedModal()">Cancel</button>
+          <button class="btn-modal btn-modal-primary" (click)="goToDevisStep()">Next &rarr; 3 quotes</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: 3 DEVIS ── -->
+      <div *ngIf="needStep==='devis'">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.1rem;">&#128203;</span>
+            <span style="font-family:'DM Serif Display',serif; font-size:1.05rem; color:var(--brand);">3 QUOTES REQUIRED</span>
+          </div>
+          <span style="font-size:0.68rem; font-weight:600; padding:4px 10px; border-radius:12px;"
+                [style.background]="filledDevisCount >= 3 ? 'var(--emerald-soft)' : filledDevisCount > 0 ? 'var(--amber-soft)' : 'var(--rose-soft)'"
+                [style.color]="filledDevisCount >= 3 ? '#086047' : filledDevisCount > 0 ? '#854F0B' : 'var(--rose)'">
+            {{ filledDevisCount }}/3 filled
+          </span>
+        </div>
+
+        <div style="font-size:0.75rem; color:var(--ink-3); margin-bottom:1rem; line-height:1.55;">
+          Add three different supplier quotes. Fields marked <span style="color:var(--rose); font-weight:600;">*</span> are required (Supplier + Amount + Contact).
+          You can import a PDF to auto-fill each quote.
+        </div>
+
+        <!-- Validation error -->
+        <div *ngIf="fieldError('devis')" class="error-banner">{{ fieldError('devis') }}</div>
+
+        <!-- 3 Devis cards side by side -->
+        <div class="devis-cards-row">
+          <div *ngFor="let dv of needForm.devis; let q=index"
+               class="devis-card"
+               [class.filled]="dv.supplierName.trim() && dv.amount && dv.contactName.trim()">
+            <!-- Card header -->
+            <div class="devis-card-head"
+                 [class.filled-head]="dv.supplierName.trim() && dv.amount"
+                 [class.empty-head]="!dv.supplierName.trim() || !dv.amount">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="devis-num-badge">Quote {{ q + 1 }}</span>
+                <span *ngIf="dv.supplierName.trim()" style="font-size:0.78rem; font-weight:500; color:var(--ink);">{{ dv.supplierName }}</span>
+                <span *ngIf="!dv.supplierName.trim()" style="font-size:0.75rem; color:var(--ink-4); font-style:italic;">Empty</span>
+              </div>
+              <span *ngIf="dv.supplierName.trim() && dv.amount && dv.contactName.trim()"
+                    style="font-size:0.6rem; font-weight:600; padding:2px 7px; border-radius:10px; background:var(--emerald-soft); color:#086047;">Complete</span>
+              <span *ngIf="!dv.supplierName.trim() || !dv.amount || !dv.contactName.trim()"
+                    style="font-size:0.6rem; font-weight:500; padding:2px 7px; border-radius:10px; background:var(--surface); color:var(--ink-4); border:1px solid var(--border);">To fill</span>
+            </div>
+
+            <!-- Card body -->
+            <div class="devis-card-body">
+              <!-- Import PDF button -->
+              <div style="margin-bottom:0.6rem;">
+                <label style="display:flex; align-items:center; gap:6px; padding:7px 10px; border-radius:var(--radius-sm); border:1px dashed var(--brand-mid); background:var(--brand-soft); cursor:pointer; font-size:0.72rem; font-weight:500; color:var(--brand-mid); width:100%; justify-content:center; transition:background 0.15s; box-sizing:border-box;"
+                       [style.opacity]="isDevisExtracting('devis_' + q) ? '0.6' : '1'">
+                  <span *ngIf="!isDevisExtracting('devis_' + q)" style="font-size:0.9rem;">&#128206;</span>
+                  <span *ngIf="isDevisExtracting('devis_' + q)" style="width:12px;height:12px;border:2px solid rgba(76,70,184,0.3);border-top-color:var(--brand-mid);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;"></span>
+                  {{ isDevisExtracting('devis_' + q) ? 'Extracting…' : 'Import PDF' }}
+                  <input type="file" accept=".pdf" style="display:none;"
+                         (change)="importDevisPdf($event, dv, 'devis_' + q)"
+                         [disabled]="isDevisExtracting('devis_' + q)">
+                </label>
+              </div>
+
+              <div class="form-field">
+                <label class="field-label">Supplier <span style="color:var(--rose);">*</span></label>
+                <input [(ngModel)]="dv.supplierName" class="field-input" placeholder="Supplier name">
+              </div>
+              <div class="form-field">
+                <label class="field-label">Amount (TND) <span style="color:var(--rose);">*</span></label>
+                <input type="number" [(ngModel)]="dv.amount" min="0" step="0.001" class="field-input" placeholder="0.000">
+              </div>
+              <div class="form-field">
+                <label class="field-label">Contact <span style="color:var(--rose);">*</span></label>
+                <input [(ngModel)]="dv.contactName" class="field-input" placeholder="Contact name">
+              </div>
+              <div class="form-field">
+                <label class="field-label">Phone</label>
+                <input [(ngModel)]="dv.contactPhone" class="field-input" placeholder="+216 XX XXX XXX">
+              </div>
+              <div class="form-field">
+                <label class="field-label">Email</label>
+                <input [(ngModel)]="dv.contactEmail" type="email" class="field-input" placeholder="email@supplier.com">
+              </div>
+              <div class="form-field">
+                <label class="field-label">Delivery included</label>
+                <select [(ngModel)]="dv.deliveryIncluded" class="field-select">
+                  <option [ngValue]="false">No</option>
+                  <option [ngValue]="true">Yes</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="field-label">Valid until</label>
+                <input type="date" [(ngModel)]="dv.validUntil" [min]="getTodayDate()" class="field-input">
+              </div>
+              <div class="form-field">
+                <label class="field-label">Notes</label>
+                <textarea [(ngModel)]="dv.notes" class="field-textarea" rows="2" placeholder="Conditions..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-modal btn-modal-cancel" (click)="goBackToInfo()">&larr; Back</button>
+          <button class="btn-modal btn-modal-primary" (click)="goToConfirmStep()">Next &rarr; Review</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: COMPARE + SUBMIT ── -->
+      <div *ngIf="needStep==='confirm'">
+        <!-- Summary -->
+        <div class="info-box" style="margin-bottom:1.2rem;">
+          <strong>{{ needForm.title }}</strong> &mdash; {{ getCategoryLabel(needForm.category) }} &mdash; {{ getEventName(needForm.eventId) }}
+          <span *ngIf="needForm.description" style="display:block;margin-top:4px;font-size:0.73rem;">{{ needForm.description }}</span>
+        </div>
+
+        <!-- Comparison table -->
+        <div class="sect-head">Comparison</div>
+        <div style="overflow-x:auto; margin-bottom:1.2rem;">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Quote 1</th>
+                <th>Quote 2</th>
+                <th>Quote 3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;color:var(--ink-3);">Supplier</td>
+                <td *ngFor="let dv of needForm.devis">{{ dv.supplierName }}</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;color:var(--ink-3);">Amount</td>
+                <td *ngFor="let dv of needForm.devis"
+                    [style.color]="dv.amount && Number(dv.amount) === getMinAmountForm() ? 'var(--emerald)' : 'var(--ink)'"
+                    [style.font-weight]="dv.amount && Number(dv.amount) === getMinAmountForm() ? '700' : '400'">
+                  {{ dv.amount | number:'1.0-3' }} TND
+                  <span *ngIf="dv.amount && Number(dv.amount) === getMinAmountForm()" style="margin-left:4px;">&#9733; Best</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;color:var(--ink-3);">Delivery</td>
+                <td *ngFor="let dv of needForm.devis">{{ dv.deliveryIncluded ? 'Yes' : 'No' }}</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;color:var(--ink-3);">Valid until</td>
+                <td *ngFor="let dv of needForm.devis">{{ dv.validUntil ? (dv.validUntil | date:'d MMM y') : '&mdash;' }}</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;color:var(--ink-3);">Contact</td>
+                <td *ngFor="let dv of needForm.devis">{{ dv.contactName }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Best price highlight -->
+        <div style="background:var(--emerald-soft); border:1px solid rgba(13,158,106,0.25); border-radius:var(--radius-sm); padding:0.75rem 1rem; margin-bottom:1rem; display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.2rem;">&#127942;</span>
+          <div>
+            <div style="font-size:0.78rem; font-weight:600; color:#086047;">Best supplier quote</div>
+            <div style="font-size:0.85rem; color:#064E3B;">
+              <ng-container *ngFor="let dv of needForm.devis">
+                <span *ngIf="dv.amount && Number(dv.amount) === getMinAmountForm()">
+                  {{ dv.supplierName }} &mdash; {{ dv.amount | number:'1.0-3' }} TND
+                </span>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="getNeedStaffBudgetTotal() > 0 || getNeedSupplierLowTotal() > 0" style="background:var(--brand-soft); border:1px solid var(--border-mid); border-radius:var(--radius-sm); padding:0.85rem 1rem; margin-bottom:1rem;">
+          <div style="font-size:0.72rem; font-weight:600; color:var(--brand); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Budget summary (this need)</div>
+          <div style="font-size:0.8rem; color:var(--ink-2);">Lowest of 3 quotes: <strong>{{ getNeedSupplierLowTotal() | number:'1.0-3' }} TND</strong></div>
+          <div *ngIf="getNeedStaffBudgetTotal() > 0" style="font-size:0.8rem; color:var(--ink-2);">Staff / services: <strong>{{ getNeedStaffBudgetTotal() | number:'1.0-3' }} TND</strong></div>
+          <div style="font-size:0.9rem; font-weight:700; color:var(--ink); margin-top:8px; padding-top:8px; border-top:1px solid var(--border);">
+            Combined estimate: {{ getNeedCombinedBudgetTotal() | number:'1.0-3' }} TND
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
+
+        <div class="modal-actions">
+          <button class="btn-modal btn-modal-cancel" (click)="goBackToDevis()">&larr; Back</button>
+          <button class="btn-modal btn-modal-emerald" (click)="saveNeed()" [disabled]="saving">
+            <span *ngIf="!saving">Submit request</span>
+            <span *ngIf="saving" style="display:flex;align-items:center;gap:6px;justify-content:center;">
+              <span style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;"></span>
+              Saving...
+            </span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

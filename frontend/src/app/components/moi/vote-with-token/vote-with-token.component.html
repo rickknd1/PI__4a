@@ -1,0 +1,145 @@
+<div class="vote-container">
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Vérification du token et chargement de l'élection...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-icon">❌</div>
+    <h2>Erreur</h2>
+    <p>{{ error }}</p>
+    <button class="btn-secondary" routerLink="/dashboard">
+      Retour au tableau de bord
+    </button>
+  </div>
+
+  <!-- Vote Form -->
+  <div *ngIf="election && !loading && !error" class="vote-card">
+    <div class="card-header">
+      <h1>🗳️ {{ election.title }}</h1>
+      <p class="subtitle">{{ election.description }}</p>
+    </div>
+
+    <div class="election-info">
+      <div class="info-item">
+        <span class="label">📅 Date de début:</span>
+        <span class="value">{{ election.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">📅 Date de fin:</span>
+        <span class="value">{{ election.endDate | date:'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">📊 Type:</span>
+        <span class="value">{{ election.type === 'IN_PERSON' ? 'Présentiel' : 'Virtuel' }}</span>
+      </div>
+    </div>
+
+    <div class="candidates-section">
+      <h2>Candidats</h2>
+      
+      <!-- ✅ BUG 3: Message selon le mode de vote -->
+      <div *ngIf="votingMode === 'COMMITTEE_MEMBERS_ONLY'" class="info-box">
+        ℹ️ Vous votez pour votre comité: <strong>{{ userCommittee || 'Non défini' }}</strong>
+      </div>
+      <div *ngIf="votingMode === 'ALL_CLUB_MEMBERS'" class="info-box">
+        ℹ️ Vous pouvez voter pour tous les comités. Les candidats sont regroupés par comité ci-dessous.
+      </div>
+      
+      <p class="instruction">Sélectionnez le candidat de votre choix :</p>
+
+      <!-- ✅ BUG 3: Affichage groupé par comité si ALL_CLUB_MEMBERS -->
+      <div *ngIf="votingMode === 'ALL_CLUB_MEMBERS' && candidatesByCommittee.size > 0">
+        <div *ngFor="let entry of candidatesByCommittee | keyvalue" class="committee-section">
+          <h3 class="committee-title">📋 Comité {{ entry.key }}</h3>
+          <div class="candidates-list">
+            <div 
+              *ngFor="let candidate of entry.value" 
+              class="candidate-card"
+              [class.selected]="selectedCandidateId === candidate.userId"
+              (click)="selectCandidate(candidate.userId)"
+            >
+              <div class="candidate-header">
+                <div class="candidate-avatar">
+                  {{ candidate.name.charAt(0) }}
+                </div>
+                <div class="candidate-info">
+                  <h3>{{ candidate.name }}</h3>
+                  <p class="candidate-email">{{ candidate.email }}</p>
+                </div>
+                <div class="selection-indicator">
+                  <span *ngIf="selectedCandidateId === candidate.userId">✓</span>
+                </div>
+              </div>
+
+              <div *ngIf="candidate.motivation" class="candidate-motivation">
+                <strong>Motivation:</strong>
+                <p>{{ candidate.motivation }}</p>
+              </div>
+
+              <div *ngIf="candidate.manifesto" class="candidate-manifesto">
+                <strong>Programme:</strong>
+                <p>{{ candidate.manifesto }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ BUG 3: Affichage simple si COMMITTEE_MEMBERS_ONLY -->
+      <div *ngIf="votingMode === 'COMMITTEE_MEMBERS_ONLY' || candidatesByCommittee.size === 0" class="candidates-list">
+        <div 
+          *ngFor="let candidate of candidates" 
+          class="candidate-card"
+          [class.selected]="selectedCandidateId === candidate.userId"
+          (click)="selectCandidate(candidate.userId)"
+        >
+          <div class="candidate-header">
+            <div class="candidate-avatar">
+              {{ candidate.name.charAt(0) }}
+            </div>
+            <div class="candidate-info">
+              <h3>{{ candidate.name }}</h3>
+              <p class="candidate-email">{{ candidate.email }}</p>
+            </div>
+            <div class="selection-indicator">
+              <span *ngIf="selectedCandidateId === candidate.userId">✓</span>
+            </div>
+          </div>
+
+          <div *ngIf="candidate.motivation" class="candidate-motivation">
+            <strong>Motivation:</strong>
+            <p>{{ candidate.motivation }}</p>
+          </div>
+
+          <div *ngIf="candidate.manifesto" class="candidate-manifesto">
+            <strong>Programme:</strong>
+            <p>{{ candidate.manifesto }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vote-actions">
+      <button 
+        class="btn-vote" 
+        (click)="vote()"
+        [disabled]="!selectedCandidateId || voting"
+      >
+        <span *ngIf="!voting">🗳️ Voter</span>
+        <span *ngIf="voting">⏳ Vote en cours...</span>
+      </button>
+    </div>
+
+    <div class="warning-box">
+      <p><strong>⚠️ Important:</strong></p>
+      <ul>
+        <li>Votre vote est définitif et ne peut pas être modifié</li>
+        <li>Le vote est anonyme</li>
+        <li>Vous ne pouvez voter qu'une seule fois</li>
+      </ul>
+    </div>
+  </div>
+</div>
